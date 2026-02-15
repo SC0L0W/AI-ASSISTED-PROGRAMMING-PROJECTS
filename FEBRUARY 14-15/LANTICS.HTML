@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creative Structural Render</title>
+    <style>
+        body { margin: 0; background: radial-gradient(circle, #2c3e50 0%, #000000 100%); overflow: hidden; font-family: 'Segoe UI', sans-serif; }
+        #overlay { position: absolute; bottom: 20px; left: 20px; color: #ecf0f1; background: rgba(0,0,0,0.4); padding: 15px; border-left: 4px solid #3498db; backdrop-filter: blur(5px); }
+        h1 { margin: 0; font-size: 18px; letter-spacing: 1px; color: #3498db; }
+        p { margin: 5px 0 0 0; font-size: 12px; opacity: 0.8; }
+    </style>
+</head>
+<body>
+    <div id="overlay">
+        <h1>PRO-STRUCT VISUALIZER</h1>
+        <p>4-Column Steel Frame | Isolated Footings</p>
+    </div>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+      }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        // --- SCENE SETUP ---
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(12, 10, 15);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.shadowMap.enabled = true; // Enable Shadows
+        document.body.appendChild(renderer.domElement);
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+
+        // --- LIGHTING ---
+        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.5);
+        scene.add(hemiLight);
+
+        const spotLight = new THREE.SpotLight(0xffffff, 500);
+        spotLight.position.set(10, 15, 10);
+        spotLight.castShadow = true;
+        spotLight.shadow.mapSize.width = 2048;
+        spotLight.shadow.mapSize.height = 2048;
+        scene.add(spotLight);
+
+        // --- MATERIALS ---
+        const steelMat = new THREE.MeshPhysicalMaterial({ 
+            color: 0x2c3e50, metalness: 0.9, roughness: 0.1, clearcoat: 1.0 
+        });
+        const concMat = new THREE.MeshStandardMaterial({ color: 0xbdc3c7, roughness: 0.9 });
+        const floorMat = new THREE.MeshStandardMaterial({ color: 0x34495e, roughness: 1 });
+
+        // --- ELEMENTS ---
+        const span = 6;
+        const height = 5;
+
+        // Ground Plane (Slab)
+        const ground = new THREE.Mesh(new THREE.PlaneGeometry(30, 30), floorMat);
+        ground.rotation.x = -Math.PI / 2;
+        ground.position.y = -0.51;
+        ground.receiveShadow = true;
+        scene.add(ground);
+
+        function addMember(geometry, material, x, y, z, rx=0, ry=0, rz=0) {
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.set(x, y, z);
+            mesh.rotation.set(rx, ry, rz);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            scene.add(mesh);
+        }
+
+        // Generate 4 Corners
+        const positions = [[-span/2, -span/2], [span/2, -span/2], [-span/2, span/2], [span/2, span/2]];
+        
+        positions.forEach(([x, z]) => {
+            // Column
+            addMember(new THREE.BoxGeometry(0.4, height, 0.4), steelMat, x, height/2, z);
+            // Footing
+            addMember(new THREE.BoxGeometry(1.5, 0.5, 1.5), concMat, x, -0.25, z);
+        });
+
+        // Beams
+        addMember(new THREE.BoxGeometry(span, 0.3, 0.3), steelMat, 0, height, -span/2); // Front
+        addMember(new THREE.BoxGeometry(span, 0.3, 0.3), steelMat, 0, height, span/2);  // Back
+        addMember(new THREE.BoxGeometry(span, 0.3, 0.3), steelMat, -span/2, height, 0, 0, Math.PI/2, 0); // Left
+        addMember(new THREE.BoxGeometry(span, 0.3, 0.3), steelMat, span/2, height, 0, 0, Math.PI/2, 0);  // Right
+
+        // --- ANIMATION ---
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        animate();
+    </script>
+</body>
+</html>
