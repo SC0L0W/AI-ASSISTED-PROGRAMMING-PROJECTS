@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beam Analysis Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 0;
+        }
+
+        .sidebar {
+            background: #f8f9fa;
+            padding: 30px;
+            border-right: 2px solid #e9ecef;
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+        }
+
+        .main-area {
+            padding: 30px;
+        }
+
+        .section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e9ecef;
+            border-radius: 5px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            padding: 8px 15px;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        canvas {
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            background: white;
+            max-width: 100%;
+            height: auto;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .result-card h3 {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .result-card .value {
+            font-size: 1.8em;
+            font-weight: bold;
+        }
+
+        .load-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .load-item h4 {
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .load-item p {
+            margin: 5px 0;
+            color: #6c757d;
+        }
+
+        .canvas-container {
+            margin-bottom: 30px;
+        }
+
+        .canvas-label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #764ba2;
+        }
+
+        .info-text {
+            font-size: 0.85em;
+            color: #6c757d;
+            margin-top: 5px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏗️ Beam Analysis Tool</h1>
+            <p>Analyze simply supported beams with various loading conditions</p>
+        </div>
+
+        <div class="content">
+            <div class="sidebar">
+                <div class="section">
+                    <h2>Beam Properties</h2>
+                    <div class="form-group">
+                        <label>Beam Length (m)</label>
+                        <input type="number" id="beamLength" value="10" min="1" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label>Young's Modulus E (GPa)</label>
+                        <input type="number" id="youngModulus" value="200" min="1" step="1">
+                        <p class="info-text">Steel: ~200 GPa, Concrete: ~30 GPa</p>
+                    </div>
+                    <div class="form-group">
+                        <label>Moment of Inertia I (cm⁴)</label>
+                        <input type="number" id="momentInertia" value="10000" min="1" step="100">
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>Cross-Section</h2>
+                    <div class="form-group">
+                        <label>Section Type</label>
+                        <select id="sectionType" onchange="updateSectionInputs()">
+                            <option value="rectangular">Rectangular</option>
+                            <option value="circular">Circular</option>
+                            <option value="i-beam">I-Beam</option>
+                            <option value="custom">Custom I</option>
+                        </select>
+                    </div>
+                    <div id="sectionInputs"></div>
+                    <button onclick="calculateSectionProperties()">Calculate Section Properties</button>
+                </div>
+
+                <div class="section">
+                    <h2>Add Load</h2>
+                    <div class="form-group">
+                        <label>Load Type</label>
+                        <select id="loadType">
+                            <option value="point">Point Load</option>
+                            <option value="udl">Uniform Distributed Load</option>
+                            <option value="moment">Moment</option>
+                        </select>
+                    </div>
+                    <div id="loadInputs">
+                        <div class="form-group">
+                            <label>Magnitude (kN or kNm)</label>
+                            <input type="number" id="loadMagnitude" value="10" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label>Position (m)</label>
+                            <input type="number" id="loadPosition" value="5" step="0.1">
+                        </div>
+                    </div>
+                    <button onclick="addLoad()">Add Load</button>
+                </div>
+
+                <div class="section">
+                    <h2>Current Loads</h2>
+                    <div id="loadsList"></div>
+                    <button class="btn-secondary" onclick="clearLoads()">Clear All Loads</button>
+                </div>
+
+                <button onclick="analyzeBeam()" style="margin-top: 20px; font-size: 1.1em; padding: 15px;">
+                    🔍 Analyze Beam
+                </button>
+            </div>
+
+            <div class="main-area">
+                <div class="section">
+                    <h2>Analysis Results</h2>
+                    <div class="results-grid" id="resultsGrid">
+                        <div class="result-card">
+                            <h3>Max Moment</h3>
+                            <div class="value" id="maxMoment">-</div>
+                        </div>
+                        <div class="result-card">
+                            <h3>Max Shear</h3>
+                            <div class="value" id="maxShear">-</div>
+                        </div>
+                        <div class="result-card">
+                            <h3>Max Deflection</h3>
+                            <div class="value" id="maxDeflection">-</div>
+                        </div>
+                        <div class="result-card">
+                            <h3>Reaction at A</h3>
+                            <div class="value" id="reactionA">-</div>
+                        </div>
+                        <div class="result-card">
+                            <h3>Reaction at B</h3>
+                            <div class="value" id="reactionB">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="canvas-container">
+                    <div class="canvas-label">Beam Diagram</div>
+                    <canvas id="beamCanvas" width="800" height="150"></canvas>
+                </div>
+
+                <div class="canvas-container">
+                    <div class="canvas-label">Shear Force Diagram (kN)</div>
+                    <canvas id="shearCanvas" width="800" height="250"></canvas>
+                </div>
+
+                <div class="canvas-container">
+                    <div class="canvas-label">Bending Moment Diagram (kNm)</div>
+                    <canvas id="momentCanvas" width="800" height="250"></canvas>
+                </div>
+
+                <div class="canvas-container">
+                    <div class="canvas-label">Deflection Diagram (mm)</div>
+                    <canvas id="deflectionCanvas" width="800" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let loads = [];
+
+        // Update section inputs based on section type
+        function updateSectionInputs() {
+            const sectionType = document.getElementById('sectionType').value;
+            const container = document.getElementById('sectionInputs');
+            
+            let html = '';
+            
+            if (sectionType === 'rectangular') {
+                html = `
+                    <div class="form-group">
+                        <label>Width b (mm)</label>
+                        <input type="number" id="width" value="200" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Height h (mm)</label>
+                        <input type="number" id="height" value="400" min="1">
+                    </div>
+                `;
+            } else if (sectionType === 'circular') {
+                html = `
+                    <div class="form-group">
+                        <label>Diameter d (mm)</label>
+                        <input type="number" id="diameter" value="300" min="1">
+                    </div>
+                `;
+            } else if (sectionType === 'i-beam') {
+                html = `
+                    <div class="form-group">
+                        <label>Flange Width bf (mm)</label>
+                        <input type="number" id="flangeWidth" value="200" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Flange Thickness tf (mm)</label>
+                        <input type="number" id="flangeThickness" value="20" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Web Height hw (mm)</label>
+                        <input type="number" id="webHeight" value="300" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Web Thickness tw (mm)</label>
+                        <input type="number" id="webThickness" value="10" min="1">
+                    </div>
+                `;
+            } else if (sectionType === 'custom') {
+                html = `
+                    <div class="form-group">
+                        <label>Moment of Inertia I (cm⁴)</label>
+                        <input type="number" id="customI" value="10000" min="1">
+                        <p class="info-text">Enter custom I value directly</p>
+                    </div>
+                `;
+            }
+            
+            container.innerHTML = html;
+        }
+
+        // Calculate section properties
+        function calculateSectionProperties() {
+            const sectionType = document.getElementById('sectionType').value;
+            let I = 0;
+            
+            if (sectionType === 'rectangular') {
+                const b = parseFloat(document.getElementById('width').value);
+                const h = parseFloat(document.getElementById('height').value);
+                I = (b * Math.pow(h, 3)) / 12;
+            } else if (sectionType === 'circular') {
+                const d = parseFloat(document.getElementById('diameter').value);
+                I = (Math.PI * Math.pow(d, 4)) / 64;
+            } else if (sectionType === 'i-beam') {
+                const bf = parseFloat(document.getElementById('flangeWidth').value);
+                const tf = parseFloat(document.getElementById('flangeThickness').value);
+                const hw = parseFloat(document.getElementById('webHeight').value);
+                const tw = parseFloat(document.getElementById('webThickness').value);
+                
+                const h = hw + 2 * tf;
+                const I_total = (bf * Math.pow(h, 3)) / 12;
+                const I_void = ((bf - tw) * Math.pow(hw, 3)) / 12;
+                I = I_total - I_void;
+            } else if (sectionType === 'custom') {
+                I = parseFloat(document.getElementById('customI').value) * 10000; // Convert cm⁴ to mm⁴
+            }
+            
+            // Convert mm⁴ to cm⁴
+            I = I / 10000;
+            
+            document.getElementById('momentInertia').value = I.toFixed(2);
+            alert(`Section Properties Calculated!\nMoment of Inertia I = ${I.toFixed(2)} cm⁴`);
+        }
+
+        // Add load to the list
+        function addLoad() {
+            const loadType = document.getElementById('loadType').value;
+            const magnitude = parseFloat(document.getElementById('loadMagnitude').value);
+            const position = parseFloat(document.getElementById('loadPosition').value);
+            const beamLength = parseFloat(document.getElementById('beamLength').value);
+            
+            if (position < 0 || position > beamLength) {
+                alert('Load position must be between 0 and beam length!');
+                return;
+            }
+            
+            const load = {
+                type: loadType,
+                magnitude: magnitude,
+                position: position,
+                id: Date.now()
+            };
+            
+            loads.push(load);
+            updateLoadsList();
+        }
+
+        // Update loads list display
+        function updateLoadsList() {
+            const container = document.getElementById('loadsList');
+            
+            if (loads.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #6c757d;">No loads added</p>';
+                return;
+            }
+            
+            let html = '';
+            loads.forEach(load => {
+                const typeLabel = load.type === 'point' ? 'Point Load' : 
+                                load.type === 'udl' ? 'UDL' : 'Moment';
+                const unit = load.type === 'moment' ? 'kNm' : 'kN';
+                
+                html += `
+                    <div class="load-item">
+                        <h4>${typeLabel}</h4>
+                        <p>Magnitude: ${load.magnitude} ${unit}</p>
+                        <p>Position: ${load.position} m</p>
+                        <button class="btn-danger" onclick="removeLoad(${load.id})">Remove</button>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // Remove a load
+        function removeLoad(id) {
+            loads = loads.filter(load => load.id !== id);
+            updateLoadsList();
+        }
+
+        // Clear all loads
+        function clearLoads() {
+            loads = [];
+            updateLoadsList();
+        }
+
+        // Analyze beam
+        function analyzeBeam() {
+            if (loads.length === 0) {
+                alert('Please add at least one load!');
+                return;
+            }
+            
+            const L = parseFloat(document.getElementById('beamLength').value);
+            const E = parseFloat(document.getElementById('youngModulus').value) * 1e6; // Convert GPa to kN/m²
+            const I = parseFloat(document.getElementById('momentInertia').value) * 1e-8; // Convert cm⁴ to m⁴
+            
+            // Calculate reactions
+            let sumForces = 0;
+            let sumMoments = 0;
+            
+            loads.forEach(load => {
+                if (load.type === 'point') {
+                    sumForces += load.magnitude;
+                    sumMoments += load.magnitude * load.position;
+                } else if (load.type === 'udl') {
+                    sumForces += load.magnitude * L;
+                    sumMoments += load.magnitude * L * (L / 2);
+                } else if (load.type === 'moment') {
+                    sumMoments += load.magnitude;
+                }
+            });
+            
+            const Ra = (sumForces * L - sumMoments) / L;
+            const Rb = sumForces - Ra;
+            
+            // Calculate shear, moment, and deflection at points
+            const numPoints = 100;
+            const dx = L / (numPoints - 1);
+            
+            let shear = [];
+            let moment = [];
+            let deflection = [];
+            let positions = [];
+            
+            for (let i = 0; i < numPoints; i++) {
+                const x = i * dx;
+                positions.push(x);
+                
+                // Calculate shear at x
+                let V = Ra;
+                loads.forEach(load => {
+                    if (load.type === 'point' && x >= load.position) {
+                        V -= load.magnitude;
+                    } else if (load.type === 'udl') {
+                        V -= load.magnitude * Math.min(x, L);
+                    }
+                });
+                shear.push(V);
+                
+                // Calculate moment at x
+                let M = Ra * x;
+                loads.forEach(load => {
+                    if (load.type === 'point' && x >= load.position) {
+                        M -= load.magnitude * (x - load.position);
+                    } else if (load.type === 'udl') {
+                        const xLoad = Math.min(x, L);
+                        M -= load.magnitude * xLoad * (xLoad / 2);
+                    } else if (load.type === 'moment' && x >= load.position) {
+                        M -= load.magnitude;
+                    }
+                });
+                moment.push(M);
+                
+                // Simplified deflection calculation (using double integration method approximation)
+                let delta = 0;
+                loads.forEach(load => {
+                    if (load.type === 'point') {
+                        const a = load.position;
+                        const P = load.magnitude;
+                        if (x <= a) {
+                            delta += (P * x * (L * L - x * x - a * a)) / (6 * E * I * L);
+                        } else {
+                            delta += (P * a * (L * L - x * x - a * a)) / (6 * E * I * L);
+                        }
+                    } else if (load.type === 'udl') {
+                        const w = load.magnitude;
+                        delta += (w * x * (L * L * L - 2 * L * x * x + x * x * x)) / (24 * E * I);
+                    }
+                });
+                deflection.push(delta * 1000); // Convert to mm
+            }
+            
+            // Find maximum values
+            const maxMoment = Math.max(...moment.map(Math.abs));
+            const maxShear = Math.max(...shear.map(Math.abs));
+            const maxDeflection = Math.max(...deflection.map(Math.abs));
+            
+            // Update results
+            document.getElementById('maxMoment').textContent = maxMoment.toFixed(2) + ' kNm';
+            document.getElementById('maxShear').textContent = maxShear.toFixed(2) + ' kN';
+            document.getElementById('maxDeflection').textContent = maxDeflection.toFixed(2) + ' mm';
+            document.getElementById('reactionA').textContent = Ra.toFixed(2) + ' kN';
+            document.getElementById('reactionB').textContent = Rb.toFixed(2) + ' kN';
+            
+            // Draw diagrams
+            drawBeam(L, Ra, Rb);
+            drawShearDiagram(positions, shear);
+            drawMomentDiagram(positions, moment);
+            drawDeflectionDiagram(positions, deflection);
+        }
+
+        // Draw beam diagram
+        function drawBeam(L, Ra, Rb) {
+            const canvas = document.getElementById('beamCanvas');
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            ctx.clearRect(0, 0, width, height);
+            
+            const margin = 50;
+            const beamY = height / 2;
+            const beamStart = margin;
+            const beamEnd = width - margin;
+            const beamLength = beamEnd - beamStart;
+            const scale = beamLength / L;
+            
+            // Draw beam
+            ctx.strokeStyle = '#495057';
+            ctx.lineWidth = 8;
+            ctx.beginPath();
+            ctx.moveTo(beamStart, beamY);
+            ctx.lineTo(beamEnd, beamY);
+            ctx.stroke();
+            
+            // Draw supports
+            ctx.fillStyle = '#667eea';
+            ctx.beginPath();
+            ctx.moveTo(beamStart, beamY);
+            ctx.lineTo(beamStart - 10, beamY + 20);
+            ctx.lineTo(beamStart + 10, beamY + 20);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.moveTo(beamEnd, beamY);
+            ctx.lineTo(beamEnd - 10, beamY + 20);
+            ctx.lineTo(beamEnd + 10, beamY + 20);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Draw loads
+            loads.forEach(load => {
+                const x = beamStart + load.position * scale;
+                
+                if (load.type === 'point') {
+                    // Point load arrow
+                    ctx.strokeStyle = '#f5576c';
+                    ctx.fillStyle = '#f5576c';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.moveTo(x, beamY - 40);
+                    ctx.lineTo(x, beamY);
+                    ctx.stroke();
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(x, beamY);
+                    ctx.lineTo(x - 5, beamY - 10);
+                    ctx.lineTo(x + 5, beamY - 10);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    ctx.fillStyle = '#000';
+                    ctx.font = '12px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(load.magnitude + ' kN', x, beamY - 45);
+                } else if (load.type === 'udl') {
+                    // Distributed load
+                    ctx.strokeStyle = '#f5576c';
+                    ctx.fillStyle = '#f5576c';
+                    ctx.lineWidth = 2;
+                    
+                    for (let i = 0; i <= 20; i++) {
+                        const arrowX = beamStart + (i / 20) * beamLength;
+                        ctx.beginPath();
+                        ctx.moveTo(arrowX, beamY - 30);
+                        ctx.lineTo(arrowX, beamY);
+                        ctx.stroke();
+                        
+                        ctx.beginPath();
+                        ctx.moveTo(arrowX, beamY);
+                        ctx.lineTo(arrowX - 3, beamY - 6);
+                        ctx.lineTo(arrowX + 3, beamY - 6);
+                        ctx.closePath();
+                        ctx.fill();
+                    }
+                    
+                    ctx.fillStyle = '#000';
+                    ctx.font = '12px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(load.magnitude + ' kN/m', beamStart + beamLength / 2, beamY - 40);
+                }
+            });
+            
+            // Draw reactions
+            ctx.strokeStyle = '#28a745';
+            ctx.fillStyle = '#28a745';
+            ctx.lineWidth = 3;
+            
+            // Reaction at A
+            ctx.beginPath();
+            ctx.moveTo(beamStart, beamY + 25);
+            ctx.lineTo(beamStart, beamY + 50);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(beamStart, beamY + 25);
+            ctx.lineTo(beamStart - 5, beamY + 35);
+            ctx.lineTo(beamStart + 5, beamY + 35);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.fillStyle = '#000';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Ra = ' + Ra.toFixed(1) + ' kN', beamStart, beamY + 65);
+            
+            // Reaction at B
+            ctx.strokeStyle = '#28a745';
+            ctx.fillStyle = '#28a745';
+            ctx.beginPath();
+            ctx.moveTo(beamEnd, beamY + 25);
+            ctx.lineTo(beamEnd, beamY + 50);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(beamEnd, beamY + 25);
+            ctx.lineTo(beamEnd - 5, beamY + 35);
+            ctx.lineTo(beamEnd + 5, beamY + 35);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.fillStyle = '#000';
+            ctx.fillText('Rb = ' + Rb.toFixed(1) + ' kN', beamEnd, beamY + 65);
+        }
+
+        // Draw shear force diagram
+        function drawShearDiagram(positions, shear) {
+            drawDiagram('shearCanvas', positions, shear, 'Shear Force (kN)', '#f5576c');
+        }
+
+        // Draw bending moment diagram
+        function drawMomentDiagram(positions, moment) {
+            drawDiagram('momentCanvas', positions, moment, 'Bending Moment (kNm)', '#667eea');
+        }
+
+        // Draw deflection diagram
+        function drawDeflectionDiagram(positions, deflection) {
+            drawDiagram('deflectionCanvas', positions, deflection, 'Deflection (mm)', '#28a745', true);
+        }
+
+        // Generic function to draw diagrams
+        function drawDiagram(canvasId, positions, values, label, color, invert = false) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            ctx.clearRect(0, 0, width, height);
+            
+            const margin = 50;
+            const plotWidth = width - 2 * margin;
+            const plotHeight = height - 2 * margin;
+            
+            const maxVal = Math.max(...values.map(Math.abs));
+            const scale = maxVal > 0 ? plotHeight / (2 * maxVal) : 1;
+            
+            const zeroY = margin + plotHeight / 2;
+            
+            // Draw grid
+            ctx.strokeStyle = '#e9ecef';
+            ctx.lineWidth = 1;
+            
+            for (let i = 0; i <= 4; i++) {
+                const y = margin + i * (plotHeight / 4);
+                ctx.beginPath();
+                ctx.moveTo(margin, y);
+                ctx.lineTo(width - margin, y);
+                ctx.stroke();
+            }
+            
+            // Draw zero line
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(margin, zeroY);
+            ctx.lineTo(width - margin, zeroY);
+            ctx.stroke();
+            
+            // Draw diagram
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color + '40';
+            ctx.lineWidth = 3;
+            
+            ctx.beginPath();
+            ctx.moveTo(margin, zeroY);
+            
+            for (let i = 0; i < positions.length; i++) {
+                const x = margin + (positions[i] / positions[positions.length - 1]) * plotWidth;
+                const y = invert ? 
+                    zeroY + values[i] * scale : 
+                    zeroY - values[i] * scale;
+                ctx.lineTo(x, y);
+            }
+            
+            ctx.lineTo(width - margin, zeroY);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            
+            // Draw axes labels
+            ctx.fillStyle = '#000';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'right';
+            ctx.fillText(maxVal.toFixed(2), margin - 5, margin + 5);
+            ctx.fillText('0', margin - 5, zeroY + 5);
+            ctx.fillText((-maxVal).toFixed(2), margin - 5, height - margin + 5);
+            
+            ctx.textAlign = 'center';
+            ctx.fillText('0', margin, height - margin + 20);
+            ctx.fillText(positions[positions.length - 1].toFixed(1) + ' m', width - margin, height - margin + 20);
+        }
+
+        // Initialize
+        updateSectionInputs();
+        updateLoadsList();
+        
+        // Update load inputs based on type
+        document.getElementById('loadType').addEventListener('change', function() {
+            const loadType = this.value;
+            const container = document.getElementById('loadInputs');
+            
+            if (loadType === 'udl') {
+                container.innerHTML = `
+                    <div class="form-group">
+                        <label>Magnitude (kN/m)</label>
+                        <input type="number" id="loadMagnitude" value="5" step="0.1">
+                    </div>
+                    <p class="info-text">UDL applied over entire beam length</p>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div class="form-group">
+                        <label>Magnitude (${loadType === 'moment' ? 'kNm' : 'kN'})</label>
+                        <input type="number" id="loadMagnitude" value="10" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label>Position (m)</label>
+                        <input type="number" id="loadPosition" value="5" step="0.1">
+                    </div>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Beam Design Tool</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial;
+    background:#0f172a;
+    color:white;
+}
+
+.container{
+    display:flex;
+    height:100vh;
+}
+
+.panel{
+    width:350px;
+    padding:20px;
+    background:#1e293b;
+    overflow:auto;
+}
+
+input, button{
+    width:100%;
+    padding:8px;
+    margin:5px 0;
+}
+
+button{
+    background:#3b82f6;
+    border:none;
+    color:white;
+    cursor:pointer;
+}
+
+canvas{
+    background:white;
+}
+
+#graphics{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+}
+
+#charts{
+    height:40%;
+}
+
+#threeContainer{
+    height:60%;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<div class="panel">
+<h2>Beam Design</h2>
+
+<label>Span Length (m)</label>
+<input type="number" id="span" value="6">
+
+<label>Point Load (kN)</label>
+<input type="number" id="load" value="20">
+
+<label>Load Position from Left (m)</label>
+<input type="number" id="position" value="3">
+
+<button onclick="calculateBeam()">Calculate</button>
+
+<h3>Results</h3>
+<div id="results"></div>
+
+</div>
+
+<div id="graphics">
+<div id="charts">
+<canvas id="shearChart"></canvas>
+<canvas id="momentChart"></canvas>
+</div>
+<div id="threeContainer"></div>
+</div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/controls/OrbitControls.js"></script>
+
+<script>
+
+// =======================
+// CHART VARIABLES
+// =======================
+let shearChart, momentChart;
+
+// =======================
+// BEAM CALCULATION
+// =======================
+function calculateBeam(){
+
+let L = parseFloat(document.getElementById("span").value);
+let P = parseFloat(document.getElementById("load").value);
+let a = parseFloat(document.getElementById("position").value);
+
+let RA = P * (L - a) / L;
+let RB = P * a / L;
+
+document.getElementById("results").innerHTML =
+"Reaction at A: " + RA.toFixed(2) + " kN
+" +
+"Reaction at B: " + RB.toFixed(2) + " kN";
+
+// Data arrays
+let shearData = [];
+let momentData = [];
+let labels = [];
+
+for(let x=0; x<=L; x+=0.1){
+
+let V = (x < a) ? RA : RA - P;
+let M = (x < a) ? RA*x : RA*x - P*(x-a);
+
+labels.push(x.toFixed(1));
+shearData.push(V);
+momentData.push(M);
+}
+
+// Draw charts
+drawCharts(labels, shearData, momentData);
+
+update3DBeam(L, a);
+
+}
+
+// =======================
+// DRAW CHARTS
+// =======================
+function drawCharts(labels, shearData, momentData){
+
+if(shearChart) shearChart.destroy();
+if(momentChart) momentChart.destroy();
+
+shearChart = new Chart(document.getElementById('shearChart'),{
+type:'line',
+data:{
+labels:labels,
+datasets:[{
+label:'Shear Force (kN)',
+data:shearData,
+borderColor:'red',
+fill:false
+}]
+}
+});
+
+momentChart = new Chart(document.getElementById('momentChart'),{
+type:'line',
+data:{
+labels:labels,
+datasets:[{
+label:'Bending Moment (kNm)',
+data:momentData,
+borderColor:'blue',
+fill:false
+}]
+}
+});
+
+}
+
+// =======================
+// THREE JS 3D BEAM
+// =======================
+
+let scene = new THREE.Scene();
+let camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight,0.1,1000);
+camera.position.set(5,4,8);
+
+let renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(document.getElementById("threeContainer").clientWidth,
+document.getElementById("threeContainer").clientHeight);
+
+document.getElementById("threeContainer").appendChild(renderer.domElement);
+
+let controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping=true;
+
+let light = new THREE.DirectionalLight(0xffffff,1);
+light.position.set(5,10,7);
+scene.add(light);
+
+scene.add(new THREE.AmbientLight(0xffffff,0.5));
+
+let beamMesh;
+
+function update3DBeam(L, loadPosition){
+
+if(beamMesh) scene.remove(beamMesh);
+
+let geometry = new THREE.BoxGeometry(L,0.3,0.3);
+let material = new THREE.MeshStandardMaterial({color:0x3b82f6});
+beamMesh = new THREE.Mesh(geometry, material);
+beamMesh.position.set(L/2,0,0);
+scene.add(beamMesh);
+
+// supports
+let supportGeo = new THREE.ConeGeometry(0.2,0.5,16);
+let supportMat = new THREE.MeshStandardMaterial({color:0xffffff});
+
+let leftSupport = new THREE.Mesh(supportGeo, supportMat);
+leftSupport.rotation.x=Math.PI;
+leftSupport.position.set(0,-0.4,0);
+scene.add(leftSupport);
+
+let rightSupport = new THREE.Mesh(supportGeo, supportMat);
+rightSupport.rotation.x=Math.PI;
+rightSupport.position.set(L,-0.4,0);
+scene.add(rightSupport);
+
+// load arrow
+let arrowGeo = new THREE.CylinderGeometry(0.05,0.05,1);
+let arrowMat = new THREE.MeshStandardMaterial({color:0xff0000});
+let arrow = new THREE.Mesh(arrowGeo, arrowMat);
+arrow.position.set(loadPosition,1,0);
+scene.add(arrow);
+
+}
+
+function animate(){
+requestAnimationFrame(animate);
+controls.update();
+renderer.render(scene,camera);
+}
+animate();
+
+// Initial Run
+calculateBeam();
+
+</script>
+
+</body>
+</html>
+ 
