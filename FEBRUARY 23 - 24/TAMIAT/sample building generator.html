@@ -1,0 +1,1493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenSTAAD Multistory Building Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080c10;
+  --surface:#0d1219;
+  --panel:#111820;
+  --card:#141d27;
+  --border:#1c2a38;
+  --border2:#243040;
+  --accent:#00d4ff;
+  --accent2:#ff6b2b;
+  --accent3:#39ff14;
+  --warn:#ffcc00;
+  --text:#c8d8e8;
+  --muted:#4a6070;
+  --fg:#ffffff;
+  --glow:0 0 20px rgba(0,212,255,0.15);
+}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Rajdhani',sans-serif;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+
+/* SCAN LINE OVERLAY */
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);
+  pointer-events:none;
+  z-index:999;
+}
+
+/* ── TOPBAR ── */
+.topbar{
+  height:52px;
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  padding:0 1.5rem;
+  gap:1rem;
+  flex-shrink:0;
+  position:relative;
+}
+.topbar::after{
+  content:'';
+  position:absolute;
+  bottom:0;left:0;right:0;
+  height:1px;
+  background:linear-gradient(90deg,transparent,var(--accent),transparent);
+  opacity:0.4;
+}
+.logo{
+  font-family:'Rajdhani',sans-serif;
+  font-size:1.3rem;
+  font-weight:700;
+  letter-spacing:0.15em;
+  text-transform:uppercase;
+  color:var(--fg);
+  white-space:nowrap;
+}
+.logo .hl{color:var(--accent)}
+.logo .sub{
+  font-size:0.55rem;
+  color:var(--muted);
+  display:block;
+  letter-spacing:0.3em;
+  font-weight:400;
+  margin-top:-2px;
+}
+.sep{width:1px;height:28px;background:var(--border2);flex-shrink:0}
+.top-pills{display:flex;gap:0.5rem;flex-wrap:wrap}
+.pill{
+  padding:0.2rem 0.7rem;
+  border:1px solid var(--border2);
+  border-radius:1px;
+  font-size:0.65rem;
+  font-weight:600;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  color:var(--muted);
+}
+.pill.active{border-color:var(--accent);color:var(--accent);background:rgba(0,212,255,0.06);text-shadow:0 0 8px rgba(0,212,255,0.5)}
+.top-right{margin-left:auto;display:flex;align-items:center;gap:1rem}
+.version-tag{font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--muted);letter-spacing:0.1em}
+.gen-btn{
+  padding:0.45rem 1.4rem;
+  background:linear-gradient(135deg,var(--accent),#0088cc);
+  color:#000;
+  font-family:'Rajdhani',sans-serif;
+  font-size:0.78rem;
+  font-weight:700;
+  letter-spacing:0.15em;
+  text-transform:uppercase;
+  border:none;
+  cursor:pointer;
+  clip-path:polygon(8px 0%,100% 0%,100% calc(100% - 8px),calc(100% - 8px) 100%,0% 100%,0% 8px);
+  transition:all 0.2s;
+  position:relative;
+  overflow:hidden;
+}
+.gen-btn::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:rgba(255,255,255,0);
+  transition:background 0.2s;
+}
+.gen-btn:hover::before{background:rgba(255,255,255,0.15)}
+.gen-btn:hover{box-shadow:0 0 20px rgba(0,212,255,0.4)}
+.gen-btn:active{transform:scale(0.97)}
+
+/* ── LAYOUT ── */
+.workspace{
+  display:grid;
+  grid-template-columns:320px 1fr 280px;
+  flex:1;
+  overflow:hidden;
+  min-height:0;
+}
+
+/* ── PANELS ── */
+.left-panel,.right-panel{
+  background:var(--surface);
+  overflow-y:auto;
+  border-right:1px solid var(--border);
+}
+.right-panel{border-right:none;border-left:1px solid var(--border)}
+.left-panel::-webkit-scrollbar,.right-panel::-webkit-scrollbar,.code-panel::-webkit-scrollbar{width:3px}
+.left-panel::-webkit-scrollbar-thumb,.right-panel::-webkit-scrollbar-thumb,.code-panel::-webkit-scrollbar-thumb{background:var(--border2)}
+.left-panel::-webkit-scrollbar-track,.right-panel::-webkit-scrollbar-track,.code-panel::-webkit-scrollbar-track{background:transparent}
+
+.p-section{
+  padding:1rem;
+  border-bottom:1px solid var(--border);
+}
+.p-section:last-child{border-bottom:none}
+
+.section-head{
+  display:flex;
+  align-items:center;
+  gap:0.6rem;
+  margin-bottom:0.9rem;
+}
+.section-head .sh-icon{
+  width:22px;height:22px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.8rem;
+  background:rgba(0,212,255,0.08);
+  border:1px solid rgba(0,212,255,0.2);
+  border-radius:1px;
+  color:var(--accent);
+  flex-shrink:0;
+}
+.section-head h3{
+  font-size:0.7rem;
+  font-weight:700;
+  letter-spacing:0.25em;
+  text-transform:uppercase;
+  color:var(--fg);
+}
+.section-head .sh-badge{
+  margin-left:auto;
+  font-family:'Share Tech Mono',monospace;
+  font-size:0.6rem;
+  color:var(--accent);
+  background:rgba(0,212,255,0.08);
+  border:1px solid rgba(0,212,255,0.15);
+  padding:0.1rem 0.4rem;
+  border-radius:1px;
+}
+
+/* FORM FIELDS */
+.field{margin-bottom:0.7rem}
+.field label{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  font-size:0.68rem;
+  font-weight:600;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin-bottom:0.3rem;
+}
+.field label .fval{
+  font-family:'Share Tech Mono',monospace;
+  color:var(--accent);
+  font-size:0.68rem;
+  font-weight:400;
+  letter-spacing:0.05em;
+}
+.field input[type=range]{
+  width:100%;
+  -webkit-appearance:none;
+  height:2px;
+  background:var(--border2);
+  border-radius:1px;
+  outline:none;
+}
+.field input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  width:14px;height:14px;
+  background:var(--accent);
+  border-radius:0;
+  clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);
+  cursor:pointer;
+  transition:transform 0.15s;
+}
+.field input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.3)}
+.field input[type=number]{
+  width:100%;
+  background:var(--panel);
+  border:1px solid var(--border2);
+  color:var(--fg);
+  font-family:'Share Tech Mono',monospace;
+  font-size:0.78rem;
+  padding:0.4rem 0.6rem;
+  outline:none;
+  transition:border-color 0.15s;
+}
+.field input[type=number]:focus{border-color:var(--accent);box-shadow:0 0 0 1px rgba(0,212,255,0.15)}
+.field select{
+  width:100%;
+  background:var(--panel);
+  border:1px solid var(--border2);
+  color:var(--fg);
+  font-family:'Rajdhani',sans-serif;
+  font-size:0.8rem;
+  font-weight:600;
+  padding:0.4rem 0.6rem;
+  outline:none;
+  cursor:pointer;
+  appearance:none;
+  letter-spacing:0.05em;
+}
+.field select:focus{border-color:var(--accent)}
+
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.5rem}
+.field-grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5rem}
+
+/* FLOOR TABLE */
+.floor-table{width:100%;border-collapse:collapse;font-size:0.72rem;margin-top:0.4rem}
+.floor-table th{
+  background:var(--panel);
+  border:1px solid var(--border);
+  padding:0.35rem 0.5rem;
+  text-align:left;
+  font-weight:700;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  font-size:0.58rem;
+  color:var(--muted);
+}
+.floor-table td{
+  border:1px solid var(--border);
+  padding:0.3rem 0.4rem;
+  font-family:'Share Tech Mono',monospace;
+  font-size:0.67rem;
+  color:var(--text);
+}
+.floor-table tr:nth-child(even) td{background:rgba(255,255,255,0.01)}
+.floor-table tr:hover td{background:rgba(0,212,255,0.04)}
+.floor-table td.hi{color:var(--accent2)}
+.floor-table td.lo{color:var(--accent3)}
+
+/* TOGGLE SWITCH */
+.toggle-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:0.6rem;
+  font-size:0.72rem;
+  font-weight:600;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  color:var(--text);
+}
+.toggle{position:relative;display:inline-block;width:36px;height:18px}
+.toggle input{opacity:0;width:0;height:0}
+.toggle .slider{
+  position:absolute;inset:0;
+  background:var(--border2);
+  transition:.2s;
+  cursor:pointer;
+  border:1px solid var(--border);
+}
+.toggle .slider::before{
+  content:'';
+  position:absolute;
+  width:12px;height:12px;
+  left:2px;top:2px;
+  background:var(--muted);
+  transition:.2s;
+}
+.toggle input:checked + .slider{background:rgba(0,212,255,0.15);border-color:var(--accent)}
+.toggle input:checked + .slider::before{background:var(--accent);transform:translateX(18px)}
+
+/* SECTION TAG */
+.sec-tag{
+  display:inline-flex;align-items:center;gap:0.3rem;
+  padding:0.15rem 0.5rem;
+  border-radius:1px;
+  font-size:0.6rem;
+  font-weight:700;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+}
+.sec-col{background:rgba(255,107,43,0.12);color:var(--accent2);border:1px solid rgba(255,107,43,0.25)}
+.sec-beam{background:rgba(0,212,255,0.1);color:var(--accent);border:1px solid rgba(0,212,255,0.2)}
+.sec-slab{background:rgba(57,255,20,0.08);color:var(--accent3);border:1px solid rgba(57,255,20,0.2)}
+
+/* SECTION CARDS */
+.sec-card{
+  background:var(--card);
+  border:1px solid var(--border2);
+  padding:0.65rem 0.8rem;
+  margin-bottom:0.5rem;
+  transition:border-color 0.15s;
+  cursor:default;
+  position:relative;
+}
+.sec-card:hover{border-color:var(--border)}
+.sec-card::before{
+  content:'';
+  position:absolute;
+  left:0;top:0;bottom:0;
+  width:2px;
+  background:var(--accent);
+}
+.sec-card.col-card::before{background:var(--accent2)}
+.sec-card.slab-card::before{background:var(--accent3)}
+.sc-top{display:flex;align-items:center;gap:0.5rem;margin-bottom:0.3rem}
+.sc-name{font-size:0.8rem;font-weight:700;color:var(--fg);letter-spacing:0.05em}
+.sc-dims{font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--muted);margin-top:0.1rem}
+.sc-dims span{color:var(--text)}
+
+/* CENTER CANVAS PANEL */
+.center-panel{
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  background:var(--bg);
+}
+.canvas-toolbar{
+  height:38px;
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  padding:0 1rem;
+  gap:0.6rem;
+  flex-shrink:0;
+}
+.ct-btn{
+  padding:0.2rem 0.7rem;
+  background:transparent;
+  border:1px solid var(--border2);
+  color:var(--muted);
+  font-family:'Rajdhani',sans-serif;
+  font-size:0.65rem;
+  font-weight:600;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  cursor:pointer;
+  transition:all 0.15s;
+}
+.ct-btn:hover,.ct-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(0,212,255,0.05)}
+.ct-sep{width:1px;height:20px;background:var(--border)}
+.canvas-wrap{
+  flex:1;
+  position:relative;
+  overflow:hidden;
+}
+canvas#c3d{
+  display:block;
+  width:100%!important;
+  height:100%!important;
+}
+.canvas-overlay{
+  position:absolute;
+  bottom:1rem;left:1rem;
+  display:flex;flex-direction:column;gap:0.3rem;
+  pointer-events:none;
+}
+.co-stat{
+  font-family:'Share Tech Mono',monospace;
+  font-size:0.6rem;
+  color:var(--muted);
+  letter-spacing:0.08em;
+  background:rgba(8,12,16,0.85);
+  padding:0.2rem 0.5rem;
+  border:1px solid var(--border);
+  width:fit-content;
+}
+.co-stat em{color:var(--accent);font-style:normal}
+
+/* CODE OUTPUT PANEL (right) */
+.code-panel{
+  flex:1;
+  overflow-y:auto;
+  padding:0.75rem;
+}
+.code-block{
+  background:var(--bg);
+  border:1px solid var(--border);
+  padding:0.75rem;
+  font-family:'Share Tech Mono',monospace;
+  font-size:0.6rem;
+  line-height:1.8;
+  white-space:pre;
+  color:#7a9ab0;
+  overflow-x:auto;
+  max-height:none;
+}
+.code-block .kw{color:var(--accent)}
+.code-block .cm{color:var(--muted)}
+.code-block .nm{color:var(--accent2)}
+.code-block .val{color:var(--accent3)}
+.code-block .sec{color:var(--warn)}
+
+.code-actions{
+  display:flex;
+  gap:0.5rem;
+  padding:0.75rem;
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+.ca-btn{
+  flex:1;
+  padding:0.45rem;
+  background:transparent;
+  border:1px solid var(--border2);
+  color:var(--muted);
+  font-family:'Rajdhani',sans-serif;
+  font-size:0.7rem;
+  font-weight:700;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  cursor:pointer;
+  transition:all 0.15s;
+  display:flex;align-items:center;justify-content:center;gap:0.4rem;
+}
+.ca-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(0,212,255,0.05)}
+.ca-btn.dl-btn{border-color:var(--accent2);color:var(--accent2)}
+.ca-btn.dl-btn:hover{background:rgba(255,107,43,0.08)}
+
+/* SUMMARY TABLE */
+.sum-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:0.35rem 0;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+  font-size:0.72rem;
+}
+.sum-row:last-child{border:none}
+.sum-key{color:var(--muted);font-weight:600;letter-spacing:0.05em}
+.sum-val{font-family:'Share Tech Mono',monospace;color:var(--fg);font-size:0.7rem}
+.sum-val.accent{color:var(--accent)}
+.sum-val.orange{color:var(--accent2)}
+.sum-val.green{color:var(--accent3)}
+
+/* PROGRESS TOAST */
+#toast{
+  position:fixed;
+  bottom:1.5rem;right:1.5rem;
+  background:var(--surface);
+  border:1px solid var(--accent);
+  padding:0.75rem 1.2rem;
+  font-size:0.75rem;
+  font-weight:700;
+  letter-spacing:0.1em;
+  color:var(--accent);
+  z-index:1000;
+  transform:translateY(60px);
+  opacity:0;
+  transition:all 0.3s;
+  box-shadow:var(--glow);
+  text-transform:uppercase;
+}
+#toast.show{transform:translateY(0);opacity:1}
+
+/* ANIMATED INDICATOR */
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.live-dot{
+  width:6px;height:6px;
+  border-radius:50%;
+  background:var(--accent3);
+  animation:pulse 2s infinite;
+  flex-shrink:0;
+}
+
+/* FLOOR HEIGHT INPUTS */
+.fh-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(55px,1fr));gap:0.4rem;margin-top:0.4rem}
+.fh-input{
+  background:var(--panel);
+  border:1px solid var(--border);
+  color:var(--text);
+  font-family:'Share Tech Mono',monospace;
+  font-size:0.68rem;
+  padding:0.3rem 0.4rem;
+  text-align:center;
+  width:100%;
+  outline:none;
+}
+.fh-input:focus{border-color:var(--accent)}
+.fh-label{font-size:0.55rem;color:var(--muted);text-align:center;margin-top:0.15rem;letter-spacing:0.08em}
+
+/* LOAD COMBO TABLE */
+.lc-table{width:100%;border-collapse:collapse;font-size:0.65rem;margin-top:0.5rem}
+.lc-table th{padding:0.3rem 0.5rem;text-align:left;color:var(--muted);font-weight:600;font-size:0.58rem;letter-spacing:0.1em;text-transform:uppercase;border-bottom:1px solid var(--border)}
+.lc-table td{padding:0.3rem 0.5rem;border-bottom:1px solid rgba(255,255,255,0.03);font-family:'Share Tech Mono',monospace;color:var(--text)}
+.lc-table td:last-child{color:var(--accent);text-align:right}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="logo">
+    OPEN<span class="hl">STAAD</span>
+    <span class="sub">Multistory Building Generator v2.1</span>
+  </div>
+  <div class="sep"></div>
+  <div class="top-pills">
+    <div class="pill active">GEOMETRY</div>
+    <div class="pill active">SECTIONS</div>
+    <div class="pill active">LOADS</div>
+    <div class="pill active">SUPPORTS</div>
+  </div>
+  <div class="top-right">
+    <div class="version-tag">STD FORMAT 3.0 | IS 456 / AISC</div>
+    <button class="gen-btn" onclick="generateAll()">⚡ Generate STD</button>
+  </div>
+</div>
+
+<!-- WORKSPACE -->
+<div class="workspace">
+
+  <!-- LEFT PANEL: INPUTS -->
+  <div class="left-panel">
+
+    <!-- BUILDING GEOMETRY -->
+    <div class="p-section">
+      <div class="section-head">
+        <div class="sh-icon">⬛</div>
+        <h3>Building Geometry</h3>
+        <div class="sh-badge live-dot" style="display:flex;align-items:center;gap:4px;padding:0.1rem 0.5rem">LIVE</div>
+      </div>
+
+      <div class="field-grid">
+        <div class="field">
+          <label>Bays X <span class="fval" id="bx-val">4</span></label>
+          <input type="range" id="bays-x" min="1" max="10" step="1" value="4" oninput="sync('bays-x','bx-val');update()">
+        </div>
+        <div class="field">
+          <label>Bays Y <span class="fval" id="by-val">3</span></label>
+          <input type="range" id="bays-y" min="1" max="10" step="1" value="3" oninput="sync('bays-y','by-val');update()">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Floors <span class="fval" id="fl-val">5</span></label>
+        <input type="range" id="num-floors" min="1" max="20" step="1" value="5" oninput="sync('num-floors','fl-val');buildFloorInputs();update()">
+      </div>
+
+      <div class="field-grid">
+        <div class="field">
+          <label>Span X (m) <span class="fval" id="sx-val">5.0</span></label>
+          <input type="range" id="span-x" min="2" max="12" step="0.5" value="5" oninput="syncF('span-x','sx-val');update()">
+        </div>
+        <div class="field">
+          <label>Span Y (m) <span class="fval" id="sy-val">5.0</span></label>
+          <input type="range" id="span-y" min="2" max="12" step="0.5" value="5" oninput="syncF('span-y','sy-val');update()">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Typical Floor Height (m) <span class="fval" id="fh-val">3.5</span></label>
+        <input type="range" id="floor-h" min="2.5" max="6" step="0.1" value="3.5" oninput="syncF('floor-h','fh-val');buildFloorInputs();update()">
+      </div>
+
+      <div class="field">
+        <label style="margin-bottom:0.4rem">Per-Floor Heights (m)</label>
+        <div class="fh-grid" id="floor-heights-grid"></div>
+      </div>
+    </div>
+
+    <!-- COLUMN SECTIONS -->
+    <div class="p-section">
+      <div class="section-head">
+        <div class="sh-icon">▮</div>
+        <h3>Column Sections</h3>
+      </div>
+
+      <div class="toggle-row">Auto-size by floor group <label class="toggle"><input type="checkbox" id="auto-col" checked onchange="update()"><span class="slider"></span></label></div>
+
+      <div class="field-grid">
+        <div class="field">
+          <label>Width (mm)</label>
+          <input type="number" id="col-w" value="450" min="150" max="1200" step="25" oninput="update()">
+        </div>
+        <div class="field">
+          <label>Depth (mm)</label>
+          <input type="number" id="col-d" value="450" min="150" max="1200" step="25" oninput="update()">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Material</label>
+        <select id="col-mat" onchange="update()">
+          <option value="CONCRETE M30">Concrete M30 — Ec=27386 MPa</option>
+          <option value="CONCRETE M25">Concrete M25 — Ec=25000 MPa</option>
+          <option value="STEEL">Steel Fe250 — E=200000 MPa</option>
+          <option value="STEEL Fe345">Steel Fe345 — E=200000 MPa</option>
+        </select>
+      </div>
+
+      <div class="sec-card col-card" id="col-preview">
+        <div class="sc-top"><span class="sec-tag sec-col">COL</span><span class="sc-name" id="cp-name">C1 — RC Column</span></div>
+        <div class="sc-dims">B×D: <span id="cp-bd">450×450</span> mm | Iz: <span id="cp-iz">—</span> mm⁴ | Iy: <span id="cp-iy">—</span> mm⁴</div>
+      </div>
+    </div>
+
+    <!-- BEAM SECTIONS -->
+    <div class="p-section">
+      <div class="section-head">
+        <div class="sh-icon">━</div>
+        <h3>Beam Sections</h3>
+      </div>
+
+      <div class="toggle-row">Separate secondary beams <label class="toggle"><input type="checkbox" id="sec-beam" onchange="update()"><span class="slider"></span></label></div>
+
+      <div class="field-grid">
+        <div class="field">
+          <label>Width (mm)</label>
+          <input type="number" id="bm-w" value="300" min="100" max="800" step="25" oninput="update()">
+        </div>
+        <div class="field">
+          <label>Depth (mm)</label>
+          <input type="number" id="bm-d" value="600" min="200" max="1500" step="25" oninput="update()">
+        </div>
+      </div>
+
+      <div class="sec-card" id="bm-preview">
+        <div class="sc-top"><span class="sec-tag sec-beam">BEAM</span><span class="sc-name" id="bp-name">B1 — RC Beam</span></div>
+        <div class="sc-dims">B×D: <span id="bp-bd">300×600</span> mm | Iz: <span id="bp-iz">—</span> mm⁴</div>
+      </div>
+
+      <div class="field" style="margin-top:0.5rem">
+        <label>Material</label>
+        <select id="bm-mat" onchange="update()">
+          <option value="CONCRETE M30">Concrete M30</option>
+          <option value="CONCRETE M25">Concrete M25</option>
+          <option value="STEEL">Steel Fe250</option>
+        </select>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CENTER PANEL: 3D VIEW -->
+  <div class="center-panel">
+    <div class="canvas-toolbar">
+      <button class="ct-btn active" id="vt-3d" onclick="setViewMode('3d')">3D ISO</button>
+      <button class="ct-btn" id="vt-plan" onclick="setViewMode('plan')">PLAN</button>
+      <button class="ct-btn" id="vt-elev" onclick="setViewMode('elev')">ELEVATION</button>
+      <div class="ct-sep"></div>
+      <button class="ct-btn" onclick="resetCam()">⊙ RESET</button>
+      <button class="ct-btn" onclick="toggleGrid()">⊞ GRID</button>
+      <button class="ct-btn" onclick="toggleLabels()">𝑛 LABELS</button>
+    </div>
+    <div class="canvas-wrap">
+      <canvas id="c3d"></canvas>
+      <div class="canvas-overlay">
+        <div class="co-stat">NODES <em id="ov-nodes">0</em> &nbsp;|&nbsp; MEMBERS <em id="ov-mem">0</em></div>
+        <div class="co-stat">LOADS <em id="ov-loads">0</em> &nbsp;|&nbsp; COMBOS <em id="ov-combos">0</em></div>
+        <div class="co-stat">DRAG ORBIT &nbsp;|&nbsp; SCROLL ZOOM &nbsp;|&nbsp; RIGHT DRAG PAN</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL: LOADS + OUTPUT -->
+  <div class="right-panel" style="display:flex;flex-direction:column">
+
+    <!-- SLAB LOADS -->
+    <div class="p-section">
+      <div class="section-head">
+        <div class="sh-icon">⊞</div>
+        <h3>Slab Loads</h3>
+      </div>
+
+      <div class="sec-card slab-card">
+        <div class="sc-top"><span class="sec-tag sec-slab">SLAB</span><span class="sc-name">Two-Way RC Slab</span></div>
+        <div class="sc-dims">IS 456 Load Distribution → Beams</div>
+      </div>
+
+      <div class="field" style="margin-top:0.5rem">
+        <label>Slab Thickness (mm) <span class="fval" id="st-val">150</span></label>
+        <input type="range" id="slab-t" min="100" max="300" step="10" value="150" oninput="sync('slab-t','st-val');update()">
+      </div>
+      <div class="field">
+        <label>Dead Load (kN/m²) <span class="fval" id="dl-val">3.0</span></label>
+        <input type="range" id="dead-l" min="1" max="10" step="0.5" value="3" oninput="syncF('dead-l','dl-val');update()">
+      </div>
+      <div class="field">
+        <label>Live Load (kN/m²) <span class="fval" id="ll-val">4.0</span></label>
+        <input type="range" id="live-l" min="1" max="15" step="0.5" value="4" oninput="syncF('live-l','ll-val');update()">
+      </div>
+      <div class="field">
+        <label>Finish Load (kN/m²) <span class="fval" id="fl2-val">1.5</span></label>
+        <input type="range" id="finish-l" min="0" max="3" step="0.25" value="1.5" oninput="syncF('finish-l','fl2-val');update()">
+      </div>
+
+      <div class="toggle-row">Self-weight of beams+cols <label class="toggle"><input type="checkbox" id="sw-toggle" checked onchange="update()"><span class="slider"></span></label></div>
+    </div>
+
+    <!-- LOAD COMBINATIONS -->
+    <div class="p-section">
+      <div class="section-head">
+        <div class="sh-icon">Σ</div>
+        <h3>Load Combinations</h3>
+      </div>
+      <table class="lc-table">
+        <thead><tr><th>Combo</th><th>Expression</th><th>Factor</th></tr></thead>
+        <tbody>
+          <tr><td>ULS 1</td><td>1.5(DL+LL)</td><td>1.5</td></tr>
+          <tr><td>ULS 2</td><td>1.2(DL+LL+WL)</td><td>1.2</td></tr>
+          <tr><td>SLS 1</td><td>1.0(DL+LL)</td><td>1.0</td></tr>
+          <tr><td>SLS 2</td><td>DL + 0.8LL</td><td>—</td></tr>
+        </tbody>
+      </table>
+      <div class="toggle-row" style="margin-top:0.7rem">Wind Load (IS 875 P3) <label class="toggle"><input type="checkbox" id="wind-toggle" onchange="update()"><span class="slider"></span></label></div>
+      <div class="field">
+        <label>Wind Speed (m/s) <span class="fval" id="wv-val">33</span></label>
+        <input type="range" id="wind-v" min="20" max="55" step="1" value="33" oninput="sync('wind-v','wv-val');update()">
+      </div>
+    </div>
+
+    <!-- SUPPORTS -->
+    <div class="p-section">
+      <div class="section-head">
+        <div class="sh-icon">△</div>
+        <h3>Supports</h3>
+      </div>
+      <div class="field">
+        <label>Support Type</label>
+        <select id="support-type" onchange="update()">
+          <option value="FIXED">Fixed</option>
+          <option value="PINNED">Pinned</option>
+          <option value="FIXED BUT MZ">Fixed-but (no Mz)</option>
+        </select>
+      </div>
+      <div class="toggle-row">Foundation depth offset <label class="toggle"><input type="checkbox" id="fdn-toggle" onchange="update()"><span class="slider"></span></label></div>
+      <div class="field">
+        <label>Foundation Depth (m) <span class="fval" id="fd-val">1.5</span></label>
+        <input type="range" id="fdn-depth" min="0.5" max="4" step="0.25" value="1.5" oninput="syncF('fdn-depth','fd-val');update()">
+      </div>
+    </div>
+
+    <!-- SUMMARY -->
+    <div class="p-section">
+      <div class="section-head">
+        <div class="sh-icon">∑</div>
+        <h3>Model Summary</h3>
+      </div>
+      <div id="summary-block">
+        <div class="sum-row"><span class="sum-key">Total Nodes</span><span class="sum-val accent" id="s-nodes">—</span></div>
+        <div class="sum-row"><span class="sum-key">Total Members</span><span class="sum-val accent" id="s-mem">—</span></div>
+        <div class="sum-row"><span class="sum-key">Column Members</span><span class="sum-val orange" id="s-cols">—</span></div>
+        <div class="sum-row"><span class="sum-key">Beam Members</span><span class="sum-val" id="s-beams">—</span></div>
+        <div class="sum-row"><span class="sum-key">Load Cases</span><span class="sum-val green" id="s-lc">—</span></div>
+        <div class="sum-row"><span class="sum-key">Total Floor Area</span><span class="sum-val" id="s-area">—</span></div>
+        <div class="sum-row"><span class="sum-key">Total Vert. Load</span><span class="sum-val" id="s-vload">—</span></div>
+      </div>
+    </div>
+
+    <!-- CODE OUTPUT -->
+    <div style="display:flex;flex-direction:column;flex:1;min-height:0;border-top:1px solid var(--border)">
+      <div class="code-actions">
+        <button class="ca-btn dl-btn" onclick="downloadSTD()">⬇ .STD FILE</button>
+        <button class="ca-btn" onclick="copyCode()">⧉ COPY</button>
+      </div>
+      <div class="code-panel">
+        <pre class="code-block" id="code-out">Click "Generate STD" to build the STAAD.Pro input file...</pre>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="toast">STD File Ready!</div>
+
+<!-- THREE.JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ════════════════════════════════════════════════════════════
+//  UTILITY
+// ════════════════════════════════════════════════════════════
+function sync(id, displayId){ document.getElementById(displayId).textContent = document.getElementById(id).value; }
+function syncF(id, displayId){ document.getElementById(displayId).textContent = parseFloat(document.getElementById(id).value).toFixed(1); }
+function val(id){ return parseFloat(document.getElementById(id).value); }
+function ival(id){ return parseInt(document.getElementById(id).value); }
+function bval(id){ return document.getElementById(id).checked; }
+function sval(id){ return document.getElementById(id).value; }
+
+// ════════════════════════════════════════════════════════════
+//  FLOOR HEIGHT INPUTS
+// ════════════════════════════════════════════════════════════
+function buildFloorInputs(){
+  const n = ival('num-floors');
+  const defH = val('floor-h');
+  const grid = document.getElementById('floor-heights-grid');
+  const existing = Array.from(grid.querySelectorAll('input')).map(i=>parseFloat(i.value)||defH);
+  grid.innerHTML='';
+  for(let f=1;f<=n;f++){
+    const wrap=document.createElement('div');
+    const inp=document.createElement('input');
+    inp.type='text'; inp.className='fh-input'; inp.id='fh-'+f;
+    inp.value=(existing[f-1]||defH).toFixed(1);
+    inp.oninput=()=>update();
+    const lbl=document.createElement('div');
+    lbl.className='fh-label'; lbl.textContent='F'+f;
+    wrap.appendChild(inp); wrap.appendChild(lbl);
+    grid.appendChild(wrap);
+  }
+}
+
+function getFloorHeights(){
+  const n = ival('num-floors');
+  const defH = val('floor-h');
+  const hs=[];
+  for(let f=1;f<=n;f++){
+    const el=document.getElementById('fh-'+f);
+    hs.push(el ? parseFloat(el.value)||defH : defH);
+  }
+  return hs;
+}
+
+// ════════════════════════════════════════════════════════════
+//  MODEL GENERATION
+// ════════════════════════════════════════════════════════════
+let MODEL = {};
+
+function buildModel(){
+  const bX = ival('bays-x'), bY = ival('bays-y'), nF = ival('num-floors');
+  const sX = val('span-x'), sY = val('span-y');
+  const fhArr = getFloorHeights();
+  const colW = val('col-w'), colD = val('col-d');
+  const bmW = val('bm-w'), bmD = val('bm-d');
+  const colMat = sval('col-mat'), bmMat = sval('bm-mat');
+  const dl = val('dead-l'), ll = val('live-l'), fl = val('finish-l');
+  const slabT = val('slab-t');
+  const supportType = sval('support-type');
+  const fdnDepth = bval('fdn-toggle') ? val('fdn-depth') : 0;
+  const sw = bval('sw-toggle');
+  const hasWind = bval('wind-toggle');
+  const windV = val('wind-v');
+  const autoCol = bval('auto-col');
+  const secBeam = bval('sec-beam');
+
+  // BUILD NODES
+  // Grid is (bX+1) x (bY+1) columns per floor + ground (floor 0)
+  const nx = bX + 1, ny = bY + 1;
+  const nodes = [];   // {id, x, y, z, floor}
+  const nodeMap = {}; // "xi_yi_floor" -> nodeId
+
+  let nodeId = 1;
+  let yBase = -fdnDepth;
+
+  // Ground floor (floor 0) = supports
+  for(let yi=0;yi<ny;yi++){
+    for(let xi=0;xi<nx;xi++){
+      const x = xi*sX, y = yBase, z = yi*sY;
+      nodes.push({id:nodeId, x, y, z, floor:0});
+      nodeMap[`${xi}_${yi}_0`] = nodeId++;
+    }
+  }
+
+  // Each floor
+  let cumY = yBase;
+  for(let f=1;f<=nF;f++){
+    cumY += fhArr[f-1];
+    for(let yi=0;yi<ny;yi++){
+      for(let xi=0;xi<nx;xi++){
+        const x = xi*sX, y = cumY, z = yi*sY;
+        nodes.push({id:nodeId, x, y, z, floor:f});
+        nodeMap[`${xi}_${yi}_${f}`] = nodeId++;
+      }
+    }
+  }
+
+  // BUILD MEMBERS
+  const members = []; // {id, n1, n2, type, floor, sectionId}
+  let memId = 1;
+
+  // Column sections: auto-size by floor group (lower floors = bigger)
+  function getColSection(floor){
+    if(!autoCol) return {w:colW,d:colD};
+    const ratio = 1 + (nF-floor) * 0.04;
+    const w = Math.round(colW * ratio / 25) * 25;
+    const d = Math.round(colD * ratio / 25) * 25;
+    return {w:Math.min(w,1200), d:Math.min(d,1200)};
+  }
+
+  const columnMembers=[], beamMembersX=[], beamMembersY=[];
+
+  for(let f=1;f<=nF;f++){
+    // COLUMNS (floor f-1 → floor f)
+    for(let yi=0;yi<ny;yi++){
+      for(let xi=0;xi<nx;xi++){
+        const n1 = nodeMap[`${xi}_${yi}_${f-1}`];
+        const n2 = nodeMap[`${xi}_${yi}_${f}`];
+        const sec = getColSection(f);
+        const mid = members.push({id:memId,n1,n2,type:'column',floor:f,sec});
+        columnMembers.push(memId); memId++;
+      }
+    }
+    // X-BEAMS (along X)
+    for(let yi=0;yi<ny;yi++){
+      for(let xi=0;xi<bX;xi++){
+        const n1 = nodeMap[`${xi}_${yi}_${f}`];
+        const n2 = nodeMap[`${xi+1}_${yi}_${f}`];
+        members.push({id:memId,n1,n2,type:'beamX',floor:f,sec:{w:bmW,d:bmD}});
+        beamMembersX.push(memId); memId++;
+      }
+    }
+    // Y-BEAMS (along Y)
+    for(let xi=0;xi<nx;xi++){
+      for(let yi=0;yi<bY;yi++){
+        const n1 = nodeMap[`${xi}_${yi}_${f}`];
+        const n2 = nodeMap[`${xi}_${yi+1}_${f}`];
+        members.push({id:memId,n1,n2,type:'beamY',floor:f,sec:{w:bmW,d:bmD}});
+        beamMembersY.push(memId); memId++;
+      }
+    }
+  }
+
+  // SUPPORTS (floor 0 nodes)
+  const supports = nodes.filter(n=>n.floor===0).map(n=>n.id);
+
+  // LOADS — IS 456 two-way slab distribution
+  // For a panel Lx × Ly, trapezoidal on long beams, triangular on short beams
+  // Short span: ly, Long span: lx (or vice versa)
+  const slabDL = (slabT/1000)*25; // kN/m²  (γ_concrete = 25 kN/m³)
+  const totalLoad = slabDL + dl + fl + ll; // kN/m² for load case purposes
+  const totalDL = slabDL + dl + fl;
+  const totalLL = ll;
+
+  // For each floor panel, distribute to surrounding beams
+  const beamLoads = []; // {memberId, type:'UDL', wDL, wLL}  kN/m
+  const floorLoads = []; // accumulate
+
+  for(let f=1;f<=nF;f++){
+    for(let yi=0;yi<bY;yi++){
+      for(let xi=0;xi<bX;xi++){
+        const lx = sX, ly = sY;
+        const r = ly/lx; // aspect ratio
+        // IS 456 coefficients
+        const ax = r*r/(1+r*r*r*r); // trapezoidal coeff for short span
+        // Distribute using tributary area (simpler, conservative for rectangular panels)
+        // Half of load goes to X-beams, half to Y-beams, split by ratio
+        const triDL = totalDL * lx / 3; // triangular load on short span beam (kN/m at peak)
+        const triLL = totalLL * lx / 3;
+        const trapDL = totalDL * lx / 2 * (1 - lx/(3*ly)); // trapezoidal on long span
+        const trapLL = totalLL * lx / 2 * (1 - lx/(3*ly));
+
+        // Short span X-beams at yi and yi+1
+        const mxBot = members.find(m=>m.type==='beamX'&&m.floor===f&&m.n1===nodeMap[`${xi}_${yi}_${f}`]&&m.n2===nodeMap[`${xi+1}_${yi}_${f}`]);
+        const mxTop = members.find(m=>m.type==='beamX'&&m.floor===f&&m.n1===nodeMap[`${xi}_${yi+1}_${f}`]&&m.n2===nodeMap[`${xi+1}_${yi+1}_${f}`]);
+        // Long span Y-beams at xi and xi+1
+        const myLft = members.find(m=>m.type==='beamY'&&m.floor===f&&m.n1===nodeMap[`${xi}_${yi}_${f}`]&&m.n2===nodeMap[`${xi}_${yi+1}_${f}`]);
+        const myRgt = members.find(m=>m.type==='beamY'&&m.floor===f&&m.n1===nodeMap[`${xi+1}_${yi}_${f}`]&&m.n2===nodeMap[`${xi+1}_${yi+1}_${f}`]);
+
+        const use = lx <= ly; // true if span-x is short span
+        const shortDL = use ? triDL : trapDL;
+        const shortLL = use ? triLL : trapLL;
+        const longDL  = use ? trapDL : triDL;
+        const longLL  = use ? trapLL : triLL;
+
+        [mxBot,mxTop].forEach(m=>{ if(m) beamLoads.push({id:m.id,wDL:shortDL,wLL:shortLL}); });
+        [myLft,myRgt].forEach(m=>{ if(m) beamLoads.push({id:m.id,wDL:longDL,wLL:longLL}); });
+      }
+    }
+  }
+
+  // Wind loads (simplified pressure on windward face columns)
+  const windLoads = [];
+  if(hasWind){
+    const k1=1.0,k2=1.0,k3=1.0; // IS 875 factors
+    const Vz = k1*k2*k3*windV;
+    const pz = 0.6 * Vz * Vz / 1000; // kN/m²
+    let cumYW = -fdnDepth;
+    for(let f=1;f<=nF;f++){
+      cumYW += fhArr[f-1];
+      const faceWidth = bY * sY;
+      const fh = fhArr[f-1];
+      // Nodes on windward face (xi=0, all yi, floor f)
+      for(let yi=0;yi<ny;yi++){
+        const nId = nodeMap[`0_${yi}_${f}`];
+        const tributaryW = (yi===0||yi===bY) ? faceWidth/(2*(ny-1)) : faceWidth/(ny-1);
+        const tributaryH = fh;
+        const F = pz * tributaryW * tributaryH / ny;
+        windLoads.push({nodeId:nId, Fx:F.toFixed(3)});
+      }
+    }
+  }
+
+  // SECTION PROPERTIES
+  const Iz_col = (colW * colD*colD*colD) / 12;
+  const Iy_col = (colD * colW*colW*colW) / 12;
+  const Iz_bm  = (bmW  * bmD*bmD*bmD)   / 12;
+  const A_col  = colW * colD;
+  const A_bm   = bmW  * bmD;
+
+  // Update section previews
+  document.getElementById('cp-name').textContent = `C1 — ${colMat.split(' ')[0]} Column`;
+  document.getElementById('cp-bd').textContent = `${colW}×${colD}`;
+  document.getElementById('cp-iz').textContent = (Iz_col/1e6).toFixed(0)+' ×10⁶';
+  document.getElementById('cp-iy').textContent = (Iy_col/1e6).toFixed(0)+' ×10⁶';
+  document.getElementById('bp-name').textContent = `B1 — ${bmMat.split(' ')[0]} Beam`;
+  document.getElementById('bp-bd').textContent = `${bmW}×${bmD}`;
+  document.getElementById('bp-iz').textContent = (Iz_bm/1e6).toFixed(0)+' ×10⁶';
+
+  const totalArea = bX*sX * bY*sY * nF;
+  const totalVertLoad = (totalLoad * bX*sX * bY*sY * nF).toFixed(0);
+  const nLoadCases = hasWind ? 5 : 4;
+
+  // SUMMARY
+  document.getElementById('s-nodes').textContent = nodes.length;
+  document.getElementById('s-mem').textContent = members.length;
+  document.getElementById('s-cols').textContent = columnMembers.length;
+  document.getElementById('s-beams').textContent = (beamMembersX.length+beamMembersY.length);
+  document.getElementById('s-lc').textContent = nLoadCases + ' + 4 combos';
+  document.getElementById('s-area').textContent = totalArea.toFixed(0)+' m²';
+  document.getElementById('s-vload').textContent = totalVertLoad+' kN';
+  document.getElementById('ov-nodes').textContent = nodes.length;
+  document.getElementById('ov-mem').textContent = members.length;
+  document.getElementById('ov-loads').textContent = beamLoads.length;
+  document.getElementById('ov-combos').textContent = '4';
+
+  MODEL = { nodes, members, supports, beamLoads, windLoads,
+    bX,bY,nF,sX,sY,nx,ny,fhArr,fdnDepth,
+    colW,colD,bmW,bmD,A_col,A_bm,Iz_col,Iy_col,Iz_bm,
+    colMat,bmMat,supportType,sw,hasWind,windV,
+    dl,ll,fl,slabT,slabDL,totalDL,totalLL,totalArea,nLoadCases };
+
+  return MODEL;
+}
+
+// ════════════════════════════════════════════════════════════
+//  GENERATE STAAD.Pro STD FILE
+// ════════════════════════════════════════════════════════════
+function generateSTD(M){
+  const {nodes,members,supports,beamLoads,windLoads,
+    bX,bY,nF,sX,sY,colW,colD,bmW,bmD,A_col,A_bm,Iz_col,Iy_col,Iz_bm,
+    colMat,bmMat,supportType,sw,hasWind,windV,
+    dl,ll,fl,slabT,slabDL,totalDL,totalLL,nLoadCases} = M;
+
+  const lines = [];
+  const L = s => lines.push(s);
+
+  L(`STAAD SPACE`);
+  L(`START JOB INFORMATION`);
+  L(`ENGINEER DATE ${new Date().toLocaleDateString('en-GB').split('/').reverse().join('-')}`);
+  L(`JOB NAME MULTISTORY-BUILDING-${bX}X${bY}-${nF}F`);
+  L(`END JOB INFORMATION`);
+  L(`INPUT WIDTH 79`);
+  L(`UNIT METER KN`);
+  L(``);
+  L(`JOINT COORDINATES`);
+  nodes.forEach(n=>{
+    L(`${n.id} ${n.x.toFixed(3)} ${n.y.toFixed(3)} ${n.z.toFixed(3)}`);
+  });
+  L(``);
+  L(`MEMBER INCIDENCES`);
+  members.forEach(m=>{
+    L(`${m.id} ${m.n1} ${m.n2}`);
+  });
+  L(``);
+
+  // MEMBER PROPERTIES
+  L(`MEMBER PROPERTY ${colMat.includes('CONCRETE') ? 'CONCRETE' : ''}`);
+  // Columns
+  const colMemIds = members.filter(m=>m.type==='column').map(m=>m.id);
+  if(colMemIds.length){
+    if(bval('auto-col')){
+      // Group by floor
+      for(let f=1;f<=nF;f++){
+        const ids = members.filter(m=>m.type==='column'&&m.floor===f).map(m=>m.id);
+        if(!ids.length) continue;
+        const sec = (() => {
+          const ratio=1+(nF-f)*0.04;
+          const w=Math.round(colW*ratio/25)*25;
+          const d=Math.round(colD*ratio/25)*25;
+          return {w:Math.min(w,1200)/1000, d:Math.min(d,1200)/1000};
+        })();
+        L(`${ids.join(' ')} PRIS YD ${sec.d.toFixed(3)} ZD ${sec.w.toFixed(3)}`);
+      }
+    } else {
+      L(`${colMemIds.join(' ')} PRIS YD ${(colD/1000).toFixed(3)} ZD ${(colW/1000).toFixed(3)}`);
+    }
+  }
+  // Beams
+  const bxIds = members.filter(m=>m.type==='beamX').map(m=>m.id);
+  const byIds = members.filter(m=>m.type==='beamY').map(m=>m.id);
+  const allBmIds = [...bxIds,...byIds];
+  if(allBmIds.length){
+    L(`${allBmIds.join(' ')} PRIS YD ${(bmD/1000).toFixed(3)} ZD ${(bmW/1000).toFixed(3)}`);
+  }
+  L(``);
+
+  // MATERIAL
+  const matLine = colMat.includes('M30') ? 'E 27386000 POISSON 0.17 DENSITY 25 DAMP 0.05 ALPHA 1E-5'
+                : colMat.includes('M25') ? 'E 25000000 POISSON 0.17 DENSITY 25 DAMP 0.05 ALPHA 1E-5'
+                : 'E 200000000 POISSON 0.3 DENSITY 77 DAMP 0.03 ALPHA 1.2E-5';
+  L(`CONSTANTS`);
+  L(`MATERIAL CONCRETE ALL`);
+  L(`${matLine}`);
+  L(``);
+
+  // SUPPORTS
+  L(`SUPPORTS`);
+  supports.forEach(sid=>{ L(`${sid} ${supportType}`); });
+  L(``);
+
+  // LOAD CASE 1: DEAD LOAD
+  L(`LOAD 1 LOADTYPE Dead TITLE DEAD LOAD`);
+  if(sw) L(`SELFWEIGHT Y -1.0 LIST ${[...colMemIds,...allBmIds].join(' ')}`);
+  beamLoads.forEach(bl=>{
+    L(`MEMBER LOAD`);
+    L(`${bl.id} UNI GY -${bl.wDL.toFixed(3)}`);
+  });
+  L(``);
+
+  // LOAD CASE 2: LIVE LOAD
+  L(`LOAD 2 LOADTYPE Live TITLE LIVE LOAD`);
+  beamLoads.forEach(bl=>{
+    L(`MEMBER LOAD`);
+    L(`${bl.id} UNI GY -${bl.wLL.toFixed(3)}`);
+  });
+  L(``);
+
+  // LOAD CASE 3: FLOOR FINISH
+  const finishLoads = beamLoads.map(bl=>({...bl, wFL: bl.wDL * (fl/(totalDL||1))}));
+  L(`LOAD 3 LOADTYPE Dead TITLE FLOOR FINISH`);
+  finishLoads.forEach(bl=>{
+    const v = (bl.wFL||0).toFixed(3);
+    if(parseFloat(v)>0){
+      L(`MEMBER LOAD`);
+      L(`${bl.id} UNI GY -${v}`);
+    }
+  });
+  L(``);
+
+  // LOAD CASE 4: WIND (if enabled)
+  if(hasWind && windLoads.length){
+    L(`LOAD 4 LOADTYPE Wind TITLE WIND LOAD X+`);
+    L(`JOINT LOAD`);
+    windLoads.forEach(wl=>{ L(`${wl.nodeId} FX ${wl.Fx}`); });
+    L(``);
+    L(`LOAD 5 LOADTYPE Wind TITLE WIND LOAD X-`);
+    L(`JOINT LOAD`);
+    windLoads.forEach(wl=>{ L(`${wl.nodeId} FX -${wl.Fx}`); });
+    L(``);
+  }
+
+  // LOAD COMBINATIONS (IS 456 / IS 1893)
+  L(`LOAD COMBINATION 101 ULS 1.5(DL+LL)`);
+  L(`1 1.5 2 1.5 3 1.5`);
+  L(``);
+  L(`LOAD COMBINATION 102 SLS 1.0(DL+LL)`);
+  L(`1 1.0 2 1.0 3 1.0`);
+  L(``);
+  if(hasWind){
+    L(`LOAD COMBINATION 103 ULS 1.2(DL+LL+WL+)`);
+    L(`1 1.2 2 1.2 3 1.2 4 1.2`);
+    L(``);
+    L(`LOAD COMBINATION 104 ULS 1.2(DL+LL+WL-)`);
+    L(`1 1.2 2 1.2 3 1.2 5 1.2`);
+    L(``);
+    L(`LOAD COMBINATION 105 ULS 0.9DL+1.5WL+`);
+    L(`1 0.9 4 1.5`);
+    L(``);
+  }
+
+  // ANALYSIS
+  L(`PDELTA 3 ANALYSIS`);
+  L(``);
+  L(`PRINT ALL`);
+  L(`PRINT SUPPORT REACTION`);
+  L(`PRINT MEMBER FORCES LIST ${allBmIds.slice(0,Math.min(20,allBmIds.length)).join(' ')}`);
+  L(``);
+
+  // DESIGN
+  if(colMat.includes('CONCRETE')){
+    L(`START CONCRETE DESIGN`);
+    L(`CODE IS456`);
+    L(`FYMAIN 415`);
+    L(`FC 30`);
+    L(`CLEAR 40`);
+    L(`COLUMN DESIGN LIST ${colMemIds.slice(0,20).join(' ')}`);
+    L(`BEAM DESIGN LIST ${allBmIds.slice(0,20).join(' ')}`);
+    L(`END CONCRETE DESIGN`);
+  }
+  L(``);
+  L(`FINISH`);
+
+  return lines.join('\n');
+}
+
+// ════════════════════════════════════════════════════════════
+//  THREE.JS 3D VIEW
+// ════════════════════════════════════════════════════════════
+const canvas3d = document.getElementById('c3d');
+const renderer = new THREE.WebGLRenderer({canvas:canvas3d,antialias:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+renderer.shadowMap.enabled=true;
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x080c10);
+scene.fog = new THREE.FogExp2(0x080c10, 0.012);
+
+const camera = new THREE.PerspectiveCamera(45,1,0.1,500);
+camera.position.set(25,20,25);
+const target3d = new THREE.Vector3(0,5,0);
+camera.lookAt(target3d);
+
+scene.add(new THREE.AmbientLight(0xffffff,0.5));
+const dl3 = new THREE.DirectionalLight(0xffffff,1.0);
+dl3.position.set(30,40,20); dl3.castShadow=true; scene.add(dl3);
+const fl3 = new THREE.DirectionalLight(0x00d4ff,0.3);
+fl3.position.set(-20,10,-10); scene.add(fl3);
+
+// Grid
+let showGrid=true;
+let gridMesh=null;
+function makeGrid(){
+  if(gridMesh){scene.remove(gridMesh);gridMesh=null;}
+  if(!showGrid) return;
+  const g=new THREE.GridHelper(80,80,0x1a2a3a,0x111820);
+  g.position.y=-0.01; scene.add(g); gridMesh=g;
+}
+makeGrid();
+
+let showLabels=false;
+let sceneGroup=null;
+
+function toggleGrid(){ showGrid=!showGrid; makeGrid(); }
+function toggleLabels(){ showLabels=!showLabels; render3d(); }
+
+// ──  ORBIT ──
+let orbit={theta:0.8,phi:0.9,r:40};
+let camTarget=new THREE.Vector3(0,5,0);
+let isDrag=false,isRight=false,lastMX=0,lastMY=0;
+
+function camUpdate(){
+  const x=orbit.r*Math.sin(orbit.phi)*Math.sin(orbit.theta);
+  const y=orbit.r*Math.cos(orbit.phi);
+  const z=orbit.r*Math.sin(orbit.phi)*Math.cos(orbit.theta);
+  camera.position.set(camTarget.x+x,camTarget.y+y,camTarget.z+z);
+  camera.lookAt(camTarget);
+}
+
+canvas3d.addEventListener('mousedown',e=>{
+  if(e.button===0) isDrag=true;
+  if(e.button===2) isRight=true;
+  lastMX=e.clientX; lastMY=e.clientY;
+});
+window.addEventListener('mouseup',()=>{isDrag=false;isRight=false;});
+window.addEventListener('mousemove',e=>{
+  const dx=e.clientX-lastMX,dy=e.clientY-lastMY;
+  lastMX=e.clientX;lastMY=e.clientY;
+  if(isDrag){orbit.theta-=dx*0.005;orbit.phi=Math.max(0.05,Math.min(Math.PI-0.05,orbit.phi-dy*0.005));camUpdate();}
+  if(isRight){
+    const right=new THREE.Vector3();
+    camera.getWorldDirection(right); right.cross(camera.up).normalize();
+    const up=camera.up.clone();
+    camTarget.addScaledVector(right,-dx*0.015);
+    camTarget.addScaledVector(up,dy*0.015);
+    camUpdate();
+  }
+});
+canvas3d.addEventListener('wheel',e=>{e.preventDefault();orbit.r=Math.max(5,orbit.r+e.deltaY*0.03);camUpdate();},{passive:false});
+canvas3d.addEventListener('contextmenu',e=>e.preventDefault());
+
+function resetCam(){ orbit={theta:0.8,phi:0.9,r:40}; camTarget.set(0,5,0); camUpdate(); }
+
+let currentViewMode='3d';
+function setViewMode(m){
+  currentViewMode=m;
+  document.querySelectorAll('.ct-btn[id^="vt-"]').forEach(b=>b.classList.remove('active'));
+  document.getElementById('vt-'+m)?.classList.add('active');
+  if(m==='plan'){orbit.phi=0.05;orbit.theta=0;}
+  else if(m==='elev'){orbit.phi=Math.PI/2;orbit.theta=0;}
+  else if(m==='side'){orbit.phi=Math.PI/2;orbit.theta=Math.PI/2;}
+  else{orbit={theta:0.8,phi:0.9,r:40};}
+  camUpdate();
+}
+
+// RESIZE
+const ro=new ResizeObserver(()=>{
+  const wrap=document.querySelector('.canvas-wrap');
+  const w=wrap.clientWidth,h=wrap.clientHeight;
+  renderer.setSize(w,h,false);
+  camera.aspect=w/h;
+  camera.updateProjectionMatrix();
+});
+ro.observe(document.querySelector('.canvas-wrap'));
+
+// RENDER 3D
+const matCol=new THREE.MeshStandardMaterial({color:0xff6b2b,metalness:0.4,roughness:0.5});
+const matBeamX=new THREE.MeshStandardMaterial({color:0x00d4ff,metalness:0.3,roughness:0.6});
+const matBeamY=new THREE.MeshStandardMaterial({color:0x0090cc,metalness:0.3,roughness:0.6});
+const matSupport=new THREE.MeshStandardMaterial({color:0xff4444,metalness:0.6,roughness:0.3,emissive:new THREE.Color(0xff2200),emissiveIntensity:0.2});
+const matNode=new THREE.MeshStandardMaterial({color:0x39ff14,metalness:0.5,roughness:0.3});
+
+function render3d(){
+  if(sceneGroup){scene.remove(sceneGroup);sceneGroup.traverse(o=>{if(o.geometry)o.geometry.dispose();});}
+  sceneGroup=new THREE.Group();
+
+  const M=MODEL;
+  if(!M.nodes) return;
+
+  // Center the model
+  const cx=M.bX*M.sX/2, cz=M.bY*M.sY/2;
+
+  // MEMBERS
+  M.members.forEach(m=>{
+    const na=M.nodes[m.n1-1], nb=M.nodes[m.n2-1];
+    if(!na||!nb) return;
+    const a=new THREE.Vector3(na.x-cx,na.y,na.z-cz);
+    const b=new THREE.Vector3(nb.x-cx,nb.y,nb.z-cz);
+    const dir=b.clone().sub(a);
+    const L=dir.length();
+    if(L<0.01) return;
+
+    let r=0.08, mat;
+    if(m.type==='column'){r=Math.min((m.sec?.w||M.colW)/1000*0.35,0.18);mat=matCol;}
+    else if(m.type==='beamX'){r=Math.min((m.sec?.w||M.bmW)/1000*0.3,0.12);mat=matBeamX;}
+    else{r=Math.min((m.sec?.w||M.bmW)/1000*0.3,0.12);mat=matBeamY;}
+
+    const geo=new THREE.CylinderGeometry(r,r,L,8,1);
+    const mesh=new THREE.Mesh(geo,mat);
+    mesh.castShadow=true;
+    const mid=a.clone().add(b).multiplyScalar(0.5);
+    mesh.position.copy(mid);
+    const up=new THREE.Vector3(0,1,0);
+    const dn=dir.clone().normalize();
+    const axis=up.clone().cross(dn);
+    const angle=Math.acos(Math.max(-1,Math.min(1,up.dot(dn))));
+    if(axis.length()>0.001) mesh.setRotationFromAxisAngle(axis.normalize(),angle);
+    else if(dn.y<0) mesh.rotation.z=Math.PI;
+    sceneGroup.add(mesh);
+  });
+
+  // NODES
+  const nodeGeo=new THREE.SphereGeometry(0.12,8,8);
+  M.nodes.forEach(n=>{
+    const isSupport=M.supports.includes(n.id);
+    const mesh=new THREE.Mesh(nodeGeo,isSupport?matSupport:matNode);
+    mesh.position.set(n.x-cx,n.y,n.z-cz);
+    sceneGroup.add(mesh);
+  });
+
+  // LOAD ARROWS
+  if(M.beamLoads && M.beamLoads.length>0){
+    const arrowColor=0xffcc00;
+    // Show arrows only on top floor beams to avoid clutter
+    const topFloor=M.nF;
+    const topBeams=M.members.filter(m=>(m.type==='beamX'||m.type==='beamY')&&m.floor===topFloor);
+    topBeams.slice(0,20).forEach(m=>{
+      const na=M.nodes[m.n1-1],nb=M.nodes[m.n2-1];
+      if(!na||!nb) return;
+      const mid=new THREE.Vector3((na.x+nb.x)/2-cx,(na.y+nb.y)/2+0.8,(na.z+nb.z)/2-cz);
+      const arr=new THREE.ArrowHelper(new THREE.Vector3(0,-1,0),mid,0.6,arrowColor,0.2,0.1);
+      sceneGroup.add(arr);
+    });
+  }
+
+  // SUPPORT SYMBOLS (triangles)
+  M.supports.forEach(sid=>{
+    const n=M.nodes[sid-1]; if(!n) return;
+    const geo=new THREE.ConeGeometry(0.3,0.5,4);
+    const mesh=new THREE.Mesh(geo,matSupport);
+    mesh.position.set(n.x-cx,n.y-0.4,n.z-cz);
+    mesh.rotation.x=Math.PI;
+    sceneGroup.add(mesh);
+  });
+
+  scene.add(sceneGroup);
+}
+
+function animLoop(){
+  requestAnimationFrame(animLoop);
+  renderer.render(scene,camera);
+}
+animLoop();
+camUpdate();
+
+// ════════════════════════════════════════════════════════════
+//  MAIN UPDATE
+// ════════════════════════════════════════════════════════════
+let stdCode='';
+function update(){
+  buildModel();
+  render3d();
+  // Auto-update code preview in right panel (brief version)
+  const M=MODEL;
+  const preview=
+`* STAAD.Pro Input Preview
+* Nodes: ${M.nodes?.length||0}  Members: ${M.members?.length||0}
+* Building: ${M.bX}×${M.bY} bays, ${M.nF} floors
+* Spans: ${M.sX}m × ${M.sY}m
+*
+* Click [⚡ Generate STD] for full file
+STAAD SPACE
+UNIT METER KN
+JOINT COORDINATES
+...${M.nodes?.length||0} joints...
+MEMBER INCIDENCES
+...${M.members?.length||0} members...
+*
+MEMBER PROPERTY CONCRETE
+* Columns: ${M.colW}×${M.colD}mm  Beams: ${M.bmW}×${M.bmD}mm
+*
+LOAD 1 LOADTYPE Dead TITLE DEAD LOAD
+* ${(M.beamLoads||[]).length} member UDL entries
+LOAD 2 LOADTYPE Live TITLE LIVE LOAD
+...
+LOAD COMBINATION 101 ULS 1.5(DL+LL)
+...
+PDELTA 3 ANALYSIS
+FINISH`;
+  document.getElementById('code-out').textContent=preview;
+}
+
+function generateAll(){
+  const M=buildModel();
+  stdCode=generateSTD(M);
+  // Syntax-highlight the output
+  const highlighted=stdCode
+    .replace(/^(STAAD|UNIT|JOINT|MEMBER|CONSTANTS|SUPPORTS|LOAD|PDELTA|PRINT|START|END|FINISH|PERFORM|CHANGE|DEFINE|ELEMENT|SURFACE|FLOOR|PLATE)(\b.*)/gm,
+      '<span class="kw">$1</span>$2')
+    .replace(/(\*.*)/g,'<span class="cm">$1</span>')
+    .replace(/\b(\d+\.\d+|\d+)\b/g,'<span class="val">$1</span>');
+  document.getElementById('code-out').innerHTML=highlighted;
+  showToast('STD File Generated! ' + M.nodes.length + ' joints, ' + M.members.length + ' members.');
+}
+
+function downloadSTD(){
+  if(!stdCode){ generateAll(); }
+  const blob=new Blob([stdCode],{type:'text/plain'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  const M=MODEL;
+  a.download=`Building_${M.bX||4}X${M.bY||3}_${M.nF||5}F_${Date.now()}.std`;
+  a.click();
+  showToast('.STD File Downloaded!');
+}
+
+function copyCode(){
+  const text=document.getElementById('code-out').textContent;
+  navigator.clipboard.writeText(text).then(()=>showToast('Copied to clipboard!'));
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ════════════════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════════════════
+buildFloorInputs();
+update();
+camUpdate();
+</script>
+</body>
+</html>
