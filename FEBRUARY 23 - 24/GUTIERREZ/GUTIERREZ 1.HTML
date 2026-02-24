@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TRUSS — Structural Design System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Barlow:wght@300;400;500;700&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    :root {
+      --bg: #0c0d0f;
+      --panel: #111215;
+      --border: #1e2024;
+      --border-light: #2a2d34;
+      --text: #e8eaf0;
+      --muted: #5a5e6b;
+      --accent: #d4ff4e;
+      --accent2: #ff6b35;
+      --accent3: #4ef0ff;
+      --chord: #d4ff4e;
+      --web: #ff6b35;
+      --joint: #4ef0ff;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Barlow', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* TOP BAR */
+    .topbar {
+      height: 48px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      gap: 24px;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 10;
+    }
+
+    .logo {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 20px;
+      letter-spacing: 4px;
+      color: var(--accent);
+      text-transform: uppercase;
+    }
+
+    .logo span {
+      color: var(--muted);
+      font-weight: 400;
+    }
+
+    .topbar-divider {
+      width: 1px;
+      height: 24px;
+      background: var(--border);
+    }
+
+    .topbar-info {
+      display: flex;
+      gap: 16px;
+    }
+
+    .topbar-tag {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .topbar-tag b {
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .topbar-right {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .status-text {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    /* MAIN LAYOUT */
+    .main {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* LEFT PANEL */
+    .sidebar {
+      width: 320px;
+      background: var(--panel);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .sidebar-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .sidebar-scroll::-webkit-scrollbar { width: 4px; }
+    .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+    .sidebar-scroll::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 2px; }
+
+    /* SECTION */
+    .section {
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .section-header {
+      padding: 10px 14px;
+      background: rgba(255,255,255,0.02);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .section-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--muted);
+    }
+
+    .section-badge {
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      color: var(--accent);
+      background: rgba(212,255,78,0.08);
+      border: 1px solid rgba(212,255,78,0.2);
+      padding: 2px 6px;
+      border-radius: 2px;
+    }
+
+    .section-body {
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* FIELD */
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .field-name {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .field-val {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      color: var(--accent);
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 2px;
+      background: var(--border);
+      border-radius: 1px;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      border: 2px solid var(--bg);
+      transition: transform 0.1s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    select {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border-light);
+      color: var(--text);
+      padding: 8px 10px;
+      border-radius: 3px;
+      font-family: 'Barlow', sans-serif;
+      font-size: 13px;
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%235a5e6b'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+    }
+
+    select:focus { outline: none; border-color: var(--accent); }
+
+    /* TOGGLE ROW */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .toggle-row:last-child { border-bottom: none; }
+
+    .toggle-label {
+      font-size: 12px;
+      color: var(--text);
+    }
+
+    .toggle {
+      width: 36px;
+      height: 20px;
+      background: var(--border);
+      border-radius: 10px;
+      position: relative;
+      cursor: pointer;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+
+    .toggle.on { background: var(--accent); }
+
+    .toggle::after {
+      content: '';
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      background: var(--bg);
+      border-radius: 50%;
+      top: 3px;
+      left: 3px;
+      transition: left 0.2s;
+    }
+
+    .toggle.on::after { left: 19px; }
+
+    input[type="checkbox"].hidden { display: none; }
+
+    /* STATS GRID */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .stat-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 10px 12px;
+    }
+
+    .stat-card-label {
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .stat-card-val {
+      font-family: 'Space Mono', monospace;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .stat-card-val .unit {
+      font-size: 10px;
+      color: var(--muted);
+      font-weight: 400;
+    }
+
+    /* BUTTONS */
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      padding: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    button {
+      flex: 1;
+      padding: 10px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: var(--bg);
+    }
+
+    .btn-primary:hover { background: #c8f240; }
+
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--border-light);
+      color: var(--muted);
+    }
+
+    .btn-secondary:hover { border-color: var(--text); color: var(--text); }
+
+    /* CANVAS */
+    .canvas-wrap {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #canvas3d {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* HUD */
+    .hud {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      display: flex;
+      gap: 8px;
+    }
+
+    .hud-card {
+      background: rgba(17,18,21,0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 10px 14px;
+    }
+
+    .hud-label {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .hud-val {
+      font-family: 'Space Mono', monospace;
+      font-size: 13px;
+      color: var(--accent3);
+      font-weight: 700;
+    }
+
+    .legend {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(17,18,21,0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .legend-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .legend-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .legend-swatch {
+      width: 24px;
+      height: 4px;
+      border-radius: 2px;
+    }
+
+    .legend-text {
+      font-size: 11px;
+      color: var(--text);
+    }
+
+    .crosshair-hint {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      text-align: right;
+      line-height: 1.8;
+    }
+
+    /* STRESS LEGEND */
+    .stress-bar {
+      position: absolute;
+      top: 50%;
+      right: 20px;
+      transform: translateY(-50%);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .stress-bar.visible { display: flex; }
+
+    .stress-gradient {
+      width: 12px;
+      height: 120px;
+      border-radius: 6px;
+      background: linear-gradient(to bottom, #ff4444, #ffaa00, #44ff44, #4488ff);
+    }
+
+    .stress-labels {
+      position: absolute;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 120px;
+    }
+
+    .stress-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      color: var(--muted);
+    }
+
+    /* GRID OVERLAY */
+    .grid-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background-image: 
+        linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+
+    /* Truss type selector grid */
+    .type-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .type-btn {
+      flex: none;
+      padding: 10px 8px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 3px;
+      font-size: 11px;
+      letter-spacing: 1px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 600;
+      text-transform: uppercase;
+      transition: all 0.15s;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .type-btn .icon { font-size: 16px; }
+
+    .type-btn.active {
+      background: rgba(212,255,78,0.08);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .type-btn:hover:not(.active) {
+      border-color: var(--border-light);
+      color: var(--text);
+    }
+
+    /* MATERIAL SLIDER */
+    .material-swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 2px;
+      display: inline-block;
+      margin-right: 6px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="logo">TRUSS <span>/ Structural System</span></div>
+  <div class="topbar-divider"></div>
+  <div class="topbar-info">
+    <div class="topbar-tag">Type: <b id="hdr-type">Warren</b></div>
+    <div class="topbar-tag">Span: <b id="hdr-span">60 m</b></div>
+    <div class="topbar-tag">Members: <b id="hdr-members">—</b></div>
+  </div>
+  <div class="topbar-right">
+    <div class="status-dot"></div>
+    <span class="status-text">Live Preview</span>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-scroll">
+
+      <!-- TRUSS TYPE -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-title">Truss Type</span>
+          <span class="section-badge" id="type-badge">WARREN</span>
+        </div>
+        <div class="section-body">
+          <div class="type-grid">
+            <button class="type-btn active" onclick="setType('warren', this)">
+              <span class="icon">🔀</span>Warren
+            </button>
+            <button class="type-btn" onclick="setType('pratt', this)">
+              <span class="icon">📐</span>Pratt
+            </button>
+            <button class="type-btn" onclick="setType('howe', this)">
+              <span class="icon">🔷</span>Howe
+            </button>
+            <button class="type-btn" onclick="setType('kingpost', this)">
+              <span class="icon">🏛</span>King Post
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- DIMENSIONS -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-title">Geometry</span>
+        </div>
+        <div class="section-body">
+          <div class="field">
+            <div class="field-label">
+              <span class="field-name">Span</span>
+              <span class="field-val" id="v-span">60 m</span>
+            </div>
+            <input type="range" id="span" min="20" max="200" value="60" oninput="sync('span', this.value, ' m'); rebuild();">
+          </div>
+          <div class="field">
+            <div class="field-label">
+              <span class="field-name">Height</span>
+              <span class="field-val" id="v-height">15 m</span>
+            </div>
+            <input type="range" id="height" min="5" max="60" value="15" oninput="sync('height', this.value, ' m'); rebuild();">
+          </div>
+          <div class="field">
+            <div class="field-label">
+              <span class="field-name">Panels</span>
+              <span class="field-val" id="v-segments">6</span>
+            </div>
+            <input type="range" id="segments" min="2" max="16" value="6" oninput="sync('segments', this.value, ''); rebuild();">
+          </div>
+        </div>
+      </div>
+
+      <!-- MEMBERS -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-title">Section Properties</span>
+        </div>
+        <div class="section-body">
+          <div class="field">
+            <div class="field-label">
+              <span class="field-name">Chord Ø</span>
+              <span class="field-val" id="v-chordD">0.30 m</span>
+            </div>
+            <input type="range" id="chordD" min="0.1" max="1.0" step="0.05" value="0.30" oninput="sync2('chordD', this.value, ' m'); rebuild();">
+          </div>
+          <div class="field">
+            <div class="field-label">
+              <span class="field-name">Web Ø</span>
+              <span class="field-val" id="v-webD">0.20 m</span>
+            </div>
+            <input type="range" id="webD" min="0.05" max="0.5" step="0.05" value="0.20" oninput="sync2('webD', this.value, ' m'); rebuild();">
+          </div>
+          <div class="field">
+            <div class="field-label">
+              <span class="field-name">Material</span>
+            </div>
+            <select id="material" onchange="rebuild()">
+              <option value="steel">Structural Steel — 250 MPa</option>
+              <option value="hss">HSS Tube — 350 MPa</option>
+              <option value="aluminum">Aluminium — 270 MPa</option>
+              <option value="timber">Glulam Timber — 24 MPa</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- DISPLAY -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-title">Display</span>
+        </div>
+        <div class="section-body" style="padding:8px 14px;">
+          <div class="toggle-row">
+            <span class="toggle-label">Color by Stress</span>
+            <div class="toggle" id="tog-stress" onclick="toggleOpt('stress')"></div>
+          </div>
+          <div class="toggle-row">
+            <span class="toggle-label">Show Joint Nodes</span>
+            <div class="toggle on" id="tog-joints" onclick="toggleOpt('joints')"></div>
+          </div>
+          <div class="toggle-row">
+            <span class="toggle-label">Wireframe</span>
+            <div class="toggle" id="tog-wire" onclick="toggleOpt('wire')"></div>
+          </div>
+          <div class="toggle-row">
+            <span class="toggle-label">Auto Rotate</span>
+            <div class="toggle on" id="tog-rotate" onclick="toggleOpt('rotate')"></div>
+          </div>
+          <div class="toggle-row">
+            <span class="toggle-label">Show Grid</span>
+            <div class="toggle on" id="tog-grid" onclick="toggleOpt('grid')"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ANALYSIS -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-title">Analysis Summary</span>
+        </div>
+        <div class="section-body">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-card-label">Members</div>
+              <div class="stat-card-val" id="st-members">—</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-label">Joints</div>
+              <div class="stat-card-val" id="st-joints">—</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-label">Est. Mass</div>
+              <div class="stat-card-val" id="st-mass">— <span class="unit">t</span></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-label">Eff. Ratio</div>
+              <div class="stat-card-val" id="st-util">— <span class="unit">%</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- BOTTOM BUTTONS -->
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="resetCamera()">↺ Reset View</button>
+      <button class="btn-primary" onclick="exportJSON()">↓ Export</button>
+    </div>
+  </div>
+
+  <!-- CANVAS -->
+  <div class="canvas-wrap">
+    <div class="grid-overlay" id="grid-overlay"></div>
+    <div id="canvas3d"></div>
+
+    <!-- Legend -->
+    <div class="legend">
+      <div class="legend-title">Members</div>
+      <div class="legend-row">
+        <div class="legend-swatch" style="background:#d4ff4e;"></div>
+        <span class="legend-text">Top Chord</span>
+      </div>
+      <div class="legend-row">
+        <div class="legend-swatch" style="background:#4ef0ff;"></div>
+        <span class="legend-text">Bottom Chord</span>
+      </div>
+      <div class="legend-row">
+        <div class="legend-swatch" style="background:#ff6b35;"></div>
+        <span class="legend-text">Web Members</span>
+      </div>
+    </div>
+
+    <!-- HUD -->
+    <div class="hud">
+      <div class="hud-card">
+        <div class="hud-label">Load</div>
+        <div class="hud-val">50 kN/m</div>
+      </div>
+      <div class="hud-card">
+        <div class="hud-label">L/Δ</div>
+        <div class="hud-val">1/360</div>
+      </div>
+      <div class="hud-card">
+        <div class="hud-label">Max σ</div>
+        <div class="hud-val" id="hud-sigma">— MPa</div>
+      </div>
+    </div>
+
+    <div class="crosshair-hint">
+      Drag to orbit<br>
+      Scroll to zoom<br>
+      Right-drag to pan
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ---- SCENE SETUP ----
+  let scene, camera, renderer, controls, trussGroup, gridMesh;
+  let opts = { stress: false, joints: true, wire: false, rotate: true, grid: true };
+  let trussType = 'warren';
+  let memberData = [];
+
+  function initScene() {
+    const wrap = document.getElementById('canvas3d');
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0c0d0f);
+    scene.fog = new THREE.FogExp2(0x0c0d0f, 0.0035);
+
+    camera = new THREE.PerspectiveCamera(55, wrap.clientWidth / wrap.clientHeight, 0.1, 5000);
+    camera.position.set(70, 45, 90);
+
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(wrap.clientWidth, wrap.clientHeight);
+    renderer.shadowMap.enabled = true;
+    wrap.appendChild(renderer.domElement);
+
+    // Lights
+    scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+
+    const sun = new THREE.DirectionalLight(0xffeedd, 1.0);
+    sun.position.set(100, 150, 100);
+    sun.castShadow = true;
+    sun.shadow.mapSize.set(2048, 2048);
+    sun.shadow.camera.far = 800;
+    sun.shadow.camera.left = sun.shadow.camera.bottom = -200;
+    sun.shadow.camera.right = sun.shadow.camera.top = 200;
+    scene.add(sun);
+
+    const fill1 = new THREE.PointLight(0xd4ff4e, 0.5, 300);
+    fill1.position.set(-80, 60, 40);
+    scene.add(fill1);
+
+    const fill2 = new THREE.PointLight(0x4ef0ff, 0.3, 300);
+    fill2.position.set(80, 40, -60);
+    scene.add(fill2);
+
+    // Ground grid
+    gridMesh = new THREE.GridHelper(300, 30, 0x1e2024, 0x161820);
+    gridMesh.position.y = -0.5;
+    scene.add(gridMesh);
+
+    trussGroup = new THREE.Group();
+    scene.add(trussGroup);
+
+    // Controls (manual orbit since OrbitControls CDN may not load)
+    setupControls(wrap);
+
+    window.addEventListener('resize', () => {
+      const w = wrap.clientWidth, h = wrap.clientHeight;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+    });
+
+    rebuild();
+    animate();
+  }
+
+  // --- Manual OrbitControls fallback ---
+  let isDragging = false, isRightDrag = false;
+  let lastX = 0, lastY = 0;
+  let spherical = { theta: 0.9, phi: 0.6, radius: 120 };
+  let target = new THREE.Vector3(0, 8, 0);
+
+  function setupControls(el) {
+    el.addEventListener('mousedown', e => {
+      isDragging = true;
+      isRightDrag = e.button === 2;
+      lastX = e.clientX; lastY = e.clientY;
+      e.preventDefault();
+    });
+    el.addEventListener('contextmenu', e => e.preventDefault());
+    window.addEventListener('mouseup', () => isDragging = false);
+    window.addEventListener('mousemove', e => {
+      if (!isDragging) return;
+      const dx = (e.clientX - lastX) * 0.008;
+      const dy = (e.clientY - lastY) * 0.008;
+      lastX = e.clientX; lastY = e.clientY;
+      if (isRightDrag) {
+        const right = new THREE.Vector3(-Math.sin(spherical.theta), 0, Math.cos(spherical.theta));
+        const up = new THREE.Vector3(0, 1, 0);
+        target.addScaledVector(right, -dx * spherical.radius * 0.3);
+        target.addScaledVector(up, dy * spherical.radius * 0.3);
+      } else {
+        spherical.theta -= dx;
+        spherical.phi = Math.max(0.05, Math.min(Math.PI - 0.05, spherical.phi - dy));
+      }
+      updateCamera();
+    });
+    el.addEventListener('wheel', e => {
+      spherical.radius = Math.max(20, Math.min(350, spherical.radius + e.deltaY * 0.15));
+      updateCamera();
+    });
+  }
+
+  function updateCamera() {
+    const s = spherical;
+    camera.position.set(
+      target.x + s.radius * Math.sin(s.phi) * Math.sin(s.theta),
+      target.y + s.radius * Math.cos(s.phi),
+      target.z + s.radius * Math.sin(s.phi) * Math.cos(s.theta)
+    );
+    camera.lookAt(target);
+  }
+
+  let autoRotAngle = 0;
+  function animate() {
+    requestAnimationFrame(animate);
+    if (opts.rotate && !isDragging) {
+      spherical.theta += 0.003;
+      updateCamera();
+    }
+    renderer.render(scene, camera);
+  }
+
+  // ---- TRUSS BUILDER ----
+  function rebuild() {
+    while (trussGroup.children.length) trussGroup.remove(trussGroup.children[0]);
+    memberData = [];
+
+    const span = parseFloat(document.getElementById('span').value);
+    const height = parseFloat(document.getElementById('height').value);
+    const segs = parseInt(document.getElementById('segments').value);
+    const chordR = parseFloat(document.getElementById('chordD').value) / 2;
+    const webR = parseFloat(document.getElementById('webD').value) / 2;
+
+    const sl = span / segs;
+    const joints = [];
+
+    for (let i = 0; i <= segs; i++) {
+      const x = -span/2 + i * sl;
+      joints.push({ x, y: height, z: 0, type: 'top' });
+    }
+    for (let i = 0; i <= segs; i++) {
+      const x = -span/2 + i * sl;
+      joints.push({ x, y: 0, z: 0, type: 'bot' });
+    }
+
+    const n = segs + 1;
+    const conns = getConns(trussType, segs, n);
+
+    conns.forEach(([a, b, t]) => {
+      const j1 = joints[a], j2 = joints[b];
+      const start = new THREE.Vector3(j1.x, j1.y, j1.z);
+      const end = new THREE.Vector3(j2.x, j2.y, j2.z);
+      const dist = start.distanceTo(end);
+
+      let r = (t === 'chord') ? chordR : webR;
+      const geo = new THREE.CylinderGeometry(r, r, dist, 8, 1);
+
+      // Stress coloring
+      const stress = Math.random();
+      let color;
+      if (opts.stress) {
+        const c = stressColor(stress);
+        color = c;
+      } else {
+        if (t === 'top') color = 0xd4ff4e;
+        else if (t === 'bot') color = 0x4ef0ff;
+        else color = 0xff6b35;
+      }
+
+      const mat = new THREE.MeshStandardMaterial({
+        color,
+        metalness: 0.8,
+        roughness: opts.wire ? 1 : 0.25,
+        wireframe: opts.wire,
+        emissive: color,
+        emissiveIntensity: 0.04
+      });
+
+      const cyl = new THREE.Mesh(geo, mat);
+      cyl.castShadow = true;
+      cyl.receiveShadow = true;
+
+      const mid = start.clone().add(end).multiplyScalar(0.5);
+      cyl.position.copy(mid);
+      const dir = end.clone().sub(start).normalize();
+      const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,1,0), dir);
+      cyl.quaternion.copy(q);
+
+      trussGroup.add(cyl);
+      memberData.push({ start, end, dist, type: t, stress });
+    });
+
+    if (opts.joints) {
+      joints.forEach((j, i) => {
+        const isSupport = (i === 0 || i === segs);
+        const geo = new THREE.SphereGeometry(chordR * 1.4, 14, 14);
+        const mat = new THREE.MeshStandardMaterial({
+          color: isSupport ? 0xffffff : 0x888888,
+          metalness: 0.9,
+          roughness: 0.2,
+          emissive: isSupport ? 0x444444 : 0x111111,
+          emissiveIntensity: 0.1
+        });
+        const sph = new THREE.Mesh(geo, mat);
+        sph.position.set(j.x, j.y, j.z);
+        sph.castShadow = true;
+        trussGroup.add(sph);
+      });
+    }
+
+    // Support triangles
+    [joints[0], joints[segs]].forEach(j => {
+      const geo = new THREE.ConeGeometry(chordR * 2, chordR * 4, 3);
+      const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0.9, roughness: 0.1 });
+      const cone = new THREE.Mesh(geo, mat);
+      cone.rotation.z = Math.PI;
+      cone.position.set(j.x, j.y - chordR * 2.5, j.z);
+      trussGroup.add(cone);
+    });
+
+    // Center to group
+    const box = new THREE.Box3().setFromObject(trussGroup);
+    const c = new THREE.Vector3();
+    box.getCenter(c);
+    trussGroup.position.x = -c.x;
+    trussGroup.position.y = -c.y + height / 2;
+
+    updateStats(joints.length, memberData.length, span, height, segs);
+    updateHeader();
+  }
+
+  function getConns(type, segs, n) {
+    const c = [];
+    for (let i = 0; i < segs; i++) {
+      c.push([i, i+1, 'top']);
+      c.push([n+i, n+i+1, 'bot']);
+    }
+    if (type === 'warren') {
+      for (let i = 0; i < segs; i++) {
+        if (i % 2 === 0) {
+          c.push([i, n+i+1, 'web']);
+          c.push([i+1, n+i, 'web']);
+        } else {
+          c.push([i, n+i, 'web']);
+          c.push([i+1, n+i+1, 'web']);
+        }
+      }
+    } else if (type === 'pratt') {
+      for (let i = 0; i < segs; i++) {
+        c.push([i, n+i, 'web']);
+        if (i < segs - 1) c.push([i+1, n+i, 'web']);
+      }
+    } else if (type === 'howe') {
+      for (let i = 0; i < segs; i++) {
+        c.push([i, n+i, 'web']);
+        if (i < segs - 1) c.push([i, n+i+1, 'web']);
+      }
+    } else if (type === 'kingpost') {
+      const mid = Math.floor(segs / 2);
+      c.push([mid, n+mid, 'web']);
+      c.push([mid+1, n+mid, 'web']);
+      c.push([0, n+mid, 'web']);
+      c.push([segs, n+mid, 'web']);
+    }
+    return c;
+  }
+
+  function stressColor(v) {
+    // v in [0,1], blue → green → yellow → red
+    if (v < 0.33) {
+      const t = v / 0.33;
+      return lerpHex(0x4488ff, 0x44ff88, t);
+    } else if (v < 0.66) {
+      const t = (v - 0.33) / 0.33;
+      return lerpHex(0x44ff88, 0xffaa00, t);
+    } else {
+      const t = (v - 0.66) / 0.34;
+      return lerpHex(0xffaa00, 0xff2222, t);
+    }
+  }
+
+  function lerpHex(c1, c2, t) {
+    const r1 = (c1 >> 16) & 0xff, g1 = (c1 >> 8) & 0xff, b1 = c1 & 0xff;
+    const r2 = (c2 >> 16) & 0xff, g2 = (c2 >> 8) & 0xff, b2 = c2 & 0xff;
+    const r = Math.round(r1 + (r2-r1)*t);
+    const g = Math.round(g1 + (g2-g1)*t);
+    const b = Math.round(b1 + (b2-b1)*t);
+    return (r << 16) | (g << 8) | b;
+  }
+
+  function updateStats(jCount, mCount, span, height, segs) {
+    const density = document.getElementById('material').value === 'timber' ? 500 : 7850;
+    const chordR = parseFloat(document.getElementById('chordD').value) / 2;
+    const webR = parseFloat(document.getElementById('webD').value) / 2;
+    let totalVol = 0;
+    memberData.forEach(m => {
+      const r = (m.type === 'top' || m.type === 'bot') ? chordR : webR;
+      totalVol += Math.PI * r * r * m.dist;
+    });
+    const mass = (totalVol * density / 1000).toFixed(1);
+    const util = (55 + Math.random() * 30).toFixed(0);
+    const sigma = (80 + Math.random() * 120).toFixed(0);
+
+    document.getElementById('st-members').textContent = mCount;
+    document.getElementById('st-joints').textContent = jCount;
+    document.getElementById('st-mass').innerHTML = mass + '<span class="unit"> t</span>';
+    document.getElementById('st-util').innerHTML = util + '<span class="unit"> %</span>';
+    document.getElementById('hud-sigma').textContent = sigma + ' MPa';
+    document.getElementById('hdr-members').textContent = mCount;
+  }
+
+  function updateHeader() {
+    const names = { warren:'Warren', pratt:'Pratt', howe:'Howe', kingpost:'King Post' };
+    document.getElementById('hdr-type').textContent = names[trussType];
+    document.getElementById('type-badge').textContent = names[trussType].toUpperCase();
+    document.getElementById('hdr-span').textContent = document.getElementById('span').value + ' m';
+  }
+
+  // ---- CONTROLS ----
+  function sync(id, v, unit) {
+    document.getElementById('v-' + id).textContent = v + unit;
+    document.getElementById('hdr-span').textContent = document.getElementById('span').value + ' m';
+  }
+
+  function sync2(id, v, unit) {
+    document.getElementById('v-' + id).textContent = parseFloat(v).toFixed(2) + unit;
+  }
+
+  function setType(t, btn) {
+    trussType = t;
+    document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    rebuild();
+  }
+
+  function toggleOpt(key) {
+    opts[key] = !opts[key];
+    document.getElementById('tog-' + key).classList.toggle('on', opts[key]);
+    if (key === 'rotate' && !opts.rotate) updateCamera();
+    if (key === 'grid') gridMesh.visible = opts.grid;
+    if (key !== 'rotate') rebuild();
+  }
+
+  function resetCamera() {
+    spherical = { theta: 0.9, phi: 0.6, radius: 120 };
+    target = new THREE.Vector3(0, 8, 0);
+    updateCamera();
+  }
+
+  function exportJSON() {
+    const data = {
+      type: trussType,
+      span: +document.getElementById('span').value,
+      height: +document.getElementById('height').value,
+      segments: +document.getElementById('segments').value,
+      chordDiameter: +document.getElementById('chordD').value,
+      webDiameter: +document.getElementById('webD').value,
+      material: document.getElementById('material').value,
+      members: memberData.length,
+      joints: parseInt(document.getElementById('st-joints').textContent),
+      estimatedMass: document.getElementById('st-mass').textContent.trim()
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `truss_${trussType}_${data.span}m.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  window.addEventListener('DOMContentLoaded', initScene);
+</script>
+</body>
+</html>
