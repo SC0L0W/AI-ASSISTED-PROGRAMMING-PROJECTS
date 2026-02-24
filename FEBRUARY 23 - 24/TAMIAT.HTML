@@ -1,1 +1,1088 @@
-TRY
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Truss Modeler</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#0a0b0d;
+  --panel:#111318;
+  --border:#1e2230;
+  --accent:#e8a020;
+  --accent2:#2080e8;
+  --red:#e84040;
+  --green:#40c880;
+  --text:#d0d4e0;
+  --muted:#5a6080;
+  --fg:#ffffff;
+}
+
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'IBM Plex Mono',monospace;
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+
+/* TOPBAR */
+.topbar{
+  height:48px;
+  background:var(--panel);
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  padding:0 1.5rem;
+  gap:1.5rem;
+  flex-shrink:0;
+  z-index:10;
+}
+.logo{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.4rem;
+  letter-spacing:0.12em;
+  color:var(--accent);
+  white-space:nowrap;
+}
+.logo span{color:var(--text);opacity:0.5}
+.topbar-divider{width:1px;height:24px;background:var(--border)}
+.status-badge{
+  font-size:0.62rem;
+  letter-spacing:0.15em;
+  text-transform:uppercase;
+  padding:0.25rem 0.6rem;
+  border-radius:2px;
+  border:1px solid;
+}
+.badge-ok{color:var(--green);border-color:var(--green);background:rgba(64,200,128,0.08)}
+.badge-warn{color:var(--accent);border-color:var(--accent);background:rgba(232,160,32,0.08)}
+.badge-err{color:var(--red);border-color:var(--red);background:rgba(232,64,64,0.08)}
+.topbar-info{
+  margin-left:auto;
+  font-size:0.62rem;
+  color:var(--muted);
+  display:flex;
+  gap:1.5rem;
+}
+.topbar-info span em{color:var(--text);font-style:normal}
+
+/* LAYOUT */
+.workspace{
+  display:flex;
+  flex:1;
+  overflow:hidden;
+}
+
+/* SIDEBAR */
+.sidebar{
+  width:280px;
+  flex-shrink:0;
+  background:var(--panel);
+  border-right:1px solid var(--border);
+  overflow-y:auto;
+  display:flex;
+  flex-direction:column;
+}
+.sidebar::-webkit-scrollbar{width:4px}
+.sidebar::-webkit-scrollbar-track{background:transparent}
+.sidebar::-webkit-scrollbar-thumb{background:var(--border)}
+
+.sidebar-section{
+  border-bottom:1px solid var(--border);
+  padding:1rem;
+}
+.section-label{
+  font-size:0.58rem;
+  letter-spacing:0.25em;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin-bottom:0.85rem;
+  display:flex;
+  align-items:center;
+  gap:0.5rem;
+}
+.section-label::after{
+  content:'';
+  flex:1;
+  height:1px;
+  background:var(--border);
+}
+
+/* INPUTS */
+.field{margin-bottom:0.75rem}
+.field label{
+  display:block;
+  font-size:0.62rem;
+  color:var(--muted);
+  margin-bottom:0.3rem;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+}
+.field-row{display:flex;align-items:center;gap:0.5rem}
+.field input[type=range]{
+  flex:1;
+  -webkit-appearance:none;
+  height:3px;
+  background:var(--border);
+  border-radius:2px;
+  outline:none;
+}
+.field input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  width:12px;height:12px;
+  border-radius:50%;
+  background:var(--accent);
+  cursor:pointer;
+  border:2px solid var(--bg);
+}
+.field input[type=range]::-webkit-slider-thumb:hover{background:var(--fg)}
+.val-display{
+  min-width:42px;
+  font-size:0.68rem;
+  color:var(--fg);
+  text-align:right;
+  font-weight:500;
+}
+.field select{
+  width:100%;
+  background:var(--bg);
+  border:1px solid var(--border);
+  color:var(--text);
+  font-family:'IBM Plex Mono',monospace;
+  font-size:0.72rem;
+  padding:0.4rem 0.6rem;
+  border-radius:2px;
+  outline:none;
+  cursor:pointer;
+  appearance:none;
+}
+.field select:focus{border-color:var(--accent)}
+
+/* BUTTONS */
+.btn-row{display:flex;gap:0.5rem;margin-top:0.25rem}
+.btn{
+  flex:1;
+  padding:0.55rem 0.5rem;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:0.65rem;
+  font-weight:500;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  border:1px solid var(--border);
+  background:transparent;
+  color:var(--text);
+  cursor:pointer;
+  border-radius:2px;
+  transition:all 0.15s;
+}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.primary{
+  border-color:var(--accent);
+  color:var(--accent);
+  background:rgba(232,160,32,0.06);
+}
+.btn.primary:hover{background:rgba(232,160,32,0.15)}
+.btn.danger{border-color:var(--red);color:var(--red)}
+.btn.danger:hover{background:rgba(232,64,64,0.1)}
+
+/* LOAD TABLE */
+.load-table{width:100%;border-collapse:collapse;font-size:0.65rem;margin-top:0.5rem}
+.load-table th{
+  text-align:left;
+  color:var(--muted);
+  font-weight:400;
+  padding:0.3rem 0.4rem;
+  border-bottom:1px solid var(--border);
+  font-size:0.58rem;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+}
+.load-table td{
+  padding:0.35rem 0.4rem;
+  border-bottom:1px solid rgba(255,255,255,0.03);
+  color:var(--text);
+}
+.load-table tr:hover td{background:rgba(255,255,255,0.02)}
+.load-tag{
+  display:inline-block;
+  padding:0.1rem 0.3rem;
+  border-radius:1px;
+  font-size:0.55rem;
+  text-transform:uppercase;
+  letter-spacing:0.1em;
+}
+.lt-dl{background:rgba(232,64,64,0.15);color:var(--red)}
+.lt-ll{background:rgba(32,128,232,0.15);color:var(--accent2)}
+.lt-pt{background:rgba(232,160,32,0.15);color:var(--accent)}
+
+/* RESULTS PANEL */
+.results-panel{
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:2px;
+  padding:0.75rem;
+  margin-top:0.25rem;
+}
+.result-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:0.3rem 0;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+  font-size:0.65rem;
+}
+.result-row:last-child{border:none}
+.result-row .rk{color:var(--muted)}
+.result-row .rv{color:var(--fg);font-weight:500}
+.rv.tension{color:var(--accent2)}
+.rv.compression{color:var(--accent)}
+.rv.critical{color:var(--red)}
+
+/* CANVAS AREA */
+.canvas-wrap{
+  flex:1;
+  position:relative;
+  overflow:hidden;
+  background:var(--bg);
+}
+canvas{display:block;width:100%!important;height:100%!important}
+
+/* OVERLAY CONTROLS */
+.view-controls{
+  position:absolute;
+  bottom:1rem;
+  right:1rem;
+  display:flex;
+  flex-direction:column;
+  gap:0.4rem;
+}
+.vc-btn{
+  width:32px;height:32px;
+  background:rgba(17,19,24,0.85);
+  border:1px solid var(--border);
+  color:var(--muted);
+  font-size:0.75rem;
+  cursor:pointer;
+  border-radius:2px;
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.15s;
+  font-family:'IBM Plex Mono',monospace;
+}
+.vc-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+.view-mode-toggle{
+  position:absolute;
+  bottom:1rem;
+  left:1rem;
+  display:flex;
+  gap:0.4rem;
+}
+.vm-btn{
+  padding:0.35rem 0.75rem;
+  background:rgba(17,19,24,0.85);
+  border:1px solid var(--border);
+  color:var(--muted);
+  font-family:'IBM Plex Mono',monospace;
+  font-size:0.6rem;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  cursor:pointer;
+  border-radius:2px;
+  transition:all 0.15s;
+}
+.vm-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(232,160,32,0.08)}
+.vm-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* MEMBER HOVER TOOLTIP */
+.tooltip{
+  position:absolute;
+  pointer-events:none;
+  background:rgba(10,11,13,0.95);
+  border:1px solid var(--border);
+  padding:0.5rem 0.75rem;
+  font-size:0.65rem;
+  border-radius:2px;
+  display:none;
+  z-index:20;
+  min-width:150px;
+}
+.tooltip.show{display:block}
+.tt-title{color:var(--accent);font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:0.3rem}
+.tt-row{display:flex;justify-content:space-between;gap:1rem;color:var(--muted)}
+.tt-row em{color:var(--text);font-style:normal}
+
+/* LEGEND */
+.legend{
+  position:absolute;
+  top:1rem;
+  right:1rem;
+  background:rgba(17,19,24,0.9);
+  border:1px solid var(--border);
+  padding:0.7rem;
+  border-radius:2px;
+  font-size:0.6rem;
+}
+.leg-title{color:var(--muted);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:0.5rem;font-size:0.55rem}
+.leg-row{display:flex;align-items:center;gap:0.5rem;margin-bottom:0.3rem;color:var(--text)}
+.leg-line{width:24px;height:3px;border-radius:2px}
+.leg-dot{width:8px;height:8px;border-radius:50%;border:2px solid}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">TRUSS<span>FORGE</span></div>
+  <div class="topbar-divider"></div>
+  <div class="status-badge badge-ok" id="status-badge">STRUCTURE OK</div>
+  <div class="topbar-info">
+    <span>Nodes: <em id="info-nodes">0</em></span>
+    <span>Members: <em id="info-members">0</em></span>
+    <span>DOF: <em id="info-dof">—</em></span>
+    <span>Max Stress: <em id="info-maxstress">—</em></span>
+  </div>
+</div>
+
+<div class="workspace">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+
+    <!-- TRUSS TYPE -->
+    <div class="sidebar-section">
+      <div class="section-label">Truss Type</div>
+      <div class="field">
+        <label>Geometry</label>
+        <select id="truss-type" onchange="buildTruss()">
+          <option value="pratt">Pratt Truss</option>
+          <option value="howe">Howe Truss</option>
+          <option value="warren">Warren Truss</option>
+          <option value="ktruss">K-Truss</option>
+          <option value="fink">Fink Roof Truss</option>
+          <option value="space">Space Frame (3D)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- GEOMETRY -->
+    <div class="sidebar-section">
+      <div class="section-label">Geometry</div>
+
+      <div class="field">
+        <label>Span (m)</label>
+        <div class="field-row">
+          <input type="range" id="span" min="4" max="30" step="1" value="12" oninput="syncVal(this,'span-val');buildTruss()">
+          <span class="val-display" id="span-val">12</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Height (m)</label>
+        <div class="field-row">
+          <input type="range" id="height" min="1" max="8" step="0.5" value="3" oninput="syncVal(this,'height-val');buildTruss()">
+          <span class="val-display" id="height-val">3.0</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Panels</label>
+        <div class="field-row">
+          <input type="range" id="panels" min="2" max="12" step="2" value="6" oninput="syncVal(this,'panels-val');buildTruss()">
+          <span class="val-display" id="panels-val">6</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Depth (m) — 3D only</label>
+        <div class="field-row">
+          <input type="range" id="depth" min="1" max="8" step="0.5" value="3" oninput="syncVal(this,'depth-val');buildTruss()">
+          <span class="val-display" id="depth-val">3.0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- MATERIAL -->
+    <div class="sidebar-section">
+      <div class="section-label">Section & Material</div>
+
+      <div class="field">
+        <label>Material</label>
+        <select id="material" onchange="buildTruss()">
+          <option value="steel">Steel A36 — 250 MPa</option>
+          <option value="alum">Aluminum 6061 — 270 MPa</option>
+          <option value="timber">Timber GL28h — 28 MPa</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Section Area (cm²)</label>
+        <div class="field-row">
+          <input type="range" id="area" min="1" max="100" step="1" value="20" oninput="syncVal(this,'area-val');buildTruss()">
+          <span class="val-display" id="area-val">20</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Member Ø Render</label>
+        <div class="field-row">
+          <input type="range" id="tube-r" min="0.02" max="0.2" step="0.01" value="0.06" oninput="syncVal(this,'tube-r-val');buildTruss()">
+          <span class="val-display" id="tube-r-val">0.06</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOADS -->
+    <div class="sidebar-section">
+      <div class="section-label">Loads</div>
+
+      <div class="field">
+        <label>Dead Load (kN/m)</label>
+        <div class="field-row">
+          <input type="range" id="dead-load" min="0" max="20" step="0.5" value="5" oninput="syncVal(this,'dl-val');buildTruss()">
+          <span class="val-display" id="dl-val">5.0</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Live Load (kN/m)</label>
+        <div class="field-row">
+          <input type="range" id="live-load" min="0" max="30" step="0.5" value="8" oninput="syncVal(this,'ll-val');buildTruss()">
+          <span class="val-display" id="ll-val">8.0</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Point Load at mid (kN)</label>
+        <div class="field-row">
+          <input type="range" id="point-load" min="0" max="100" step="5" value="0" oninput="syncVal(this,'pl-val');buildTruss()">
+          <span class="val-display" id="pl-val">0</span>
+        </div>
+      </div>
+
+      <table class="load-table">
+        <thead><tr><th>Load</th><th>Value</th><th>Type</th></tr></thead>
+        <tbody id="load-table-body"></tbody>
+      </table>
+    </div>
+
+    <!-- RESULTS -->
+    <div class="sidebar-section">
+      <div class="section-label">Analysis Results</div>
+      <div class="results-panel" id="results-panel">
+        <div class="result-row"><span class="rk">Total Load</span><span class="rv" id="r-total-load">—</span></div>
+        <div class="result-row"><span class="rk">Max Tension</span><span class="rv tension" id="r-max-tension">—</span></div>
+        <div class="result-row"><span class="rk">Max Compression</span><span class="rv compression" id="r-max-comp">—</span></div>
+        <div class="result-row"><span class="rk">Max Stress</span><span class="rv" id="r-max-stress">—</span></div>
+        <div class="result-row"><span class="rk">Utilisation</span><span class="rv" id="r-util">—</span></div>
+        <div class="result-row"><span class="rk">Est. Weight</span><span class="rv" id="r-weight">—</span></div>
+      </div>
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="sidebar-section">
+      <div class="section-label">Actions</div>
+      <div class="btn-row">
+        <button class="btn primary" onclick="buildTruss()">↺ Rebuild</button>
+        <button class="btn" onclick="resetCamera()">⊙ Reset View</button>
+      </div>
+      <div class="btn-row" style="margin-top:0.4rem">
+        <button class="btn" onclick="toggleWireframe()">⊞ Wireframe</button>
+        <button class="btn" onclick="toggleStressColor()">◈ Stress Map</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 3D CANVAS -->
+  <div class="canvas-wrap" id="canvas-wrap">
+    <canvas id="canvas"></canvas>
+
+    <div class="legend">
+      <div class="leg-title">Legend</div>
+      <div class="leg-row"><div class="leg-line" style="background:#2080e8"></div> Tension</div>
+      <div class="leg-row"><div class="leg-line" style="background:#e8a020"></div> Compression</div>
+      <div class="leg-row"><div class="leg-line" style="background:#e84040"></div> Critical >85%</div>
+      <div class="leg-row" style="margin-top:0.5rem"><div class="leg-dot" style="border-color:#40c880"></div> Pin Joint</div>
+      <div class="leg-row"><div class="leg-dot" style="border-color:#e84040"></div> Fixed Support</div>
+      <div class="leg-row"><div class="leg-dot" style="border-color:#2080e8"></div> Roller Support</div>
+    </div>
+
+    <div class="view-mode-toggle">
+      <button class="vm-btn active" id="vm-persp" onclick="setView('persp')">PERSP</button>
+      <button class="vm-btn" id="vm-front" onclick="setView('front')">FRONT</button>
+      <button class="vm-btn" id="vm-top" onclick="setView('top')">TOP</button>
+      <button class="vm-btn" id="vm-side" onclick="setView('side')">SIDE</button>
+    </div>
+
+    <div class="view-controls">
+      <button class="vc-btn" onclick="zoomIn()" title="Zoom In">+</button>
+      <button class="vc-btn" onclick="zoomOut()" title="Zoom Out">−</button>
+      <button class="vc-btn" onclick="resetCamera()" title="Reset">⊙</button>
+    </div>
+
+    <div class="tooltip" id="tooltip">
+      <div class="tt-title" id="tt-title">Member</div>
+      <div class="tt-row"><span>Force</span><em id="tt-force">—</em></div>
+      <div class="tt-row"><span>Stress</span><em id="tt-stress">—</em></div>
+      <div class="tt-row"><span>Length</span><em id="tt-length">—</em></div>
+      <div class="tt-row"><span>Util.</span><em id="tt-util">—</em></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// THREE.JS SETUP
+// ============================================================
+const canvas = document.getElementById('canvas');
+const wrap = document.getElementById('canvas-wrap');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0a0b0d);
+scene.fog = new THREE.FogExp2(0x0a0b0d, 0.018);
+
+const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 500);
+camera.position.set(16, 12, 20);
+camera.lookAt(0, 0, 0);
+
+// Lights
+const ambient = new THREE.AmbientLight(0xffffff, 0.4);
+scene.add(ambient);
+const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+dirLight.position.set(20, 30, 15);
+dirLight.castShadow = true;
+scene.add(dirLight);
+const fillLight = new THREE.DirectionalLight(0x4080ff, 0.3);
+fillLight.position.set(-10, 5, -10);
+scene.add(fillLight);
+
+// Grid
+const gridHelper = new THREE.GridHelper(60, 60, 0x1a1e2a, 0x141720);
+scene.add(gridHelper);
+
+// Axes helper (small)
+const axesHelper = new THREE.AxesHelper(1.5);
+axesHelper.position.set(-14, 0.01, -8);
+scene.add(axesHelper);
+
+// ============================================================
+// ORBIT CONTROLS (manual, no import needed)
+// ============================================================
+let isOrbit = false, isDolly = false;
+let lastX = 0, lastY = 0;
+let spherical = { theta: Math.atan2(20, 16), phi: Math.atan2(Math.sqrt(16*16+20*20), 12), r: 28 };
+let target = new THREE.Vector3(0, 2, 0);
+
+function updateCamera() {
+  const x = spherical.r * Math.sin(spherical.phi) * Math.sin(spherical.theta);
+  const y = spherical.r * Math.cos(spherical.phi);
+  const z = spherical.r * Math.sin(spherical.phi) * Math.cos(spherical.theta);
+  camera.position.set(target.x + x, target.y + y, target.z + z);
+  camera.lookAt(target);
+}
+
+wrap.addEventListener('mousedown', e => {
+  if (e.button === 0) { isOrbit = true; }
+  if (e.button === 2) { isDolly = true; }
+  lastX = e.clientX; lastY = e.clientY;
+});
+window.addEventListener('mouseup', () => { isOrbit = false; isDolly = false; });
+window.addEventListener('mousemove', e => {
+  const dx = e.clientX - lastX, dy = e.clientY - lastY;
+  lastX = e.clientX; lastY = e.clientY;
+  if (isOrbit) {
+    spherical.theta -= dx * 0.005;
+    spherical.phi = Math.max(0.05, Math.min(Math.PI - 0.05, spherical.phi - dy * 0.005));
+    updateCamera();
+  }
+  if (isDolly) {
+    spherical.r = Math.max(4, spherical.r + dy * 0.08);
+    updateCamera();
+  }
+  checkHover(e);
+});
+wrap.addEventListener('wheel', e => {
+  e.preventDefault();
+  spherical.r = Math.max(4, spherical.r + e.deltaY * 0.02);
+  updateCamera();
+}, { passive: false });
+wrap.addEventListener('contextmenu', e => e.preventDefault());
+
+function resetCamera() {
+  spherical = { theta: 0.9, phi: 1.0, r: 28 };
+  target.set(0, 2, 0);
+  updateCamera();
+}
+function zoomIn() { spherical.r = Math.max(4, spherical.r - 2); updateCamera(); }
+function zoomOut() { spherical.r = Math.min(100, spherical.r + 2); updateCamera(); }
+
+function setView(v) {
+  document.querySelectorAll('.vm-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('vm-' + v).classList.add('active');
+  if (v === 'persp') { spherical = { theta: 0.9, phi: 1.0, r: 28 }; }
+  else if (v === 'front') { spherical = { theta: 0, phi: Math.PI/2, r: 28 }; }
+  else if (v === 'top') { spherical = { theta: 0, phi: 0.05, r: 28 }; }
+  else if (v === 'side') { spherical = { theta: Math.PI/2, phi: Math.PI/2, r: 28 }; }
+  updateCamera();
+}
+
+// ============================================================
+// TRUSS STATE
+// ============================================================
+let trussGroup = null;
+let memberMeshes = [];
+let membersData = [];
+let showWireframe = false;
+let showStress = true;
+
+const MATERIALS = {
+  steel: { E: 200e9, fy: 250e6, rho: 7850 },
+  alum:  { E: 70e9,  fy: 270e6, rho: 2700 },
+  timber:{ E: 12e9,  fy: 28e6,  rho: 500  }
+};
+
+// ============================================================
+// TRUSS GEOMETRY GENERATORS
+// ============================================================
+function genNodes(type, span, height, panels, depth) {
+  const nodes = [];
+  const dx = span / panels;
+
+  if (type === 'space') {
+    // 3D Space frame — two parallel trusses connected by cross members
+    for (let i = 0; i <= panels; i++) {
+      nodes.push([i * dx - span/2, 0,       -depth/2]); // bottom front
+      nodes.push([i * dx - span/2, 0,        depth/2]); // bottom back
+    }
+    for (let i = 0; i <= panels; i++) {
+      const y = (i === 0 || i === panels) ? 0 : height;
+      nodes.push([i * dx - span/2, y, -depth/2]); // top front
+      nodes.push([i * dx - span/2, y,  depth/2]); // top back
+    }
+    return nodes;
+  }
+
+  if (type === 'fink') {
+    // Roof truss: bottom chord + pitched top chord
+    for (let i = 0; i <= panels; i++) {
+      nodes.push([i * dx - span/2, 0, 0]);
+    }
+    // peak
+    nodes.push([0, height, 0]);
+    // intermediate top chord nodes
+    const halfP = panels / 2;
+    for (let i = 1; i < halfP; i++) {
+      const x = i * dx - span/2;
+      const y = height * (1 - Math.abs(x) / (span/2));
+      nodes.push([x, y, 0]);
+      nodes.push([-x, y, 0]);
+    }
+    return nodes;
+  }
+
+  // 2D trusses: Pratt, Howe, Warren, K
+  for (let i = 0; i <= panels; i++) {
+    nodes.push([i * dx - span/2, 0, 0]); // bottom chord
+  }
+  for (let i = 0; i <= panels; i++) {
+    nodes.push([i * dx - span/2, height, 0]); // top chord
+  }
+  return nodes;
+}
+
+function genMembers(type, panels, nodes) {
+  const m = [];
+  const n = panels + 1; // nodes per chord
+
+  if (type === 'space') {
+    const n2 = (panels + 1) * 2;
+    // bottom chord front & back
+    for (let i = 0; i < panels; i++) {
+      m.push([i*2, i*2+2, 'chord']);
+      m.push([i*2+1, i*2+3, 'chord']);
+    }
+    // top chord front & back
+    for (let i = 0; i < panels; i++) {
+      m.push([n2 + i*2, n2 + i*2+2, 'chord']);
+      m.push([n2 + i*2+1, n2 + i*2+3, 'chord']);
+    }
+    // verticals front & back
+    for (let i = 0; i <= panels; i++) {
+      m.push([i*2, n2 + i*2, 'vertical']);
+      m.push([i*2+1, n2 + i*2+1, 'vertical']);
+    }
+    // diagonal front & back (Warren style)
+    for (let i = 0; i < panels; i++) {
+      if (i % 2 === 0) {
+        m.push([i*2, n2 + i*2+2, 'diagonal']);
+        m.push([i*2+1, n2 + i*2+3, 'diagonal']);
+      } else {
+        m.push([i*2+2, n2 + i*2, 'diagonal']);
+        m.push([i*2+3, n2 + i*2+1, 'diagonal']);
+      }
+    }
+    // cross members (lateral)
+    for (let i = 0; i <= panels; i++) {
+      m.push([i*2, i*2+1, 'lateral']);
+      m.push([n2 + i*2, n2 + i*2+1, 'lateral']);
+    }
+    // cross diagonals on top/bottom faces
+    for (let i = 0; i < panels; i++) {
+      m.push([i*2, i*2+3, 'lateral']);
+      m.push([n2 + i*2, n2 + i*2+3, 'lateral']);
+    }
+    return m;
+  }
+
+  if (type === 'fink') {
+    // Bottom chord
+    for (let i = 0; i < panels; i++) m.push([i, i+1, 'chord']);
+    const peak = panels + 1;
+    // Top chord to peak
+    m.push([0, peak, 'chord']);
+    m.push([panels, peak, 'chord']);
+    // Verticals from bottom to subdivided top
+    for (let i = 1; i < panels; i++) {
+      m.push([i, peak, 'vertical']);
+    }
+    return m;
+  }
+
+  // Bottom chord
+  for (let i = 0; i < panels; i++) m.push([i, i+1, 'chord']);
+  // Top chord
+  for (let i = 0; i < panels; i++) m.push([n+i, n+i+1, 'chord']);
+
+  if (type === 'pratt') {
+    // Verticals + diagonals leaning toward center
+    for (let i = 0; i <= panels; i++) m.push([i, n+i, 'vertical']);
+    for (let i = 0; i < panels; i++) {
+      if (i < panels/2) m.push([i+1, n+i, 'diagonal']);
+      else               m.push([i, n+i+1, 'diagonal']);
+    }
+  } else if (type === 'howe') {
+    for (let i = 0; i <= panels; i++) m.push([i, n+i, 'vertical']);
+    for (let i = 0; i < panels; i++) {
+      if (i < panels/2) m.push([i, n+i+1, 'diagonal']);
+      else               m.push([i+1, n+i, 'diagonal']);
+    }
+  } else if (type === 'warren') {
+    for (let i = 0; i < panels; i++) {
+      if (i % 2 === 0) m.push([i, n+i+1, 'diagonal']);
+      else              m.push([i+1, n+i, 'diagonal']);
+    }
+    // End verticals only
+    m.push([0, n, 'vertical']);
+    m.push([panels, n+panels, 'vertical']);
+  } else if (type === 'ktruss') {
+    for (let i = 0; i <= panels; i++) m.push([i, n+i, 'vertical']);
+    // K diagonals: each panel has 2 diagonals meeting at mid-height virtual node
+    // Approximate with 2 diagonals per panel
+    for (let i = 0; i < panels; i++) {
+      m.push([i, n+i+1, 'diagonal']);
+      m.push([i+1, n+i, 'diagonal']);
+    }
+  }
+  return m;
+}
+
+// ============================================================
+// SIMPLE FORCE ANALYSIS (Method of Joints approximation)
+// ============================================================
+function analyzeForces(nodes, members, dl, ll, pl, span, panels) {
+  const totalLoad = (dl + ll) * span + pl;
+  const reactionEach = totalLoad / 2;
+  const memberForces = [];
+
+  const dx = span / panels;
+  const h = nodes.length > 0 ? Math.max(...nodes.map(n => n[1])) : 1;
+
+  for (let mi = 0; mi < members.length; mi++) {
+    const [a, b, type] = members[mi];
+    const na = nodes[a], nb = nodes[b];
+    const lx = nb[0] - na[0], ly = nb[1] - na[1], lz = nb[2] - na[2];
+    const L = Math.sqrt(lx*lx + ly*ly + lz*lz);
+    const angle = Math.atan2(ly, lx);
+
+    let force = 0;
+    const midX = (na[0] + nb[0]) / 2;
+    const relPos = (midX + span/2) / span; // 0 to 1
+    const distFromMid = Math.abs(relPos - 0.5);
+
+    // Approximate shear/moment based forces
+    const shear = reactionEach - (dl + ll) * (relPos * span);
+    const moment = reactionEach * relPos * span - (dl + ll) * 0.5 * (relPos * span) ** 2;
+
+    if (type === 'chord') {
+      if (na[1] < 0.1 && nb[1] < 0.1) {
+        // Bottom chord: tension from bending
+        force = moment / h;
+      } else {
+        // Top chord: compression
+        force = -moment / h;
+      }
+    } else if (type === 'vertical') {
+      force = shear * 0.3 + (1 - distFromMid) * totalLoad * 0.15;
+      if (na[0] < 0 && nb[0] < 0) force *= -1;
+    } else if (type === 'diagonal') {
+      const cosA = Math.abs(Math.cos(angle)) || 0.707;
+      force = shear / cosA;
+      if (lx * ly < 0) force *= -1;
+    } else if (type === 'lateral') {
+      force = totalLoad * 0.05;
+    }
+
+    // Add point load effect
+    if (pl > 0) {
+      const midSpan = 0;
+      const dToMid = Math.abs(midX - midSpan) / (span / 2);
+      if (type === 'chord') force += (na[1] > 0.1) ? -pl * (1 - dToMid) * 0.4 : pl * (1 - dToMid) * 0.4;
+    }
+
+    memberForces.push({ force, length: L, type });
+  }
+  return memberForces;
+}
+
+// ============================================================
+// BUILD / RENDER TRUSS
+// ============================================================
+function buildTruss() {
+  // Cleanup
+  if (trussGroup) { scene.remove(trussGroup); trussGroup.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); }); }
+  trussGroup = new THREE.Group();
+  memberMeshes = [];
+  membersData = [];
+
+  const type   = document.getElementById('truss-type').value;
+  const span   = +document.getElementById('span').value;
+  const height = +document.getElementById('height').value;
+  const panels = +document.getElementById('panels').value;
+  const depth  = +document.getElementById('depth').value;
+  const matKey = document.getElementById('material').value;
+  const area   = +document.getElementById('area').value * 1e-4; // cm² → m²
+  const tubeR  = +document.getElementById('tube-r').value;
+  const dl     = +document.getElementById('dead-load').value;
+  const ll     = +document.getElementById('live-load').value;
+  const pl     = +document.getElementById('point-load').value;
+
+  const matProps = MATERIALS[matKey];
+
+  const nodes   = genNodes(type, span, height, panels, depth);
+  const members = genMembers(type, panels, nodes);
+  const forces  = analyzeForces(nodes, members, dl, ll, pl, span, panels);
+
+  // Determine stress range for coloring
+  const stresses = forces.map(f => Math.abs(f.force) / area / 1e6); // MPa
+  const maxStress = Math.max(...stresses, 0.001);
+  const fy = matProps.fy / 1e6; // MPa
+
+  // ---- MEMBERS ----
+  for (let mi = 0; mi < members.length; mi++) {
+    const [a, b, mtype] = members[mi];
+    const na = new THREE.Vector3(...nodes[a]);
+    const nb = new THREE.Vector3(...nodes[b]);
+    const dir = nb.clone().sub(na);
+    const L = dir.length();
+    if (L < 0.001) continue;
+
+    const force = forces[mi].force;
+    const stress = Math.abs(force) / area / 1e6;
+    const util = stress / fy;
+
+    // Color: blue=tension, orange=compression, red=critical
+    let color;
+    if (util > 0.85) color = 0xe84040;
+    else if (force >= 0) color = new THREE.Color(0x2080e8).lerp(new THREE.Color(0x80c8ff), util);
+    else color = new THREE.Color(0xe8a020).lerp(new THREE.Color(0xffcc80), util);
+
+    const mat = new THREE.MeshStandardMaterial({
+      color, metalness: 0.7, roughness: 0.3,
+      wireframe: showWireframe,
+      emissive: util > 0.85 ? new THREE.Color(0xe84040) : new THREE.Color(0x000000),
+      emissiveIntensity: util > 0.85 ? 0.2 : 0,
+    });
+
+    const geo = new THREE.CylinderGeometry(tubeR, tubeR, L, 8, 1);
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.castShadow = true;
+
+    // Orient cylinder along member
+    const mid = na.clone().add(nb).multiplyScalar(0.5);
+    mesh.position.copy(mid);
+    const up = new THREE.Vector3(0, 1, 0);
+    const axis = up.clone().cross(dir.clone().normalize());
+    const angle = Math.acos(Math.max(-1, Math.min(1, up.dot(dir.clone().normalize()))));
+    if (axis.length() > 0.001) mesh.setRotationFromAxisAngle(axis.normalize(), angle);
+    else if (dir.y < 0) mesh.rotation.z = Math.PI;
+
+    trussGroup.add(mesh);
+    memberMeshes.push(mesh);
+    membersData.push({ mi, a, b, force, stress, length: L, util, na, nb });
+  }
+
+  // ---- NODES / JOINTS ----
+  const nodeColors = { pin: 0x40c880, support: 0xe84040, roller: 0x2080e8 };
+  for (let ni = 0; ni < nodes.length; ni++) {
+    const [x, y, z] = nodes[ni];
+    let ntype = 'pin';
+    if (y < 0.05) {
+      if (ni === 0 || (type === 'space' && ni <= 1)) ntype = 'support';
+      else if (ni === panels || (type === 'space' && (ni === 2*panels || ni === 2*panels+1))) ntype = 'roller';
+    }
+
+    const geo = new THREE.SphereGeometry(tubeR * 1.6, 12, 12);
+    const mat = new THREE.MeshStandardMaterial({ color: nodeColors[ntype], metalness:0.5, roughness:0.3, emissive: new THREE.Color(nodeColors[ntype]), emissiveIntensity: 0.15 });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(x, y, z);
+    mesh.castShadow = true;
+    trussGroup.add(mesh);
+  }
+
+  // ---- LOAD ARROWS ----
+  const arrowLen = height * 0.3;
+  const arrowColor = 0xffffff;
+  for (let ni = 0; ni < nodes.length; ni++) {
+    const [x, y, z] = nodes[ni];
+    if (y < 0.05) continue; // only top chord for loaded nodes
+    const isTop = nodes.some((n, i) => i !== ni && Math.abs(n[0]-x) < 0.01 && n[1] < 0.05);
+    if (!isTop && type !== 'fink') continue;
+    const origin = new THREE.Vector3(x, y + arrowLen, z);
+    const dir = new THREE.Vector3(0, -1, 0);
+    const arrow = new THREE.ArrowHelper(dir, origin, arrowLen, arrowColor, arrowLen*0.3, arrowLen*0.15);
+    trussGroup.add(arrow);
+  }
+
+  scene.add(trussGroup);
+
+  // ---- UPDATE UI ----
+  const totalLoad = (dl + ll) * span + pl;
+  const maxTension = Math.max(...forces.map(f => f.force), 0);
+  const maxComp = Math.min(...forces.map(f => f.force), 0);
+  const maxUtil = Math.max(...forces.map((f, i) => Math.abs(f.force) / area / matProps.fy), 0);
+  const totalLength = forces.reduce((s, f) => s + f.length, 0);
+  const rho = matProps.rho;
+  const weight = totalLength * area * rho;
+
+  document.getElementById('r-total-load').textContent = totalLoad.toFixed(1) + ' kN';
+  document.getElementById('r-max-tension').textContent = maxTension.toFixed(1) + ' kN';
+  document.getElementById('r-max-comp').textContent = Math.abs(maxComp).toFixed(1) + ' kN';
+  document.getElementById('r-max-stress').textContent = maxStress.toFixed(1) + ' MPa';
+  document.getElementById('r-util').textContent = (maxUtil * 100).toFixed(0) + '%';
+  document.getElementById('r-weight').textContent = weight.toFixed(0) + ' kg';
+  document.getElementById('info-nodes').textContent = nodes.length;
+  document.getElementById('info-members').textContent = members.length;
+  document.getElementById('info-dof').textContent = (nodes.length * 2 - members.length - 3);
+  document.getElementById('info-maxstress').textContent = maxStress.toFixed(1) + ' MPa';
+
+  const badge = document.getElementById('status-badge');
+  if (maxUtil > 1.0) { badge.textContent = 'OVERSTRESSED'; badge.className = 'status-badge badge-err'; }
+  else if (maxUtil > 0.85) { badge.textContent = 'NEAR CAPACITY'; badge.className = 'status-badge badge-warn'; }
+  else { badge.textContent = 'STRUCTURE OK'; badge.className = 'status-badge badge-ok'; }
+
+  // Load table
+  const tbody = document.getElementById('load-table-body');
+  tbody.innerHTML = `
+    <tr><td>Dead Load</td><td>${dl} kN/m</td><td><span class="load-tag lt-dl">DL</span></td></tr>
+    <tr><td>Live Load</td><td>${ll} kN/m</td><td><span class="load-tag lt-ll">LL</span></td></tr>
+    <tr><td>Point Load</td><td>${pl} kN</td><td><span class="load-tag lt-pt">PL</span></td></tr>
+    <tr><td>Factored</td><td>${(1.2*dl + 1.6*ll).toFixed(1)} kN/m</td><td><span class="load-tag lt-dl">ULS</span></td></tr>
+  `;
+}
+
+// ============================================================
+// HOVER INTERACTION
+// ============================================================
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+const tooltip = document.getElementById('tooltip');
+
+function checkHover(e) {
+  if (!trussGroup) return;
+  const rect = wrap.getBoundingClientRect();
+  mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+  mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+  raycaster.params.Line = { threshold: 0.3 };
+
+  const hits = raycaster.intersectObjects(memberMeshes);
+  if (hits.length > 0) {
+    const idx = memberMeshes.indexOf(hits[0].object);
+    if (idx >= 0) {
+      const d = membersData[idx];
+      document.getElementById('tt-title').textContent = `Member ${d.mi + 1}`;
+      document.getElementById('tt-force').textContent = (d.force >= 0 ? '+' : '') + d.force.toFixed(1) + ' kN (' + (d.force >= 0 ? 'T' : 'C') + ')';
+      document.getElementById('tt-stress').textContent = d.stress.toFixed(1) + ' MPa';
+      document.getElementById('tt-length').textContent = d.length.toFixed(2) + ' m';
+      document.getElementById('tt-util').textContent = (d.util * 100).toFixed(0) + '%';
+      tooltip.style.left = (e.clientX - rect.left + 12) + 'px';
+      tooltip.style.top = (e.clientY - rect.top - 20) + 'px';
+      tooltip.classList.add('show');
+    }
+  } else {
+    tooltip.classList.remove('show');
+  }
+}
+
+// ============================================================
+// WIREFRAME / STRESS TOGGLES
+// ============================================================
+function toggleWireframe() {
+  showWireframe = !showWireframe;
+  memberMeshes.forEach(m => { if (m.material) m.material.wireframe = showWireframe; });
+}
+
+function toggleStressColor() {
+  showStress = !showStress;
+  buildTruss();
+}
+
+// ============================================================
+// RESIZE
+// ============================================================
+function onResize() {
+  const w = wrap.clientWidth, h = wrap.clientHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+const ro = new ResizeObserver(onResize);
+ro.observe(wrap);
+onResize();
+
+// ============================================================
+// SYNC RANGE VAL
+// ============================================================
+function syncVal(el, displayId) {
+  document.getElementById(displayId).textContent = parseFloat(el.value).toFixed(el.step && el.step < 1 ? 2 : 0);
+}
+
+// ============================================================
+// RENDER LOOP
+// ============================================================
+let t = 0;
+function animate() {
+  requestAnimationFrame(animate);
+  t += 0.005;
+  // Subtle ambient rotation when idle? No — keep it static for engineering tool.
+  renderer.render(scene, camera);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+updateCamera();
+buildTruss();
+animate();
+</script>
+</body>
+</html>
