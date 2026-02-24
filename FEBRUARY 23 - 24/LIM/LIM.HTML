@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TRUSS — Parametric Structural Modeler</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Mono:wght@300;400;500&display=swap%27);
+ 
+  :root {
+    --bg: #0a0c0f;
+    --panel: #0f1318;
+    --border: #1e2530;
+    --accent: #e8ff47;
+    --accent2: #47c6ff;
+    --text: #c8d4e0;
+    --text-dim: #4a5568;
+    --steel: #5a7fa8;
+    --tension: #ff6b47;
+    --compression: #47ffc6;
+    --panel-w: 300px;
+  }
+ 
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+ 
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+  }
+ 
+  /* SIDEBAR */
+  #sidebar {
+    width: var(--panel-w);
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    z-index: 10;
+  }
+ 
+  #sidebar::-webkit-scrollbar { width: 3px; }
+  #sidebar::-webkit-scrollbar-track { background: var(--bg); }
+  #sidebar::-webkit-scrollbar-thumb { background: var(--border); }
+ 
+  .logo {
+    padding: 20px 22px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+ 
+  .logo h1 {
+    font-family: 'Space Mono', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 6px;
+    color: var(--accent);
+    line-height: 1;
+  }
+ 
+  .logo p {
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+ 
+  .section {
+    border-bottom: 1px solid var(--border);
+    padding: 16px 22px;
+  }
+ 
+  .section-title {
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+ 
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+ 
+  .param-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    gap: 10px;
+  }
+ 
+  .param-label {
+    font-size: 11px;
+    color: var(--text);
+    flex: 1;
+    white-space: nowrap;
+  }
+ 
+  .param-label span {
+    color: var(--text-dim);
+    font-size: 9px;
+  }
+ 
+  input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 2px;
+    background: var(--border);
+    border-radius: 0;
+    outline: none;
+    margin: 6px 0 2px;
+  }
+ 
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    background: var(--accent);
+    border-radius: 0;
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+ 
+  input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.4);
+  }
+ 
+  .value-display {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    min-width: 36px;
+    text-align: right;
+  }
+ 
+  .full-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+ 
+  .full-row .param-label {
+    margin-bottom: 6px;
+  }
+ 
+  select {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    padding: 8px 10px;
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%234a5568'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+  }
+ 
+  select:focus { border-color: var(--accent); }
+ 
+  .toggle-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-top: 2px;
+  }
+ 
+  .toggle-btn {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    padding: 7px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    text-align: center;
+    transition: all 0.15s;
+  }
+ 
+  .toggle-btn.active {
+    background: var(--accent);
+    color: var(--bg);
+    border-color: var(--accent);
+    font-weight: 500;
+  }
+ 
+  .toggle-btn:hover:not(.active) {
+    border-color: var(--text-dim);
+    color: var(--text);
+  }
+ 
+  .build-btn {
+    margin: 16px 22px;
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 14px;
+    cursor: pointer;
+    width: calc(100% - 44px);
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+ 
+  .build-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: white;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+ 
+  .build-btn:hover::before { opacity: 0.1; }
+  .build-btn:active { transform: scale(0.98); }
+ 
+  /* STATS */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+ 
+  .stat-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 10px 12px;
+  }
+ 
+  .stat-val {
+    font-family: 'Space Mono', monospace;
+    font-size: 18px;
+    color: var(--accent2);
+    line-height: 1;
+    margin-bottom: 3px;
+  }
+ 
+  .stat-lbl {
+    font-size: 8px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+ 
+  /* LEGEND */
+  .legend {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+ 
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 10px;
+    color: var(--text);
+  }
+ 
+  .legend-line {
+    width: 30px;
+    height: 3px;
+    border-radius: 0;
+  }
+ 
+  /* CANVAS */
+  #canvas-container {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+  }
+ 
+  #canvas-container canvas {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+  }
+ 
+  /* OVERLAY INFO */
+  .overlay-corner {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    pointer-events: none;
+  }
+ 
+  .overlay-tag {
+    background: rgba(10,12,15,0.85);
+    border: 1px solid var(--border);
+    padding: 5px 10px;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    text-align: right;
+  }
+ 
+  .controls-hint {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    background: rgba(10,12,15,0.85);
+    border: 1px solid var(--border);
+    padding: 10px 14px;
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    line-height: 1.8;
+    pointer-events: none;
+  }
+ 
+  .controls-hint span { color: var(--text); }
+ 
+  /* FORCE INDICATOR */
+  .force-indicator {
+    position: absolute;
+    bottom: 16px;
+    left: calc(var(--panel-w) + 16px);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(10,12,15,0.85);
+    border: 1px solid var(--border);
+    padding: 8px 14px;
+  }
+ 
+  .fi-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+ 
+  .fi-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 0;
+  }
+ 
+  .dot-t { background: var(--tension); }
+  .dot-c { background: var(--compression); }
+  .dot-n { background: var(--steel); }
+ 
+  /* LOADING */
+  #loading {
+    position: absolute;
+    inset: 0;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 16px;
+    z-index: 100;
+    transition: opacity 0.5s;
+  }
+ 
+  .loader {
+    width: 40px;
+    height: 40px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    animation: spin 0.8s linear infinite;
+  }
+ 
+  @keyframes spin { to { transform: rotate(360deg); } }
+ 
+  #loading p {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+</style>
+</head>
+<body>
+ 
+<!-- SIDEBAR -->
+<div id="sidebar">
+<div class="logo">
+<h1>TRUSS</h1>
+<p>Parametric Structural Modeler</p>
+</div>
+ 
+  <!-- TRUSS TYPE -->
+<div class="section">
+<div class="section-title">Truss Type</div>
+<div class="param-row full-row">
+<span class="param-label">Configuration</span>
+<select id="trussType">
+<option value="pratt">Pratt Truss</option>
+<option value="howe">Howe Truss</option>
+<option value="warren">Warren Truss</option>
+<option value="kingpost">King Post Truss</option>
+<option value="scissors">Scissors Truss</option>
+<option value="bowstring">Bowstring Truss</option>
+<option value="space">Space Frame (3D)</option>
+</select>
+</div>
+</div>
+ 
+  <!-- GEOMETRY -->
+<div class="section">
+<div class="section-title">Geometry</div>
+ 
+    <div class="param-row full-row">
+<div class="param-label">Span Length <span>m</span></div>
+<input type="range" id="span" min="4" max="24" value="12" step="1">
+<div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text-dim)">
+<span>4</span><div class="value-display" id="spanVal">12</div><span>24</span>
+</div>
+</div>
+ 
+    <div class="param-row full-row">
+<div class="param-label">Truss Height <span>m</span></div>
+<input type="range" id="height" min="1" max="8" value="3" step="0.5">
+<div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text-dim)">
+<span>1</span><div class="value-display" id="heightVal">3</div><span>8</span>
+</div>
+</div>
+ 
+    <div class="param-row full-row">
+<div class="param-label">Panels <span>count</span></div>
+<input type="range" id="panels" min="2" max="12" value="6" step="1">
+<div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text-dim)">
+<span>2</span><div class="value-display" id="panelsVal">6</div><span>12</span>
+</div>
+</div>
+ 
+    <div class="param-row full-row" id="depthRow">
+<div class="param-label">Frame Depth <span>m</span></div>
+<input type="range" id="depth" min="1" max="8" value="3" step="0.5">
+<div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text-dim)">
+<span>1</span><div class="value-display" id="depthVal">3</div><span>8</span>
+</div>
+</div>
+</div>
+ 
+  <!-- LOADS -->
+<div class="section">
+<div class="section-title">Loading</div>
+ 
+    <div class="param-row full-row">
+<div class="param-label">Dead Load <span>kN/m</span></div>
+<input type="range" id="deadLoad" min="0" max="20" value="5" step="0.5">
+<div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text-dim)">
+<span>0</span><div class="value-display" id="deadLoadVal">5</div><span>20</span>
+</div>
+</div>
+ 
+    <div class="param-row full-row">
+<div class="param-label">Live Load <span>kN/m</span></div>
+<input type="range" id="liveLoad" min="0" max="20" value="3" step="0.5">
+<div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text-dim)">
+<span>0</span><div class="value-display" id="liveLoadVal">3</div><span>20</span>
+</div>
+</div>
+ 
+    <div class="param-row full-row">
+<div class="param-label">Wind Load <span>kN/m</span></div>
+<input type="range" id="windLoad" min="0" max="10" value="1" step="0.5">
+<div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text-dim)">
+<span>0</span><div class="value-display" id="windLoadVal">1</div><span>10</span>
+</div>
+</div>
+</div>
+ 
+  <!-- DISPLAY -->
+<div class="section">
+<div class="section-title">Display</div>
+<div class="toggle-group">
+<button class="toggle-btn active" id="togForces" onclick="toggleOpt('forces',this)">Forces</button>
+<button class="toggle-btn active" id="togNodes" onclick="toggleOpt('nodes',this)">Nodes</button>
+<button class="toggle-btn active" id="togLabels" onclick="toggleOpt('labels',this)">Labels</button>
+<button class="toggle-btn active" id="togGrid" onclick="toggleOpt('grid',this)">Grid</button>
+<button class="toggle-btn" id="togWire" onclick="toggleOpt('wire',this)">Wireframe</button>
+<button class="toggle-btn" id="togSection" onclick="toggleOpt('section',this)">Section</button>
+</div>
+</div>
+ 
+  <!-- STATS -->
+<div class="section">
+<div class="section-title">Analysis</div>
+<div class="stats-grid">
+<div class="stat-card">
+<div class="stat-val" id="statMembers">0</div>
+<div class="stat-lbl">Members</div>
+</div>
+<div class="stat-card">
+<div class="stat-val" id="statNodes">0</div>
+<div class="stat-lbl">Nodes</div>
+</div>
+<div class="stat-card">
+<div class="stat-val" id="statMaxForce">0</div>
+<div class="stat-lbl">Max kN</div>
+</div>
+<div class="stat-card">
+<div class="stat-val" id="statWeight">0</div>
+<div class="stat-lbl">Est. kg</div>
+</div>
+</div>
+</div>
+ 
+  <!-- LEGEND -->
+<div class="section">
+<div class="section-title">Member Forces</div>
+<div class="legend">
+<div class="legend-item"><div class="legend-line" style="background:var(--compression)"></div>Compression</div>
+<div class="legend-item"><div class="legend-line" style="background:var(--tension)"></div>Tension</div>
+<div class="legend-item"><div class="legend-line" style="background:var(--steel)"></div>Zero/Neutral</div>
+</div>
+</div>
+ 
+  <button class="build-btn" onclick="buildTruss()">◆ REBUILD MODEL</button>
+</div>
+ 
+<!-- CANVAS -->
+<div id="canvas-container">
+<div id="loading">
+<div class="loader"></div>
+<p>Initializing renderer</p>
+</div>
+ 
+  <div class="overlay-corner">
+<div class="overlay-tag" id="trussLabel">PRATT TRUSS</div>
+<div class="overlay-tag" id="spanLabel">SPAN: 12m</div>
+</div>
+ 
+  <div class="controls-hint">
+<span>LEFT DRAG</span> rotate &nbsp;|&nbsp; <span>RIGHT DRAG</span> pan<br>
+<span>SCROLL</span> zoom &nbsp;|&nbsp; <span>R</span> reset view
+</div>
+ 
+  <div class="force-indicator">
+<div class="fi-item"><div class="fi-dot dot-c"></div>Compression</div>
+<div class="fi-item"><div class="fi-dot dot-t"></div>Tension</div>
+<div class="fi-item"><div class="fi-dot dot-n"></div>Neutral</div>
+</div>
+</div>
+ 
+<script>
+// ---- Three.js setup ----
+const container = document.getElementById('canvas-container');
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0a0c0f);
+scene.fog = new THREE.FogExp2(0x0a0c0f, 0.02);
+ 
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.setSize(container.clientWidth, container.clientHeight);
+renderer.shadowMap.enabled = true;
+container.appendChild(renderer.domElement);
+ 
+const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 500);
+camera.position.set(16, 10, 20);
+camera.lookAt(6, 1.5, 0);
+ 
+// Lighting
+const ambLight = new THREE.AmbientLight(0x1a2030, 1.5);
+scene.add(ambLight);
+const dirLight = new THREE.DirectionalLight(0x8fa8c8, 2);
+dirLight.position.set(20, 30, 20);
+scene.add(dirLight);
+const accentLight = new THREE.PointLight(0xe8ff47, 1.5, 50);
+accentLight.position.set(6, 8, 2);
+scene.add(accentLight);
+ 
+// Grid
+let gridHelper = null;
+ 
+// State
+let opts = { forces: true, nodes: true, labels: true, grid: true, wire: false, section: false };
+let trussGroup = new THREE.Group();
+scene.add(trussGroup);
+ 
+// ---- Orbit Controls (manual) ----
+let isDragging = false, isRightDrag = false;
+let prevMouse = { x: 0, y: 0 };
+let spherical = { theta: 0.6, phi: 0.9, radius: 28 };
+let target = new THREE.Vector3(6, 1.5, 0);
+ 
+function updateCamera() {
+  camera.position.set(
+    target.x + spherical.radius * Math.sin(spherical.phi) * Math.sin(spherical.theta),
+    target.y + spherical.radius * Math.cos(spherical.phi),
+    target.z + spherical.radius * Math.sin(spherical.phi) * Math.cos(spherical.theta)
+  );
+  camera.lookAt(target);
+}
+updateCamera();
+ 
+renderer.domElement.addEventListener('mousedown', e => {
+  isDragging = true;
+  isRightDrag = e.button === 2;
+  prevMouse = { x: e.clientX, y: e.clientY };
+});
+ 
+renderer.domElement.addEventListener('contextmenu', e => e.preventDefault());
+ 
+window.addEventListener('mousemove', e => {
+  if (!isDragging) return;
+  const dx = e.clientX - prevMouse.x;
+  const dy = e.clientY - prevMouse.y;
+  prevMouse = { x: e.clientX, y: e.clientY };
+  if (isRightDrag) {
+    const panSpeed = 0.01;
+    target.x -= dx * panSpeed;
+    target.y += dy * panSpeed;
+  } else {
+    spherical.theta -= dx * 0.008;
+    spherical.phi = Math.max(0.1, Math.min(Math.PI - 0.1, spherical.phi + dy * 0.008));
+  }
+  updateCamera();
+});
+ 
+window.addEventListener('mouseup', () => { isDragging = false; });
+ 
+renderer.domElement.addEventListener('wheel', e => {
+  spherical.radius = Math.max(5, Math.min(80, spherical.radius + e.deltaY * 0.05));
+  updateCamera();
+});
+ 
+window.addEventListener('keydown', e => {
+  if (e.key === 'r' || e.key === 'R') {
+    spherical = { theta: 0.6, phi: 0.9, radius: 28 };
+    target.set(6, 1.5, 0);
+    updateCamera();
+  }
+});
+ 
+// ---- Materials ----
+const matTension = new THREE.MeshStandardMaterial({ color: 0xff6b47, metalness: 0.7, roughness: 0.3, emissive: 0xff2200, emissiveIntensity: 0.15 });
+const matCompression = new THREE.MeshStandardMaterial({ color: 0x47ffc6, metalness: 0.7, roughness: 0.3, emissive: 0x00ff88, emissiveIntensity: 0.15 });
+const matNeutral = new THREE.MeshStandardMaterial({ color: 0x5a7fa8, metalness: 0.8, roughness: 0.2 });
+const matNode = new THREE.MeshStandardMaterial({ color: 0xe8ff47, metalness: 0.6, roughness: 0.3, emissive: 0xaacc00, emissiveIntensity: 0.2 });
+const matSupport = new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0.9, roughness: 0.1, emissive: 0x444444, emissiveIntensity: 0.1 });
+ 
+// ---- Truss Geometry Generators ----
+function getPrattNodes(span, h, n) {
+  const nodes = [];
+  const dx = span / n;
+  for (let i = 0; i <= n; i++) nodes.push([i * dx, 0, 0]);
+  for (let i = 0; i <= n; i++) nodes.push([i * dx, h, 0]);
+  return nodes;
+}
+ 
+function getPrattMembers(n, nodes) {
+  const members = [];
+  // bottom chord
+  for (let i = 0; i < n; i++) members.push([i, i+1, 'chord']);
+  // top chord
+  const t = n+1;
+  for (let i = 0; i < n; i++) members.push([t+i, t+i+1, 'chord']);
+  // verticals
+  for (let i = 0; i <= n; i++) members.push([i, t+i, 'vert']);
+  // diagonals - Pratt: diagonals in tension (slope inward from midspan)
+  const mid = Math.floor(n / 2);
+  for (let i = 0; i < mid; i++) members.push([i, t+i+1, 'diag']);
+  for (let i = mid; i < n; i++) members.push([i+1, t+i, 'diag']);
+  return members;
+}
+ 
+function getHoweMembers(n) {
+  const members = [];
+  for (let i = 0; i < n; i++) members.push([i, i+1, 'chord']);
+  const t = n+1;
+  for (let i = 0; i < n; i++) members.push([t+i, t+i+1, 'chord']);
+  for (let i = 0; i <= n; i++) members.push([i, t+i, 'vert']);
+  // Howe: diagonals slope outward from midspan
+  const mid = Math.floor(n / 2);
+  for (let i = 0; i < mid; i++) members.push([i+1, t+i, 'diag']);
+  for (let i = mid; i < n; i++) members.push([i, t+i+1, 'diag']);
+  return members;
+}
+ 
+function getWarrenMembers(n) {
+  const members = [];
+  for (let i = 0; i < n; i++) members.push([i, i+1, 'chord']);
+  const t = n+1;
+  for (let i = 0; i < n; i++) members.push([t+i, t+i+1, 'chord']);
+  // Warren: no verticals (except optionally), alternating diagonals
+  for (let i = 0; i < n; i++) {
+    if (i % 2 === 0) members.push([i, t+i+1, 'diag']);
+    else members.push([i+1, t+i, 'diag']);
+  }
+  return members;
+}
+ 
+function getKingpostNodes(span, h) {
+  return [
+    [0, 0, 0], [span, 0, 0], [span/2, 0, 0], [span/2, h, 0],
+    [0, h*0.7, 0], [span, h*0.7, 0]
+  ];
+}
+ 
+function getKingpostMembers() {
+  return [
+    [0, 2, 'chord'], [2, 1, 'chord'],
+    [0, 4, 'chord'], [4, 3, 'chord'], [3, 5, 'chord'], [5, 1, 'chord'],
+    [2, 3, 'vert'],
+    [0, 3, 'diag'], [1, 3, 'diag']
+  ];
+}
+ 
+function getScissorsNodes(span, h, n) {
+  const nodes = [];
+  const dx = span / n;
+  // bottom chord (slopes up)
+  for (let i = 0; i <= n; i++) {
+    const t = i / n;
+    nodes.push([i * dx, t * h * 0.5, 0]);
+  }
+  // top chord (arch shape)
+  for (let i = 0; i <= n; i++) {
+    const t = i / n;
+    const arch = Math.sin(t * Math.PI) * h;
+    nodes.push([i * dx, arch, 0]);
+  }
+  return nodes;
+}
+ 
+function getBowstringNodes(span, h, n) {
+  const nodes = [];
+  const dx = span / n;
+  for (let i = 0; i <= n; i++) nodes.push([i * dx, 0, 0]);
+  for (let i = 0; i <= n; i++) {
+    const t = i / n;
+    nodes.push([i * dx, Math.sin(t * Math.PI) * h, 0]);
+  }
+  return nodes;
+}
+ 
+function getSpaceFrameNodes(span, h, n, depth) {
+  const nodes = [];
+  const dx = span / n;
+  const rows = [0, depth];
+  // bottom front + back
+  rows.forEach(z => {
+    for (let i = 0; i <= n; i++) nodes.push([i * dx, 0, z]);
+  });
+  // top front + back
+  rows.forEach(z => {
+    for (let i = 0; i <= n; i++) nodes.push([i * dx, h, z]);
+  });
+  return nodes;
+}
+ 
+function getSpaceFrameMembers(n) {
+  const r = n + 1;
+  const members = [];
+  const bot0 = 0, bot1 = r, top0 = 2*r, top1 = 3*r;
+  // bottom chords (front, back)
+  for (let i = 0; i < n; i++) {
+    members.push([bot0+i, bot0+i+1, 'chord']);
+    members.push([bot1+i, bot1+i+1, 'chord']);
+  }
+  // top chords (front, back)
+  for (let i = 0; i < n; i++) {
+    members.push([top0+i, top0+i+1, 'chord']);
+    members.push([top1+i, top1+i+1, 'chord']);
+  }
+  // cross members bottom
+  for (let i = 0; i <= n; i++) members.push([bot0+i, bot1+i, 'chord']);
+  // cross members top
+  for (let i = 0; i <= n; i++) members.push([top0+i, top1+i, 'chord']);
+  // verticals front
+  for (let i = 0; i <= n; i++) members.push([bot0+i, top0+i, 'vert']);
+  // verticals back
+  for (let i = 0; i <= n; i++) members.push([bot1+i, top1+i, 'vert']);
+  // diagonals front
+  const mid = Math.floor(n/2);
+  for (let i = 0; i < mid; i++) members.push([bot0+i, top0+i+1, 'diag']);
+  for (let i = mid; i < n; i++) members.push([bot0+i+1, top0+i, 'diag']);
+  // diagonals back
+  for (let i = 0; i < mid; i++) members.push([bot1+i, top1+i+1, 'diag']);
+  for (let i = mid; i < n; i++) members.push([bot1+i+1, top1+i, 'diag']);
+  // diagonal braces between frames
+  for (let i = 0; i < n; i++) {
+    members.push([bot0+i, bot1+i+1, 'brace']);
+    members.push([top0+i, top1+i+1, 'brace']);
+  }
+  return members;
+}
+ 
+// ---- Simple force estimation (method of joints approximation) ----
+function estimateForces(nodes, members, totalLoad, span) {
+  // Simple heuristic: chord members carry large forces, diagonals medium, verticals small
+  const maxChordForce = totalLoad * span / 8; // approximate max moment / height
+  return members.map(([a, b, type]) => {
+    const x1 = nodes[a][0], x2 = nodes[b][0];
+    const xmid = (x1 + x2) / 2;
+    const pos = xmid / span; // 0 to 1
+    const momentFactor = 4 * pos * (1 - pos); // parabolic moment
+ 
+    let force = 0;
+    if (type === 'chord') {
+      const isTop = nodes[a][1] > 0.01 && nodes[b][1] > 0.01;
+      force = maxChordForce * momentFactor * (isTop ? -1 : 1);
+    } else if (type === 'diag') {
+      force = maxChordForce * 0.4 * (pos < 0.5 ? 1 : -1);
+    } else if (type === 'vert') {
+      force = maxChordForce * 0.3 * (1 - momentFactor);
+    } else {
+      force = maxChordForce * 0.2;
+    }
+    return force;
+  });
+}
+ 
+// ---- Build Tube Member ----
+function buildMember(p1, p2, force, showForces, wireframe) {
+  const dir = new THREE.Vector3(p2.x - p1.x, p2.y - p1.y, p2.z - p1.z);
+  const len = dir.length();
+  if (len < 0.001) return null;
+ 
+  const radius = 0.06;
+  const geo = new THREE.CylinderGeometry(radius, radius, len, 8, 1);
+  let mat;
+  if (showForces) {
+    if (force > 1) mat = matTension.clone();
+    else if (force < -1) mat = matCompression.clone();
+    else mat = matNeutral.clone();
+    const intensity = Math.min(Math.abs(force) / 100, 1);
+    if (force > 1) mat.emissiveIntensity = 0.05 + intensity * 0.3;
+    else if (force < -1) mat.emissiveIntensity = 0.05 + intensity * 0.3;
+  } else {
+    mat = matNeutral.clone();
+  }
+  mat.wireframe = wireframe;
+  const mesh = new THREE.Mesh(geo, mat);
+  const midpoint = new THREE.Vector3((p1.x+p2.x)/2, (p1.y+p2.y)/2, (p1.z+p2.z)/2);
+  mesh.position.copy(midpoint);
+  mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), dir.normalize());
+  return mesh;
+}
+ 
+// ---- Main Build Function ----
+function buildTruss() {
+  // Get params
+  const type = document.getElementById('trussType').value;
+  const span = +document.getElementById('span').value;
+  const h = +document.getElementById('height').value;
+  const n = +document.getElementById('panels').value;
+  const depth = +document.getElementById('depth').value;
+  const dead = +document.getElementById('deadLoad').value;
+  const live = +document.getElementById('liveLoad').value;
+  const wind = +document.getElementById('windLoad').value;
+ 
+  const totalLoad = (dead + live + wind) * span;
+ 
+  // Update overlay
+  document.getElementById('trussLabel').textContent = type.toUpperCase() + ' TRUSS';
+  document.getElementById('spanLabel').textContent = 'SPAN: ' + span + 'm';
+ 
+  // Clear scene
+  while (trussGroup.children.length) trussGroup.remove(trussGroup.children[0]);
+ 
+  // Build grid
+  if (gridHelper) scene.remove(gridHelper);
+  if (opts.grid) {
+    gridHelper = new THREE.GridHelper(40, 20, 0x1e2530, 0x141a22);
+    gridHelper.position.y = -0.1;
+    scene.add(gridHelper);
+  }
+ 
+  // Generate nodes & members
+  let rawNodes, rawMembers;
+  const isSpace = type === 'space';
+  const isBow = type === 'bowstring';
+  const isKing = type === 'kingpost';
+  const isScissors = type === 'scissors';
+  const depthRow = document.getElementById('depthRow');
+  depthRow.style.opacity = isSpace ? '1' : '0.3';
+ 
+  if (type === 'pratt') {
+    rawNodes = getPrattNodes(span, h, n);
+    rawMembers = getPrattMembers(n, rawNodes);
+  } else if (type === 'howe') {
+    rawNodes = getPrattNodes(span, h, n);
+    rawMembers = getHoweMembers(n);
+  } else if (type === 'warren') {
+    rawNodes = getPrattNodes(span, h, n);
+    rawMembers = getWarrenMembers(n);
+  } else if (isKing) {
+    rawNodes = getKingpostNodes(span, h);
+    rawMembers = getKingpostMembers();
+  } else if (isScissors) {
+    rawNodes = getScissorsNodes(span, h, n);
+    rawMembers = getPrattMembers(n, rawNodes);
+  } else if (isBow) {
+    rawNodes = getBowstringNodes(span, h, n);
+    rawMembers = getWarrenMembers(n);
+  } else { // space
+    rawNodes = getSpaceFrameNodes(span, h, n, depth);
+    rawMembers = getSpaceFrameMembers(n);
+  }
+ 
+  // Convert to THREE Vectors
+  const nodes = rawNodes.map(([x, y, z]) => new THREE.Vector3(x, y, z || 0));
+  const forces = estimateForces(rawNodes, rawMembers, totalLoad, span);
+ 
+  let totalLen = 0;
+  const maxF = Math.max(...forces.map(Math.abs));
+ 
+  // Add members
+  rawMembers.forEach(([a, b, type], idx) => {
+    const mesh = buildMember(nodes[a], nodes[b], forces[idx], opts.forces, opts.wire);
+    if (mesh) {
+      trussGroup.add(mesh);
+      totalLen += nodes[a].distanceTo(nodes[b]);
+    }
+  });
+ 
+  // Add nodes
+  if (opts.nodes) {
+    nodes.forEach((pos, i) => {
+      const isSupport = i === 0 || i === n || (isSpace && (i === n || i === n+1));
+      const geo = new THREE.BoxGeometry(0.18, 0.18, 0.18);
+      const mesh = new THREE.Mesh(geo, isSupport ? matSupport : matNode);
+      mesh.position.copy(pos);
+      trussGroup.add(mesh);
+ 
+      // Support triangle
+      if (isSupport) {
+        const tGeo = new THREE.ConeGeometry(0.25, 0.5, 4);
+        const tMesh = new THREE.Mesh(tGeo, matSupport.clone());
+        tMesh.position.set(pos.x, pos.y - 0.35, pos.z);
+        tMesh.rotation.y = Math.PI / 4;
+        trussGroup.add(tMesh);
+      }
+    });
+  }
+ 
+  // Load arrows
+  if (dead + live > 0) {
+    const loadNodes = rawNodes.filter(([x,y,z]) => (y || 0) < 0.01); // bottom chord
+    loadNodes.forEach(([x, y, z]) => {
+      const arrowLen = (dead + live) * 0.08;
+      const arrow = new THREE.ArrowHelper(
+        new THREE.Vector3(0, -1, 0),
+        new THREE.Vector3(x, (y || 0) + arrowLen + 0.5, z || 0),
+        arrowLen + 0.3,
+        0xe8ff47, 0.15, 0.1
+      );
+      trussGroup.add(arrow);
+    });
+  }
+ 
+  // Center truss
+  trussGroup.position.x = -span / 2;
+ 
+  // Update camera target
+  target.set(0, h / 2, 0);
+  spherical.radius = Math.max(span * 1.4, 18);
+  updateCamera();
+ 
+  // Update stats
+  document.getElementById('statMembers').textContent = rawMembers.length;
+  document.getElementById('statNodes').textContent = nodes.length;
+  document.getElementById('statMaxForce').textContent = maxF.toFixed(0);
+  document.getElementById('statWeight').textContent = (totalLen * 7.85 * 0.002).toFixed(0); // ~steel section estimate
+ 
+  // Section highlight (show cross-section for middle panel)
+  if (opts.section) {
+    const midX = span / 2;
+    const sGeo = new THREE.PlaneGeometry(0.05, h + 1);
+    const sMat = new THREE.MeshBasicMaterial({ color: 0xe8ff47, transparent: true, opacity: 0.06, side: THREE.DoubleSide });
+    const sPlane = new THREE.Mesh(sGeo, sMat);
+    sPlane.position.set(midX - span/2, h/2, 0);
+    trussGroup.add(sPlane);
+  }
+}
+ 
+// ---- Toggle Display Options ----
+function toggleOpt(key, btn) {
+  opts[key] = !opts[key];
+  btn.classList.toggle('active', opts[key]);
+  buildTruss();
+}
+ 
+// ---- Slider bindings ----
+const sliders = ['span', 'height', 'panels', 'depth', 'deadLoad', 'liveLoad', 'windLoad'];
+sliders.forEach(id => {
+  const el = document.getElementById(id);
+  const val = document.getElementById(id + 'Val');
+  el.addEventListener('input', () => {
+    val.textContent = el.value;
+  });
+});
+ 
+// Auto-rebuild on change
+['span','height','panels','depth','deadLoad','liveLoad','windLoad','trussType'].forEach(id => {
+  document.getElementById(id).addEventListener('change', buildTruss);
+  if (id !== 'trussType') document.getElementById(id).addEventListener('input', buildTruss);
+});
+ 
+// ---- Animate ----
+let frame = 0;
+function animate() {
+  requestAnimationFrame(animate);
+  frame++;
+  // Subtle pulse on accent light
+  accentLight.intensity = 1.2 + Math.sin(frame * 0.02) * 0.3;
+  renderer.render(scene, camera);
+}
+ 
+// ---- Resize ----
+window.addEventListener('resize', () => {
+  const w = container.clientWidth, h = container.clientHeight;
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+});
+ 
+// ---- Init ----
+setTimeout(() => {
+  buildTruss();
+  animate();
+  const loading = document.getElementById('loading');
+  loading.style.opacity = '0';
+  setTimeout(() => loading.style.display = 'none', 500);
+}, 300);
+</script>
+</body>
+</html>
