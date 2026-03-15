@@ -1,0 +1,837 @@
+[03/15/2026 20:45:43][INFO]:	Reading UID database.
+[03/15/2026 20:45:43][INFO]:	Start loading STAAD model.
+[03/15/2026 20:45:44][INFO]:	Reading model file.
+[03/15/2026 20:45:44][INFO]:	Reading model file is complete.
+[03/15/2026 20:45:44][INFO]:	Processing support.
+[03/15/2026 20:45:44][INFO]:	Processing springs.
+[03/15/2026 20:45:44][INFO]:	Processing properties.
+[03/15/2026 20:45:44][INFO]:	Processing physical properties.
+[03/15/2026 20:45:44][INFO]:	Processing constants.
+[03/15/2026 20:45:44][INFO]:	Processing BETA constants.
+[03/15/2026 20:45:44][INFO]:	Processing hidden analytical member loads.
+[03/15/2026 20:45:44][INFO]:	Processing command list for member release.
+[03/15/2026 20:45:44][INFO]:	Processing command list for member offset.
+[03/15/2026 20:45:44][INFO]:	Processing command list for member specs (cracked).
+[03/15/2026 20:45:44][INFO]:	Processing command list for member specs (axial).
+[03/15/2026 20:45:44][INFO]:	Processing command list for element release.
+[03/15/2026 20:45:44][INFO]:	Processing command list for element offset.
+[03/15/2026 20:45:44][INFO]:	Processing command list for element plate stress directive.
+[03/15/2026 20:45:44][INFO]:	Processing parameter for Chinese wind load case.
+[03/15/2026 20:45:44][INFO]:	End Processing command list.
+[03/15/2026 20:45:44][INFO]:	End loading STAAD model.
+[03/15/2026 20:45:44][INFO]:	Start Post Analysis method
+[03/15/2026 20:45:44][INFO]:	Removed all hidden plates from surfaces
+[03/15/2026 20:45:44][INFO]:	Removed all hidden plates
+[03/15/2026 20:45:44][INFO]:	Removed all hidden nodes
+[03/15/2026 20:45:44][INFO]:	Loading results from MSH file...
+[03/15/2026 20:45:44][INFO]:	Building result indices...
+[03/15/2026 20:45:44][INFO]:	Loading plate stress results...
+[03/15/2026 20:45:44][INFO]:	Set analysis report setup data
+[03/15/2026 20:45:44][INFO]:	Starting page setup...
+[03/15/2026 20:45:44][INFO]:	Page setup completed
+[03/15/2026 20:45:44][INFO]:	Setting available workflows...
+[03/15/2026 20:45:44][INFO]:	Post analysis method ends
+[03/15/2026 21:07:44][INFO]:	Reading UID database.
+[03/15/2026 21:07:44][INFO]:	Start loading STAAD model.
+[03/15/2026 21:07:44][INFO]:	Reading model file.
+[03/15/2026 21:07:44][INFO]:	Reading model file is complete.
+[03/15/2026 21:07:44][INFO]:	Processing support.
+[03/15/2026 21:07:44][INFO]:	Processing springs.
+[03/15/2026 21:07:44][INFO]:	Processing properties.
+[03/15/2026 21:07:44][INFO]:	Processing physical properties.
+[03/15/2026 21:07:44][INFO]:	Processing constants.
+[03/15/2026 21:07:44][INFO]:	Processing BETA constants.
+[03/15/2026 21:07:44][INFO]:	Processing hidden analytical member loads.
+[03/15/2026 21:07:44][INFO]:	Processing command list for member release.
+[03/15/2026 21:07:44][INFO]:	Processing command list for member offset.
+[03/15/2026 21:07:44][INFO]:	Processing command list for member specs (cracked).
+[03/15/2026 21:07:44][INFO]:	Processing command list for member specs (axial).
+[03/15/2026 21:07:44][INFO]:	Processing command list for element release.
+[03/15/2026 21:07:44][INFO]:	Processing command list for element offset.
+[03/15/2026 21:07:44][INFO]:	Processing command list for element plate stress directive.
+[03/15/2026 21:07:44][INFO]:	Processing parameter for Chinese wind load case.
+[03/15/2026 21:07:44][INFO]:	End Processing command list.
+[03/15/2026 21:07:47][INFO]:	End loading STAAD model.
+[03/15/2026 21:07:47][INFO]:	Start Post Analysis method
+[03/15/2026 21:07:47][INFO]:	Removed all hidden plates from surfaces
+[03/15/2026 21:07:47][INFO]:	Removed all hidden plates
+[03/15/2026 21:07:47][INFO]:	Removed all hidden nodes
+[03/15/2026 21:07:47][INFO]:	Loading results from MSH file...
+[03/15/2026 21:07:47][INFO]:	Building result indices...
+[03/15/2026 21:07:47][INFO]:	Loading plate stress results...
+[03/15/2026 21:07:47][INFO]:	Set analysis report setup data
+[03/15/2026 21:07:47][INFO]:	Starting page setup...
+[03/15/2026 21:07:48][INFO]:	Page setup completed
+[03/15/2026 21:07:48][INFO]:	Setting available workflows...
+[03/15/2026 21:07:48][INFO]:	Post analysis method ends
+[03/15/2026 21:07:53][INFO]:	Reading UID database.
+[03/15/2026 21:07:53][INFO]:	Start loading STAAD model.
+[03/15/2026 21:07:53][INFO]:	Reading model file.
+[03/15/2026 21:07:53][INFO]:	Reading model file is complete.
+[03/15/2026 21:07:53][INFO]:	Processing support.
+[03/15/2026 21:07:53][INFO]:	Processing springs.
+[03/15/2026 21:07:53][INFO]:	Processing properties.
+[03/15/2026 21:07:53][INFO]:	Processing physical properties.
+[03/15/2026 21:07:53][INFO]:	Processing constants.
+[03/15/2026 21:07:53][INFO]:	Processing BETA constants.
+[03/15/2026 21:07:53][INFO]:	Processing hidden analytical member loads.
+[03/15/2026 21:07:53][INFO]:	Processing command list for member release.
+[03/15/2026 21:07:53][INFO]:	Processing command list for member offset.
+[03/15/2026 21:07:53][INFO]:	Processing command list for member specs (cracked).
+[03/15/2026 21:07:53][INFO]:	Processing command list for member specs (axial).
+[03/15/2026 21:07:53][INFO]:	Processing command list for element release.
+[03/15/2026 21:07:53][INFO]:	Processing command list for element offset.
+[03/15/2026 21:07:53][INFO]:	Processing command list for element plate stress directive.
+[03/15/2026 21:07:53][INFO]:	Processing parameter for Chinese wind load case.
+[03/15/2026 21:07:53][INFO]:	End Processing command list.
+[03/15/2026 21:07:53][INFO]:	End loading STAAD model.
+[03/15/2026 21:07:53][INFO]:	Start Post Analysis method
+[03/15/2026 21:07:53][INFO]:	Removed all hidden plates from surfaces
+[03/15/2026 21:07:53][INFO]:	Removed all hidden plates
+[03/15/2026 21:07:53][INFO]:	Removed all hidden nodes
+[03/15/2026 21:07:53][INFO]:	Loading results from MSH file...
+[03/15/2026 21:07:53][INFO]:	Building result indices...
+[03/15/2026 21:07:53][INFO]:	Loading plate stress results...
+[03/15/2026 21:07:53][INFO]:	Set analysis report setup data
+[03/15/2026 21:07:53][INFO]:	Starting page setup...
+[03/15/2026 21:07:53][INFO]:	Page setup completed
+[03/15/2026 21:07:53][INFO]:	Setting available workflows...
+[03/15/2026 21:07:53][INFO]:	Post analysis method ends
+[03/15/2026 21:08:47][INFO]:	Reading UID database.
+[03/15/2026 21:08:47][INFO]:	Start loading STAAD model.
+[03/15/2026 21:08:47][INFO]:	Reading model file.
+[03/15/2026 21:08:47][INFO]:	Reading model file is complete.
+[03/15/2026 21:08:47][INFO]:	Processing support.
+[03/15/2026 21:08:47][INFO]:	Processing springs.
+[03/15/2026 21:08:47][INFO]:	Processing properties.
+[03/15/2026 21:08:47][INFO]:	Processing physical properties.
+[03/15/2026 21:08:47][INFO]:	Processing constants.
+[03/15/2026 21:08:47][INFO]:	Processing BETA constants.
+[03/15/2026 21:08:47][INFO]:	Processing hidden analytical member loads.
+[03/15/2026 21:08:47][INFO]:	Processing command list for member release.
+[03/15/2026 21:08:47][INFO]:	Processing command list for member offset.
+[03/15/2026 21:08:47][INFO]:	Processing command list for member specs (cracked).
+[03/15/2026 21:08:47][INFO]:	Processing command list for member specs (axial).
+[03/15/2026 21:08:47][INFO]:	Processing command list for element release.
+[03/15/2026 21:08:47][INFO]:	Processing command list for element offset.
+[03/15/2026 21:08:47][INFO]:	Processing command list for element plate stress directive.
+[03/15/2026 21:08:47][INFO]:	Processing parameter for Chinese wind load case.
+[03/15/2026 21:08:47][INFO]:	End Processing command list.
+[03/15/2026 21:08:47][INFO]:	End loading STAAD model.
+[03/15/2026 21:08:47][INFO]:	Start Post Analysis method
+[03/15/2026 21:08:47][INFO]:	Removed all hidden plates from surfaces
+[03/15/2026 21:08:47][INFO]:	Removed all hidden plates
+[03/15/2026 21:08:47][INFO]:	Removed all hidden nodes
+[03/15/2026 21:08:47][INFO]:	Loading results from MSH file...
+[03/15/2026 21:08:47][INFO]:	Building result indices...
+[03/15/2026 21:08:47][INFO]:	Loading plate stress results...
+[03/15/2026 21:08:47][INFO]:	Set analysis report setup data
+[03/15/2026 21:08:47][INFO]:	Starting page setup...
+[03/15/2026 21:08:47][INFO]:	Page setup completed
+[03/15/2026 21:08:47][INFO]:	Setting available workflows...
+[03/15/2026 21:08:47][INFO]:	Post analysis method ends
+[03/15/2026 21:08:52][INFO]:	Reading UID database.
+[03/15/2026 21:08:52][INFO]:	Start loading STAAD model.
+[03/15/2026 21:08:52][INFO]:	Reading model file.
+[03/15/2026 21:08:52][INFO]:	Reading model file is complete.
+[03/15/2026 21:08:52][INFO]:	Processing support.
+[03/15/2026 21:08:52][INFO]:	Processing springs.
+[03/15/2026 21:08:52][INFO]:	Processing properties.
+[03/15/2026 21:08:52][INFO]:	Processing physical properties.
+[03/15/2026 21:08:52][INFO]:	Processing constants.
+[03/15/2026 21:08:52][INFO]:	Processing BETA constants.
+[03/15/2026 21:08:52][INFO]:	Processing hidden analytical member loads.
+[03/15/2026 21:08:52][INFO]:	Processing command list for member release.
+[03/15/2026 21:08:52][INFO]:	Processing command list for member offset.
+[03/15/2026 21:08:52][INFO]:	Processing command list for member specs (cracked).
+[03/15/2026 21:08:52][INFO]:	Processing command list for member specs (axial).
+[03/15/2026 21:08:52][INFO]:	Processing command list for element release.
+[03/15/2026 21:08:52][INFO]:	Processing command list for element offset.
+[03/15/2026 21:08:52][INFO]:	Processing command list for element plate stress directive.
+[03/15/2026 21:08:52][INFO]:	Processing parameter for Chinese wind load case.
+[03/15/2026 21:08:52][INFO]:	End Processing command list.
+[03/15/2026 21:08:52][INFO]:	End loading STAAD model.
+[03/15/2026 21:08:52][INFO]:	Start Post Analysis method
+[03/15/2026 21:08:52][INFO]:	Removed all hidden plates from surfaces
+[03/15/2026 21:08:52][INFO]:	Removed all hidden plates
+[03/15/2026 21:08:52][INFO]:	Removed all hidden nodes
+[03/15/2026 21:08:52][INFO]:	Loading results from MSH file...
+[03/15/2026 21:08:52][INFO]:	Building result indices...
+[03/15/2026 21:08:52][INFO]:	Loading plate stress results...
+[03/15/2026 21:08:52][INFO]:	Set analysis report setup data
+[03/15/2026 21:08:52][INFO]:	Starting page setup...
+[03/15/2026 21:08:52][INFO]:	Page setup completed
+[03/15/2026 21:08:52][INFO]:	Setting available workflows...
+[03/15/2026 21:08:52][INFO]:	Post analysis method ends
+[03/15/2026 21:15:15][INFO]:	Reading UID database.
+[03/15/2026 21:15:15][INFO]:	Start loading STAAD model.
+[03/15/2026 21:15:15][INFO]:	Reading model file.
+[03/15/2026 21:15:15][INFO]:	Reading model file is complete.
+[03/15/2026 21:15:15][INFO]:	Processing support.
+[03/15/2026 21:15:15][INFO]:	Processing springs.
+[03/15/2026 21:15:15][INFO]:	Processing properties.
+[03/15/2026 21:15:15][INFO]:	Processing physical properties.
+[03/15/2026 21:15:15][INFO]:	Processing constants.
+[03/15/2026 21:15:15][INFO]:	Processing BETA constants.
+[03/15/2026 21:15:15][INFO]:	Processing hidden analytical member loads.
+[03/15/2026 21:15:15][INFO]:	Processing command list for member release.
+[03/15/2026 21:15:15][INFO]:	Processing command list for member offset.
+[03/15/2026 21:15:15][INFO]:	Processing command list for member specs (cracked).
+[03/15/2026 21:15:15][INFO]:	Processing command list for member specs (axial).
+[03/15/2026 21:15:15][INFO]:	Processing command list for element release.
+[03/15/2026 21:15:15][INFO]:	Processing command list for element offset.
+[03/15/2026 21:15:15][INFO]:	Processing command list for element plate stress directive.
+[03/15/2026 21:15:15][INFO]:	Processing parameter for Chinese wind load case.
+[03/15/2026 21:15:15][INFO]:	End Processing command list.
+[03/15/2026 21:15:17][INFO]:	End loading STAAD model.
+[03/15/2026 21:15:26][INFO]:	Start Post Analysis method
+[03/15/2026 21:15:26][INFO]:	Removed all hidden plates from surfaces
+[03/15/2026 21:15:26][INFO]:	Removed all hidden plates
+[03/15/2026 21:15:26][INFO]:	Removed all hidden nodes
+[03/15/2026 21:15:26][INFO]:	Loading results from MSH file...
+[03/15/2026 21:15:26][INFO]:	Building result indices...
+[03/15/2026 21:15:26][INFO]:	Loading plate stress results...
+[03/15/2026 21:15:26][INFO]:	Set analysis report setup data
+[03/15/2026 21:15:26][INFO]:	Starting page setup...
+[03/15/2026 21:15:26][INFO]:	Page setup completed
+[03/15/2026 21:15:26][INFO]:	Setting available workflows...
+[03/15/2026 21:15:26][INFO]:	Post analysis method ends
+[03/15/2026 21:15:42][INFO]:	Reading UID database.
+[03/15/2026 21:15:42][INFO]:	Start loading STAAD model.
+[03/15/2026 21:15:42][INFO]:	Reading model file.
+[03/15/2026 21:15:42][INFO]:	Reading model file is complete.
+[03/15/2026 21:15:42][INFO]:	Processing support.
+[03/15/2026 21:15:42][INFO]:	Processing springs.
+[03/15/2026 21:15:42][INFO]:	Processing properties.
+[03/15/2026 21:15:42][INFO]:	Processing physical properties.
+[03/15/2026 21:15:42][INFO]:	Processing constants.
+[03/15/2026 21:15:42][INFO]:	Processing BETA constants.
+[03/15/2026 21:15:42][INFO]:	Processing hidden analytical member loads.
+[03/15/2026 21:15:42][INFO]:	Processing command list for member release.
+[03/15/2026 21:15:42][INFO]:	Processing command list for member offset.
+[03/15/2026 21:15:42][INFO]:	Processing command list for member specs (cracked).
+[03/15/2026 21:15:42][INFO]:	Processing command list for member specs (axial).
+[03/15/2026 21:15:42][INFO]:	Processing command list for element release.
+[03/15/2026 21:15:42][INFO]:	Processing command list for element offset.
+[03/15/2026 21:15:42][INFO]:	Processing command list for element plate stress directive.
+[03/15/2026 21:15:42][INFO]:	Processing parameter for Chinese wind load case.
+[03/15/2026 21:15:42][INFO]:	End Processing command list.
+[03/15/2026 21:15:42][INFO]:	End loading STAAD model.
+[03/15/2026 21:15:42][INFO]:	Start Post Analysis method
+[03/15/2026 21:15:42][INFO]:	Removed all hidden plates from surfaces
+[03/15/2026 21:15:42][INFO]:	Removed all hidden plates
+[03/15/2026 21:15:42][INFO]:	Removed all hidden nodes
+[03/15/2026 21:15:42][INFO]:	Loading results from MSH file...
+[03/15/2026 21:15:42][INFO]:	Building result indices...
+[03/15/2026 21:15:42][INFO]:	Loading plate stress results...
+[03/15/2026 21:15:42][INFO]:	Set analysis report setup data
+[03/15/2026 21:15:42][INFO]:	Starting page setup...
+[03/15/2026 21:15:42][INFO]:	Page setup completed
+[03/15/2026 21:15:42][INFO]:	Setting available workflows...
+[03/15/2026 21:15:42][INFO]:	Post analysis method ends
+[03/15/2026 21:15:48][INFO]:	Reading UID database.
+[03/15/2026 21:15:48][INFO]:	Start loading STAAD model.
+[03/15/2026 21:15:48][INFO]:	Reading model file.
+[03/15/2026 21:15:48][INFO]:	Reading model file is complete.
+[03/15/2026 21:15:48][INFO]:	Processing support.
+[03/15/2026 21:15:48][INFO]:	Processing springs.
+[03/15/2026 21:15:48][INFO]:	Processing properties.
+[03/15/2026 21:15:48][INFO]:	Processing physical properties.
+[03/15/2026 21:15:48][INFO]:	Processing constants.
+[03/15/2026 21:15:48][INFO]:	Processing BETA constants.
+[03/15/2026 21:15:48][INFO]:	Processing hidden analytical member loads.
+[03/15/2026 21:15:48][INFO]:	Processing command list for member release.
+[03/15/2026 21:15:48][INFO]:	Processing command list for member offset.
+[03/15/2026 21:15:48][INFO]:	Processing command list for member specs (cracked).
+[03/15/2026 21:15:48][INFO]:	Processing command list for member specs (axial).
+[03/15/2026 21:15:48][INFO]:	Processing command list for element release.
+[03/15/2026 21:15:48][INFO]:	Processing command list for element offset.
+[03/15/2026 21:15:48][INFO]:	Processing command list for element plate stress directive.
+[03/15/2026 21:15:48][INFO]:	Processing parameter for Chinese wind load case.
+[03/15/2026 21:15:48][INFO]:	End Processing command list.
+[03/15/2026 21:15:48][INFO]:	End loading STAAD model.
+[03/15/2026 21:15:48][INFO]:	Start Post Analysis method
+[03/15/2026 21:15:48][INFO]:	Removed all hidden plates from surfaces
+[03/15/2026 21:15:48][INFO]:	Removed all hidden plates
+[03/15/2026 21:15:48][INFO]:	Removed all hidden nodes
+[03/15/2026 21:15:48][INFO]:	Loading results from MSH file...
+[03/15/2026 21:15:48][INFO]:	Building result indices...
+[03/15/2026 21:15:48][INFO]:	Loading plate stress results...
+[03/15/2026 21:15:48][INFO]:	Set analysis report setup data
+[03/15/2026 21:15:48][INFO]:	Starting page setup...
+[03/15/2026 21:15:48][INFO]:	Page setup completed
+[03/15/2026 21:15:48][INFO]:	Setting available workflows...
+[03/15/2026 21:15:48][INFO]:	Post analysis method ends
+[03/15/2026 21:16:19][INFO]:	Reading UID database.
+[03/15/2026 21:16:19][INFO]:	Start loading STAAD model.
+[03/15/2026 21:16:19][INFO]:	Reading model file.
+[03/15/2026 21:16:19][INFO]:	Reading model file is complete.
+[03/15/2026 21:16:19][INFO]:	Processing support.
+[03/15/2026 21:16:19][INFO]:	Processing springs.
+[03/15/2026 21:16:19][INFO]:	Processing properties.
+[03/15/2026 21:16:19][INFO]:	Processing physical properties.
+[03/15/2026 21:16:19][INFO]:	Processing constants.
+[03/15/2026 21:16:19][INFO]:	Processing BETA constants.
+[03/15/2026 21:16:19][INFO]:	Processing hidden analytical member loads.
+[03/15/2026 21:16:19][INFO]:	Processing command list for member release.
+[03/15/2026 21:16:19][INFO]:	Processing command list for member offset.
+[03/15/2026 21:16:19][INFO]:	Processing command list for member specs (cracked).
+[03/15/2026 21:16:19][INFO]:	Processing command list for member specs (axial).
+[03/15/2026 21:16:19][INFO]:	Processing command list for element release.
+[03/15/2026 21:16:19][INFO]:	Processing command list for element offset.
+[03/15/2026 21:16:19][INFO]:	Processing command list for element plate stress directive.
+[03/15/2026 21:16:19][INFO]:	Processing parameter for Chinese wind load case.
+[03/15/2026 21:16:19][INFO]:	End Processing command list.
+[03/15/2026 21:16:20][INFO]:	End loading STAAD model.
+[03/15/2026 21:16:59][INFO]:	Start Post Analysis method
+[03/15/2026 21:16:59][INFO]:	Removed all hidden plates from surfaces
+[03/15/2026 21:16:59][INFO]:	Removed all hidden plates
+[03/15/2026 21:16:59][INFO]:	Removed all hidden nodes
+[03/15/2026 21:16:59][INFO]:	Loading results from MSH file...
+[03/15/2026 21:16:59][INFO]:	Building result indices...
+[03/15/2026 21:16:59][INFO]:	Loading plate stress results...
+[03/15/2026 21:16:59][INFO]:	Set analysis report setup data
+[03/15/2026 21:16:59][INFO]:	Starting page setup...
+[03/15/2026 21:16:59][INFO]:	Page setup completed
+[03/15/2026 21:16:59][INFO]:	Setting available workflows...
+[03/15/2026 21:16:59][INFO]:	Post analysis method ends
+[03/15/2026 21:17:01][INFO]:	Reading UID database.
+[03/15/2026 21:17:01][INFO]:	Start loading STAAD model.
+[03/15/2026 21:17:01][INFO]:	Reading model file.
+[03/15/2026 21:17:02][INFO]:	Reading model file is complete.
+[03/15/2026 21:17:02][INFO]:	Processing support.
+[03/15/2026 21:17:02][INFO]:	Processing springs.
+[03/15/2026 21:17:02][INFO]:	Processing properties.
+[03/15/2026 21:17:02][INFO]:	Processing physical properties.
+[03/15/2026 21:17:02][INFO]:	Processing constants.
+[03/15/2026 21:17:02][INFO]:	Processing BETA constants.
+[03/15/2026 21:17:02][INFO]:	Processing hidden analytical member loads.
+[03/15/2026 21:17:02][INFO]:	Processing command list for member release.
+[03/15/2026 21:17:02][INFO]:	Processing command list for member offset.
+[03/15/2026 21:17:02][INFO]:	Processing command list for member specs (cracked).
+[03/15/2026 21:17:02][INFO]:	Processing command list for member specs (axial).
+[03/15/2026 21:17:02][INFO]:	Processing command list for element release.
+[03/15/2026 21:17:02][INFO]:	Processing command list for element offset.
+[03/15/2026 21:17:02][INFO]:	Processing command list for element plate stress directive.
+[03/15/2026 21:17:02][INFO]:	Processing parameter for Chinese wind load case.
+[03/15/2026 21:17:02][INFO]:	End Processing command list.
+[03/15/2026 21:17:04][INFO]:	End loading STAAD model.
+[03/15/2026 21:17:04][INFO]:	Start Post Analysis method
+[03/15/2026 21:17:04][INFO]:	Removed all hidden plates from surfaces
+[03/15/2026 21:17:04][INFO]:	Removed all hidden plates
+[03/15/2026 21:17:04][INFO]:	Removed all hidden nodes
+[03/15/2026 21:17:04][INFO]:	Loading results from MSH file...
+[03/15/2026 21:17:04][INFO]:	Building result indices...
+[03/15/2026 21:17:04][INFO]:	Loading plate stress results...
+[03/15/2026 21:17:04][INFO]:	Set analysis report setup data
+[03/15/2026 21:17:04][INFO]:	Starting page setup...
+[03/15/2026 21:17:04][INFO]:	Page setup completed
+[03/15/2026 21:17:04][INFO]:	Setting available workflows...
+[03/15/2026 21:17:04][INFO]:	Post analysis method ends
+[03/15/2026 21:17:07][INFO]:	Reading UID database.
+[03/15/2026 21:17:07][INFO]:	Start loading STAAD model.
+[03/15/2026 21:17:07][INFO]:	Reading model file.
+[03/15/2026 21:17:07][INFO]:	Reading model file is complete.
+[03/15/2026 21:17:07][INFO]:	Processing support.
+[03/15/2026 21:17:07][INFO]:	Processing springs.
+[03/15/2026 21:17:07][INFO]:	Processing properties.
+[03/15/2026 21:17:07][INFO]:	Processing physical properties.
+[03/15/2026 21:17:07][INFO]:	Processing constants.
+[03/15/2026 21:17:07][INFO]:	Processing BETA constants.
+[03/15/2026 21:17:07][INFO]:	Processing hidden analytical member loads.
+[03/15/2026 21:17:07][INFO]:	Processing command list for member release.
+[03/15/2026 21:17:07][INFO]:	Processing command list for member offset.
+[03/15/2026 21:17:07][INFO]:	Processing command list for member specs (cracked).
+[03/15/2026 21:17:07][INFO]:	Processing command list for member specs (axial).
+[03/15/2026 21:17:07][INFO]:	Processing command list for element release.
+[03/15/2026 21:17:07][INFO]:	Processing command list for element offset.
+[03/15/2026 21:17:07][INFO]:	Processing command list for element plate stress directive.
+[03/15/2026 21:17:07][INFO]:	Processing parameter for Chinese wind load case.
+[03/15/2026 21:17:07][INFO]:	End Processing command list.
+[03/15/2026 21:17:08][INFO]:	End loading STAAD model.
+[03/15/2026 21:17:08][INFO]:	Start Post Analysis method
+[03/15/2026 21:17:08][INFO]:	Removed all hidden plates from surfaces
+[03/15/2026 21:17:08][INFO]:	Removed all hidden plates
+[03/15/2026 21:17:08][INFO]:	Removed all hidden nodes
+[03/15/2026 21:17:08][INFO]:	Loading results from MSH file...
+[03/15/2026 21:17:08][INFO]:	Building result indices...
+[03/15/2026 21:17:08][INFO]:	Loading plate stress results...
+[03/15/2026 21:17:08][INFO]:	Set analysis report setup data
+[03/15/2026 21:17:08][INFO]:	Starting page setup...
+[03/15/2026 21:17:08][INFO]:	Page setup completed
+[03/15/2026 21:17:08][INFO]:	Setting available workflows...
+[03/15/2026 21:17:08][INFO]:	Post analysis method ends
+[03/15/2026 21:17:11][INFO]:	Reading UID database.
+[03/15/2026 21:17:11][INFO]:	Start loading STAAD model.
+[03/15/2026 21:17:11][INFO]:	Reading model file.
+[03/15/2026 21:17:11][INFO]:	Reading model file is complete.
+[03/15/2026 21:17:11][INFO]:	Processing support.
+[03/15/2026 21:17:11][INFO]:	Processing springs.
+[03/15/2026 21:17:11][INFO]:	Processing properties.
+[03/15/2026 21:17:11][INFO]:	Processing physical properties.
+[03/15/2026 21:17:11][INFO]:	Processing constants.
+[03/15/2026 21:17:11][INFO]:	Processing BETA constants.
+[03/15/2026 21:17:11][INFO]:	Processing hidden analytical member loads.
+[03/15/2026 21:17:11][INFO]:	Processing command list for member release.
+[03/15/2026 21:17:11][INFO]:	Processing command list for member offset.
+[03/15/2026 21:17:11][INFO]:	Processing command list for member specs (cracked).
+[03/15/2026 21:17:11][INFO]:	Processing command list for member specs (axial).
+[03/15/2026 21:17:11][INFO]:	Processing command list for element release.
+[03/15/2026 21:17:11][INFO]:	Processing command list for element offset.
+[03/15/2026 21:17:11][INFO]:	Processing command list for element plate stress directive.
+[03/15/2026 21:17:11][INFO]:	Processing parameter for Chinese wind load case.
+[03/15/2026 21:17:11][INFO]:	End Processing command list.
+[03/15/2026 21:17:12][INFO]:	End loading STAAD model.
+[03/15/2026 21:17:12][INFO]:	Start Post Analysis method
+[03/15/2026 21:17:12][INFO]:	Removed all hidden plates from surfaces
+[03/15/2026 21:17:12][INFO]:	Removed all hidden plates
+[03/15/2026 21:17:12][INFO]:	Removed all hidden nodes
+[03/15/2026 21:17:12][INFO]:	Loading results from MSH file...
+[03/15/2026 21:17:12][INFO]:	Building result indices...
+[03/15/2026 21:17:12][INFO]:	Loading plate stress results...
+[03/15/2026 21:17:12][INFO]:	Set analysis report setup data
+[03/15/2026 21:17:12][INFO]:	Starting page setup...
+[03/15/2026 21:17:12][INFO]:	Page setup completed
+[03/15/2026 21:17:12][INFO]:	Setting available workflows...
+[03/15/2026 21:17:12][INFO]:	Post analysis method ends
+[03/15/2026 21:17:22][INFO]:	Reading UID database.
+[03/15/2026 21:17:22][INFO]:	Start loading STAAD model.
+[03/15/2026 21:17:22][INFO]:	Reading model file.
+[03/15/2026 21:17:22][INFO]:	Reading model file is complete.
+[03/15/2026 21:17:23][INFO]:	Processing support.
+[03/15/2026 21:17:23][INFO]:	Processing springs.
+[03/15/2026 21:17:23][INFO]:	Processing properties.
+[03/15/2026 21:17:23][INFO]:	Processing physical properties.
+[03/15/2026 21:17:23][INFO]:	Processing constants.
+[03/15/2026 21:17:23][INFO]:	Processing BETA constants.
+[03/15/2026 21:17:23][INFO]:	Processing hidden analytical member loads.
+[03/15/2026 21:17:23][INFO]:	Processing command list for member release.
+[03/15/2026 21:17:23][INFO]:	Processing command list for member offset.
+[03/15/2026 21:17:23][INFO]:	Processing command list for member specs (cracked).
+[03/15/2026 21:17:23][INFO]:	Processing command list for member specs (axial).
+[03/15/2026 21:17:23][INFO]:	Processing command list for element release.
+[03/15/2026 21:17:23][INFO]:	Processing command list for element offset.
+[03/15/2026 21:17:23][INFO]:	Processing command list for element plate stress directive.
+[03/15/2026 21:17:23][INFO]:	Processing parameter for Chinese wind load case.
+[03/15/2026 21:17:23][INFO]:	End Processing command list.
+[03/15/2026 21:17:23][INFO]:	End loading STAAD model.
+[03/15/2026 21:17:23][INFO]:	Start Post Analysis method
+[03/15/2026 21:17:23][INFO]:	Removed all hidden plates from surfaces
+[03/15/2026 21:17:23][INFO]:	Removed all hidden plates
+[03/15/2026 21:17:23][INFO]:	Removed all hidden nodes
+[03/15/2026 21:17:23][INFO]:	Loading results from MSH file...
+[03/15/2026 21:17:23][INFO]:	Building result indices...
+[03/15/2026 21:17:23][INFO]:	Loading plate stress results...
+[03/15/2026 21:17:23][INFO]:	Set analysis report setup data
+[03/15/2026 21:17:23][INFO]:	Starting page setup...
+[03/15/2026 21:17:23][INFO]:	Page setup completed
+[03/15/2026 21:17:23][INFO]:	Setting available workflows...
+[03/15/2026 21:17:23][INFO]:	Post analysis method ends
+[03/15/2026 21:17:27][INFO]:	Reading UID database.
+[03/15/2026 21:17:27][INFO]:	Start loading STAAD model.
+[03/15/2026 21:17:28][INFO]:	Reading model file.
+[03/15/2026 21:17:28][INFO]:	Reading model file is complete.
+[03/15/2026 21:17:28][INFO]:	Processing support.
+[03/15/2026 21:17:28][INFO]:	Processing springs.
+[03/15/2026 21:17:28][INFO]:	Processing properties.
+[03/15/2026 21:17:28][INFO]:	Processing physical properties.
+[03/15/2026 21:17:28][INFO]:	Processing constants.
+[03/15/2026 21:17:28][INFO]:	Processing BETA constants.
+[03/15/2026 21:17:28][INFO]:	Processing hidden analytical member loads.
+[03/15/2026 21:17:28][INFO]:	Processing command list for member release.
+[03/15/2026 21:17:28][INFO]:	Processing command list for member offset.
+[03/15/2026 21:17:28][INFO]:	Processing command list for member specs (cracked).
+[03/15/2026 21:17:28][INFO]:	Processing command list for member specs (axial).
+[03/15/2026 21:17:28][INFO]:	Processing command list for element release.
+[03/15/2026 21:17:28][INFO]:	Processing command list for element offset.
+[03/15/2026 21:17:28][INFO]:	Processing command list for element plate stress directive.
+[03/15/2026 21:17:28][INFO]:	Processing parameter for Chinese wind load case.
+[03/15/2026 21:17:28][INFO]:	End Processing command list.
+[03/15/2026 21:17:28][INFO]:	End loading STAAD model.
+[03/15/2026 21:17:28][INFO]:	Start Post Analysis method
+[03/15/2026 21:17:28][INFO]:	Removed all hidden plates from surfaces
+[03/15/2026 21:17:28][INFO]:	Removed all hidden plates
+[03/15/2026 21:17:28][INFO]:	Removed all hidden nodes
+[03/15/2026 21:17:28][INFO]:	Loading results from MSH file...
+[03/15/2026 21:17:28][INFO]:	Building result indices...
+[03/15/2026 21:17:28][INFO]:	Loading plate stress results...
+[03/15/2026 21:17:28][INFO]:	Set analysis report setup data
+[03/15/2026 21:17:28][INFO]:	Starting page setup...
+[03/15/2026 21:17:28][INFO]:	Page setup completed
+[03/15/2026 21:17:28][INFO]:	Setting available workflows...
+[03/15/2026 21:17:28][INFO]:	Post analysis method ends
+[03/15/2026 21:17:33][INFO]:	Reading UID database.
+[03/15/2026 21:17:33][INFO]:	Start loading STAAD model.
+[03/15/2026 21:17:33][INFO]:	Reading model file.
+[03/15/2026 21:17:33][INFO]:	Reading model file is complete.
+[03/15/2026 21:17:33][INFO]:	Processing support.
+[03/15/2026 21:17:33][INFO]:	Processing springs.
+[03/15/2026 21:17:33][INFO]:	Processing properties.
+[03/15/2026 21:17:33][INFO]:	Processing physical properties.
+[03/15/2026 21:17:33][INFO]:	Processing constants.
+[03/15/2026 21:17:33][INFO]:	Processing BETA constants.
+[03/15/2026 21:17:33][INFO]:	Processing hidden analytical member loads.
+[03/15/2026 21:17:33][INFO]:	Processing command list for member release.
+[03/15/2026 21:17:33][INFO]:	Processing command list for member offset.
+[03/15/2026 21:17:33][INFO]:	Processing command list for member specs (cracked).
+[03/15/2026 21:17:33][INFO]:	Processing command list for member specs (axial).
+[03/15/2026 21:17:33][INFO]:	Processing command list for element release.
+[03/15/2026 21:17:33][INFO]:	Processing command list for element offset.
+[03/15/2026 21:17:33][INFO]:	Processing command list for element plate stress directive.
+[03/15/2026 21:17:33][INFO]:	Processing parameter for Chinese wind load case.
+[03/15/2026 21:17:33][INFO]:	End Processing command list.
+[03/15/2026 21:17:33][INFO]:	End loading STAAD model.
+[03/15/2026 21:17:34][INFO]:	Start Post Analysis method
+[03/15/2026 21:17:34][INFO]:	Removed all hidden plates from surfaces
+[03/15/2026 21:17:34][INFO]:	Removed all hidden plates
+[03/15/2026 21:17:34][INFO]:	Removed all hidden nodes
+[03/15/2026 21:17:34][INFO]:	Loading results from MSH file...
+[03/15/2026 21:17:34][INFO]:	Building result indices...
+[03/15/2026 21:17:34][INFO]:	Loading plate stress results...
+[03/15/2026 21:17:34][INFO]:	Set analysis report setup data
+[03/15/2026 21:17:34][INFO]:	Starting page setup...
+[03/15/2026 21:17:34][INFO]:	Page setup completed
+[03/15/2026 21:17:34][INFO]:	Setting available workflows...
+[03/15/2026 21:17:34][INFO]:	Post analysis method ends
+[03/15/2026 21:18:38][INFO]:	Reading UID database.
+[03/15/2026 21:18:38][INFO]:	Start loading STAAD model.
+[03/15/2026 21:18:38][INFO]:	Reading model file.
+[03/15/2026 21:18:39][INFO]:	Reading model file is complete.
+[03/15/2026 21:18:39][INFO]:	Processing support.
+[03/15/2026 21:18:39][INFO]:	Processing springs.
+[03/15/2026 21:18:39][INFO]:	Processing properties.
+[03/15/2026 21:18:39][INFO]:	Processing physical properties.
+[03/15/2026 21:18:39][INFO]:	Processing constants.
+[03/15/2026 21:18:39][INFO]:	Processing BETA constants.
+[03/15/2026 21:18:39][INFO]:	Processing hidden analytical member loads.
+[03/15/2026 21:18:39][INFO]:	Processing command list for member release.
+[03/15/2026 21:18:39][INFO]:	Processing command list for member offset.
+[03/15/2026 21:18:39][INFO]:	Processing command list for member specs (cracked).
+[03/15/2026 21:18:39][INFO]:	Processing command list for member specs (axial).
+[03/15/2026 21:18:39][INFO]:	Processing command list for element release.
+[03/15/2026 21:18:39][INFO]:	Processing command list for element offset.
+[03/15/2026 21:18:39][INFO]:	Processing command list for element plate stress directive.
+[03/15/2026 21:18:39][INFO]:	Processing parameter for Chinese wind load case.
+[03/15/2026 21:18:39][INFO]:	End Processing command list.
+[03/15/2026 21:18:39][INFO]:	End loading STAAD model.
+[03/15/2026 21:18:39][INFO]:	Start Post Analysis method
+[03/15/2026 21:18:39][INFO]:	Removed all hidden plates from surfaces
+[03/15/2026 21:18:39][INFO]:	Removed all hidden plates
+[03/15/2026 21:18:39][INFO]:	Removed all hidden nodes
+[03/15/2026 21:18:39][INFO]:	Loading results from MSH file...
+[03/15/2026 21:18:39][INFO]:	Building result indices...
+[03/15/2026 21:18:39][INFO]:	Loading plate stress results...
+[03/15/2026 21:18:39][INFO]:	Set analysis report setup data
+[03/15/2026 21:18:39][INFO]:	Starting page setup...
+[03/15/2026 21:18:39][INFO]:	Page setup completed
+[03/15/2026 21:18:39][INFO]:	Setting available workflows...
+[03/15/2026 21:18:39][INFO]:	Post analysis method ends
+[03/15/2026 21:18:44][INFO]:	Reading UID database.
+[03/15/2026 21:18:44][INFO]:	Start loading STAAD model.
+[03/15/2026 21:18:44][INFO]:	Reading model file.
+[03/15/2026 21:18:44][INFO]:	Reading model file is complete.
+[03/15/2026 21:18:44][INFO]:	Processing support.
+[03/15/2026 21:18:44][INFO]:	Processing springs.
+[03/15/2026 21:18:44][INFO]:	Processing properties.
+[03/15/2026 21:18:44][INFO]:	Processing physical properties.
+[03/15/2026 21:18:44][INFO]:	Processing constants.
+[03/15/2026 21:18:44][INFO]:	Processing BETA constants.
+[03/15/2026 21:18:44][INFO]:	Processing hidden analytical member loads.
+[03/15/2026 21:18:44][INFO]:	Processing command list for member release.
+[03/15/2026 21:18:44][INFO]:	Processing command list for member offset.
+[03/15/2026 21:18:44][INFO]:	Processing command list for member specs (cracked).
+[03/15/2026 21:18:44][INFO]:	Processing command list for member specs (axial).
+[03/15/2026 21:18:44][INFO]:	Processing command list for element release.
+[03/15/2026 21:18:44][INFO]:	Processing command list for element offset.
+[03/15/2026 21:18:44][INFO]:	Processing command list for element plate stress directive.
+[03/15/2026 21:18:44][INFO]:	Processing parameter for Chinese wind load case.
+[03/15/2026 21:18:44][INFO]:	End Processing command list.
+[03/15/2026 21:18:44][INFO]:	End loading STAAD model.
+[03/15/2026 21:18:44][INFO]:	Start Post Analysis method
+[03/15/2026 21:18:44][INFO]:	Removed all hidden plates from surfaces
+[03/15/2026 21:18:44][INFO]:	Removed all hidden plates
+[03/15/2026 21:18:44][INFO]:	Removed all hidden nodes
+[03/15/2026 21:18:44][INFO]:	Loading results from MSH file...
+[03/15/2026 21:18:44][INFO]:	Building result indices...
+[03/15/2026 21:18:44][INFO]:	Loading plate stress results...
+[03/15/2026 21:18:44][INFO]:	Set analysis report setup data
+[03/15/2026 21:18:44][INFO]:	Starting page setup...
+[03/15/2026 21:18:44][INFO]:	Page setup completed
+[03/15/2026 21:18:44][INFO]:	Setting available workflows...
+[03/15/2026 21:18:44][INFO]:	Post analysis method ends
+[03/15/2026 21:23:22][INFO]:	Reading UID database.
+[03/15/2026 21:23:22][INFO]:	Start loading STAAD model.
+[03/15/2026 21:23:22][INFO]:	Reading model file.
+[03/15/2026 21:23:22][INFO]:	Reading model file is complete.
+[03/15/2026 21:23:22][INFO]:	Processing support.
+[03/15/2026 21:23:22][INFO]:	Processing springs.
+[03/15/2026 21:23:22][INFO]:	Processing properties.
+[03/15/2026 21:23:22][INFO]:	Processing physical properties.
+[03/15/2026 21:23:22][INFO]:	Processing constants.
+[03/15/2026 21:23:22][INFO]:	Processing BETA constants.
+[03/15/2026 21:23:22][INFO]:	Processing hidden analytical member loads.
+[03/15/2026 21:23:22][INFO]:	Processing command list for member release.
+[03/15/2026 21:23:22][INFO]:	Processing command list for member offset.
+[03/15/2026 21:23:22][INFO]:	Processing command list for member specs (cracked).
+[03/15/2026 21:23:22][INFO]:	Processing command list for member specs (axial).
+[03/15/2026 21:23:22][INFO]:	Processing command list for element release.
+[03/15/2026 21:23:22][INFO]:	Processing command list for element offset.
+[03/15/2026 21:23:22][INFO]:	Processing command list for element plate stress directive.
+[03/15/2026 21:23:22][INFO]:	Processing parameter for Chinese wind load case.
+[03/15/2026 21:23:22][INFO]:	End Processing command list.
+[03/15/2026 21:23:22][INFO]:	End loading STAAD model.
+[03/15/2026 21:23:22][INFO]:	Start Post Analysis method
+[03/15/2026 21:23:22][INFO]:	Removed all hidden plates from surfaces
+[03/15/2026 21:23:22][INFO]:	Removed all hidden plates
+[03/15/2026 21:23:22][INFO]:	Removed all hidden nodes
+[03/15/2026 21:23:22][INFO]:	Loading results from MSH file...
+[03/15/2026 21:23:22][INFO]:	Building result indices...
+[03/15/2026 21:23:22][INFO]:	Loading plate stress results...
+[03/15/2026 21:23:22][INFO]:	Set analysis report setup data
+[03/15/2026 21:23:22][INFO]:	Starting page setup...
+[03/15/2026 21:23:22][INFO]:	Page setup completed
+[03/15/2026 21:23:22][INFO]:	Setting available workflows...
+[03/15/2026 21:23:22][INFO]:	Post analysis method ends
+[03/15/2026 21:23:41][INFO]:	Reading UID database.
+[03/15/2026 21:23:41][INFO]:	Start loading STAAD model.
+[03/15/2026 21:23:41][INFO]:	Reading model file.
+[03/15/2026 21:23:41][INFO]:	Reading model file is complete.
+[03/15/2026 21:23:41][INFO]:	Processing support.
+[03/15/2026 21:23:41][INFO]:	Processing springs.
+[03/15/2026 21:23:41][INFO]:	Processing properties.
+[03/15/2026 21:23:41][INFO]:	Processing physical properties.
+[03/15/2026 21:23:41][INFO]:	Processing constants.
+[03/15/2026 21:23:41][INFO]:	Processing BETA constants.
+[03/15/2026 21:23:41][INFO]:	Processing hidden analytical member loads.
+[03/15/2026 21:23:41][INFO]:	Processing command list for member release.
+[03/15/2026 21:23:41][INFO]:	Processing command list for member offset.
+[03/15/2026 21:23:41][INFO]:	Processing command list for member specs (cracked).
+[03/15/2026 21:23:41][INFO]:	Processing command list for member specs (axial).
+[03/15/2026 21:23:41][INFO]:	Processing command list for element release.
+[03/15/2026 21:23:42][INFO]:	Processing command list for element offset.
+[03/15/2026 21:23:42][INFO]:	Processing command list for element plate stress directive.
+[03/15/2026 21:23:42][INFO]:	Processing parameter for Chinese wind load case.
+[03/15/2026 21:23:42][INFO]:	End Processing command list.
+[03/15/2026 21:23:43][INFO]:	End loading STAAD model.
+[03/15/2026 21:24:24][INFO]:	Start Post Analysis method
+[03/15/2026 21:24:24][INFO]:	Removed all hidden plates from surfaces
+[03/15/2026 21:24:24][INFO]:	Removed all hidden plates
+[03/15/2026 21:24:24][INFO]:	Removed all hidden nodes
+[03/15/2026 21:24:25][INFO]:	Loading results from MSH file...
+[03/15/2026 21:24:25][INFO]:	Building result indices...
+[03/15/2026 21:24:25][INFO]:	Loading plate stress results...
+[03/15/2026 21:24:25][INFO]:	Set analysis report setup data
+[03/15/2026 21:24:25][INFO]:	Starting page setup...
+[03/15/2026 21:24:25][INFO]:	Page setup completed
+[03/15/2026 21:24:25][INFO]:	Setting available workflows...
+[03/15/2026 21:24:25][INFO]:	Post analysis method ends
+[03/15/2026 21:28:08][INFO]:	Reading UID database.
+[03/15/2026 21:28:08][INFO]:	Start loading STAAD model.
+[03/15/2026 21:28:08][INFO]:	Reading model file.
+[03/15/2026 21:28:08][INFO]:	Reading model file is complete.
+[03/15/2026 21:28:08][INFO]:	Processing support.
+[03/15/2026 21:28:08][INFO]:	Processing springs.
+[03/15/2026 21:28:08][INFO]:	Processing properties.
+[03/15/2026 21:28:08][INFO]:	Processing physical properties.
+[03/15/2026 21:28:08][INFO]:	Processing constants.
+[03/15/2026 21:28:08][INFO]:	Processing BETA constants.
+[03/15/2026 21:28:08][INFO]:	Processing hidden analytical member loads.
+[03/15/2026 21:28:08][INFO]:	Processing command list for member release.
+[03/15/2026 21:28:08][INFO]:	Processing command list for member offset.
+[03/15/2026 21:28:08][INFO]:	Processing command list for member specs (cracked).
+[03/15/2026 21:28:08][INFO]:	Processing command list for member specs (axial).
+[03/15/2026 21:28:08][INFO]:	Processing command list for element release.
+[03/15/2026 21:28:08][INFO]:	Processing command list for element offset.
+[03/15/2026 21:28:08][INFO]:	Processing command list for element plate stress directive.
+[03/15/2026 21:28:08][INFO]:	Processing parameter for Chinese wind load case.
+[03/15/2026 21:28:08][INFO]:	End Processing command list.
+[03/15/2026 21:28:08][INFO]:	End loading STAAD model.
+[03/15/2026 21:28:08][INFO]:	Start Post Analysis method
+[03/15/2026 21:28:08][INFO]:	Removed all hidden plates from surfaces
+[03/15/2026 21:28:08][INFO]:	Removed all hidden plates
+[03/15/2026 21:28:08][INFO]:	Removed all hidden nodes
+[03/15/2026 21:28:08][INFO]:	Loading results from MSH file...
+[03/15/2026 21:28:08][INFO]:	Building result indices...
+[03/15/2026 21:28:08][INFO]:	Loading plate stress results...
+[03/15/2026 21:28:08][INFO]:	Set analysis report setup data
+[03/15/2026 21:28:08][INFO]:	Starting page setup...
+[03/15/2026 21:28:08][INFO]:	Page setup completed
+[03/15/2026 21:28:08][INFO]:	Setting available workflows...
+[03/15/2026 21:28:08][INFO]:	Post analysis method ends
+[03/15/2026 21:28:12][INFO]:	Reading UID database.
+[03/15/2026 21:28:12][INFO]:	Start loading STAAD model.
+[03/15/2026 21:28:12][INFO]:	Reading model file.
+[03/15/2026 21:28:12][INFO]:	Reading model file is complete.
+[03/15/2026 21:28:12][INFO]:	Processing support.
+[03/15/2026 21:28:12][INFO]:	Processing springs.
+[03/15/2026 21:28:12][INFO]:	Processing properties.
+[03/15/2026 21:28:12][INFO]:	Processing physical properties.
+[03/15/2026 21:28:12][INFO]:	Processing constants.
+[03/15/2026 21:28:12][INFO]:	Processing BETA constants.
+[03/15/2026 21:28:12][INFO]:	Processing hidden analytical member loads.
+[03/15/2026 21:28:12][INFO]:	Processing command list for member release.
+[03/15/2026 21:28:13][INFO]:	Processing command list for member offset.
+[03/15/2026 21:28:13][INFO]:	Processing command list for member specs (cracked).
+[03/15/2026 21:28:13][INFO]:	Processing command list for member specs (axial).
+[03/15/2026 21:28:13][INFO]:	Processing command list for element release.
+[03/15/2026 21:28:13][INFO]:	Processing command list for element offset.
+[03/15/2026 21:28:13][INFO]:	Processing command list for element plate stress directive.
+[03/15/2026 21:28:13][INFO]:	Processing parameter for Chinese wind load case.
+[03/15/2026 21:28:13][INFO]:	End Processing command list.
+[03/15/2026 21:28:13][INFO]:	End loading STAAD model.
+[03/15/2026 21:28:13][INFO]:	Start Post Analysis method
+[03/15/2026 21:28:13][INFO]:	Removed all hidden plates from surfaces
+[03/15/2026 21:28:13][INFO]:	Removed all hidden plates
+[03/15/2026 21:28:13][INFO]:	Removed all hidden nodes
+[03/15/2026 21:28:13][INFO]:	Loading results from MSH file...
+[03/15/2026 21:28:13][INFO]:	Building result indices...
+[03/15/2026 21:28:13][INFO]:	Loading plate stress results...
+[03/15/2026 21:28:13][INFO]:	Set analysis report setup data
+[03/15/2026 21:28:13][INFO]:	Starting page setup...
+[03/15/2026 21:28:13][INFO]:	Page setup completed
+[03/15/2026 21:28:13][INFO]:	Setting available workflows...
+[03/15/2026 21:28:13][INFO]:	Post analysis method ends
+[03/15/2026 21:28:32][INFO]:	Reading UID database.
+[03/15/2026 21:28:32][INFO]:	Start loading STAAD model.
+[03/15/2026 21:28:32][INFO]:	Reading model file.
+[03/15/2026 21:28:32][INFO]:	Reading model file is complete.
+[03/15/2026 21:28:32][INFO]:	Processing support.
+[03/15/2026 21:28:32][INFO]:	Processing springs.
+[03/15/2026 21:28:32][INFO]:	Processing properties.
+[03/15/2026 21:28:32][INFO]:	Processing physical properties.
+[03/15/2026 21:28:32][INFO]:	Processing constants.
+[03/15/2026 21:28:32][INFO]:	Processing BETA constants.
+[03/15/2026 21:28:32][INFO]:	Processing hidden analytical member loads.
+[03/15/2026 21:28:32][INFO]:	Processing command list for member release.
+[03/15/2026 21:28:32][INFO]:	Processing command list for member offset.
+[03/15/2026 21:28:32][INFO]:	Processing command list for member specs (cracked).
+[03/15/2026 21:28:32][INFO]:	Processing command list for member specs (axial).
+[03/15/2026 21:28:32][INFO]:	Processing command list for element release.
+[03/15/2026 21:28:32][INFO]:	Processing command list for element offset.
+[03/15/2026 21:28:32][INFO]:	Processing command list for element plate stress directive.
+[03/15/2026 21:28:32][INFO]:	Processing parameter for Chinese wind load case.
+[03/15/2026 21:28:32][INFO]:	End Processing command list.
+[03/15/2026 21:28:32][INFO]:	End loading STAAD model.
+[03/15/2026 21:28:32][INFO]:	Start Post Analysis method
+[03/15/2026 21:28:32][INFO]:	Removed all hidden plates from surfaces
+[03/15/2026 21:28:32][INFO]:	Removed all hidden plates
+[03/15/2026 21:28:32][INFO]:	Removed all hidden nodes
+[03/15/2026 21:28:32][INFO]:	Loading results from MSH file...
+[03/15/2026 21:28:32][INFO]:	Building result indices...
+[03/15/2026 21:28:32][INFO]:	Loading plate stress results...
+[03/15/2026 21:28:32][INFO]:	Set analysis report setup data
+[03/15/2026 21:28:32][INFO]:	Starting page setup...
+[03/15/2026 21:28:32][INFO]:	Page setup completed
+[03/15/2026 21:28:32][INFO]:	Setting available workflows...
+[03/15/2026 21:28:32][INFO]:	Post analysis method ends
+[03/15/2026 21:28:51][INFO]:	Reading UID database.
+[03/15/2026 21:28:51][INFO]:	Start loading STAAD model.
+[03/15/2026 21:28:51][INFO]:	Reading model file.
+[03/15/2026 21:28:51][INFO]:	Reading model file is complete.
+[03/15/2026 21:28:51][INFO]:	Processing support.
+[03/15/2026 21:28:51][INFO]:	Processing springs.
+[03/15/2026 21:28:51][INFO]:	Processing properties.
+[03/15/2026 21:28:51][INFO]:	Processing physical properties.
+[03/15/2026 21:28:51][INFO]:	Processing constants.
+[03/15/2026 21:28:51][INFO]:	Processing BETA constants.
+[03/15/2026 21:28:51][INFO]:	Processing hidden analytical member loads.
+[03/15/2026 21:28:51][INFO]:	Processing command list for member release.
+[03/15/2026 21:28:51][INFO]:	Processing command list for member offset.
+[03/15/2026 21:28:51][INFO]:	Processing command list for member specs (cracked).
+[03/15/2026 21:28:51][INFO]:	Processing command list for member specs (axial).
+[03/15/2026 21:28:51][INFO]:	Processing command list for element release.
+[03/15/2026 21:28:51][INFO]:	Processing command list for element offset.
+[03/15/2026 21:28:51][INFO]:	Processing command list for element plate stress directive.
+[03/15/2026 21:28:51][INFO]:	Processing parameter for Chinese wind load case.
+[03/15/2026 21:28:51][INFO]:	End Processing command list.
+[03/15/2026 21:28:52][INFO]:	End loading STAAD model.
+[03/15/2026 21:29:04][INFO]:	Start Post Analysis method
+[03/15/2026 21:29:04][INFO]:	Removed all hidden plates from surfaces
+[03/15/2026 21:29:04][INFO]:	Removed all hidden plates
+[03/15/2026 21:29:04][INFO]:	Removed all hidden nodes
+[03/15/2026 21:29:04][INFO]:	Loading results from MSH file...
+[03/15/2026 21:29:04][INFO]:	Building result indices...
+[03/15/2026 21:29:04][INFO]:	Loading plate stress results...
+[03/15/2026 21:29:04][INFO]:	Set analysis report setup data
+[03/15/2026 21:29:04][INFO]:	Starting page setup...
+[03/15/2026 21:29:04][INFO]:	Page setup completed
+[03/15/2026 21:29:04][INFO]:	Setting available workflows...
+[03/15/2026 21:29:04][INFO]:	Post analysis method ends
+[03/15/2026 21:32:08][INFO]:	Start Post Analysis method
+[03/15/2026 21:32:08][INFO]:	Removed all hidden plates from surfaces
+[03/15/2026 21:32:09][INFO]:	Removed all hidden plates
+[03/15/2026 21:32:09][INFO]:	Removed all hidden nodes
+[03/15/2026 21:32:09][INFO]:	Loading results from MSH file...
+[03/15/2026 21:32:09][INFO]:	Building result indices...
+[03/15/2026 21:32:09][INFO]:	Loading plate stress results...
+[03/15/2026 21:32:09][INFO]:	Set analysis report setup data
+[03/15/2026 21:32:09][INFO]:	Starting page setup...
+[03/15/2026 21:32:09][INFO]:	Page setup completed
+[03/15/2026 21:32:09][INFO]:	Setting available workflows...
+[03/15/2026 21:32:09][INFO]:	Post analysis method ends
+[03/15/2026 21:33:16][INFO]:	Reading UID database.
+[03/15/2026 21:33:16][INFO]:	Start loading STAAD model.
+[03/15/2026 21:33:16][INFO]:	Reading model file.
+[03/15/2026 21:33:16][INFO]:	Reading model file is complete.
+[03/15/2026 21:33:16][INFO]:	Processing support.
+[03/15/2026 21:33:16][INFO]:	Processing springs.
+[03/15/2026 21:33:16][INFO]:	Processing properties.
+[03/15/2026 21:33:16][INFO]:	Processing physical properties.
+[03/15/2026 21:33:16][INFO]:	Processing constants.
+[03/15/2026 21:33:16][INFO]:	Processing BETA constants.
+[03/15/2026 21:33:16][INFO]:	Processing hidden analytical member loads.
+[03/15/2026 21:33:16][INFO]:	Processing command list for member release.
+[03/15/2026 21:33:16][INFO]:	Processing command list for member offset.
+[03/15/2026 21:33:16][INFO]:	Processing command list for member specs (cracked).
+[03/15/2026 21:33:16][INFO]:	Processing command list for member specs (axial).
+[03/15/2026 21:33:16][INFO]:	Processing command list for element release.
+[03/15/2026 21:33:16][INFO]:	Processing command list for element offset.
+[03/15/2026 21:33:16][INFO]:	Processing command list for element plate stress directive.
+[03/15/2026 21:33:16][INFO]:	Processing parameter for Chinese wind load case.
+[03/15/2026 21:33:16][INFO]:	End Processing command list.
+[03/15/2026 21:33:16][INFO]:	End loading STAAD model.
+[03/15/2026 21:33:16][INFO]:	Start Post Analysis method
+[03/15/2026 21:33:16][INFO]:	Removed all hidden plates from surfaces
+[03/15/2026 21:33:16][INFO]:	Removed all hidden plates
+[03/15/2026 21:33:16][INFO]:	Removed all hidden nodes
+[03/15/2026 21:33:16][INFO]:	Loading results from MSH file...
+[03/15/2026 21:33:16][INFO]:	Building result indices...
+[03/15/2026 21:33:16][INFO]:	Loading plate stress results...
+[03/15/2026 21:33:16][INFO]:	Set analysis report setup data
+[03/15/2026 21:33:16][INFO]:	Starting page setup...
+[03/15/2026 21:33:16][INFO]:	Page setup completed
+[03/15/2026 21:33:16][INFO]:	Setting available workflows...
+[03/15/2026 21:33:16][INFO]:	Post analysis method ends
+[03/15/2026 21:33:29][INFO]:	Reading UID database.
+[03/15/2026 21:33:29][INFO]:	Start loading STAAD model.
+[03/15/2026 21:33:29][INFO]:	Reading model file.
+[03/15/2026 21:33:29][INFO]:	Reading model file is complete.
+[03/15/2026 21:33:29][INFO]:	Processing support.
+[03/15/2026 21:33:29][INFO]:	Processing springs.
+[03/15/2026 21:33:29][INFO]:	Processing properties.
+[03/15/2026 21:33:29][INFO]:	Processing physical properties.
+[03/15/2026 21:33:29][INFO]:	Processing constants.
+[03/15/2026 21:33:29][INFO]:	Processing BETA constants.
+[03/15/2026 21:33:29][INFO]:	Processing hidden analytical member loads.
+[03/15/2026 21:33:29][INFO]:	Processing command list for member release.
+[03/15/2026 21:33:29][INFO]:	Processing command list for member offset.
+[03/15/2026 21:33:29][INFO]:	Processing command list for member specs (cracked).
+[03/15/2026 21:33:29][INFO]:	Processing command list for member specs (axial).
+[03/15/2026 21:33:29][INFO]:	Processing command list for element release.
+[03/15/2026 21:33:29][INFO]:	Processing command list for element offset.
+[03/15/2026 21:33:29][INFO]:	Processing command list for element plate stress directive.
+[03/15/2026 21:33:29][INFO]:	Processing parameter for Chinese wind load case.
+[03/15/2026 21:33:29][INFO]:	End Processing command list.
+[03/15/2026 21:33:30][INFO]:	End loading STAAD model.
+[03/15/2026 21:33:43][INFO]:	Start Post Analysis method
+[03/15/2026 21:33:43][INFO]:	Removed all hidden plates from surfaces
+[03/15/2026 21:33:43][INFO]:	Removed all hidden plates
+[03/15/2026 21:33:43][INFO]:	Removed all hidden nodes
+[03/15/2026 21:33:43][INFO]:	Loading results from MSH file...
+[03/15/2026 21:33:43][INFO]:	Building result indices...
+[03/15/2026 21:33:43][INFO]:	Loading plate stress results...
+[03/15/2026 21:33:43][INFO]:	Set analysis report setup data
+[03/15/2026 21:33:43][INFO]:	Starting page setup...
+[03/15/2026 21:33:43][INFO]:	Page setup completed
+[03/15/2026 21:33:43][INFO]:	Setting available workflows...
+[03/15/2026 21:33:43][INFO]:	Post analysis method ends
