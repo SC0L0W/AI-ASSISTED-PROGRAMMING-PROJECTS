@@ -1,1 +1,1300 @@
-GUTIERREZ
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beam Deflection · 3D Simulator</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap');
+
+  :root {
+    --bg: #0a0c10;
+    --panel: #10141c;
+    --border: #1e2535;
+    --accent: #00e5ff;
+    --accent2: #ff6b35;
+    --accent3: #7fff6b;
+    --text: #c8d6e5;
+    --muted: #4a5568;
+    --beam-color: #c0a060;
+    --beam-top: #e8c97a;
+    --beam-side: #8a7040;
+    --beam-bottom: #5a4820;
+    --support-color: #3a4a6a;
+    --load-color: #ff4444;
+    --defl-color: #00e5ff;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  header {
+    position: relative;
+    z-index: 10;
+    padding: 24px 32px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(10,12,16,0.9);
+    backdrop-filter: blur(8px);
+  }
+
+  .logo-mark {
+    width: 40px; height: 40px;
+    border: 2px solid var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    color: var(--accent);
+    font-size: 14px;
+    letter-spacing: -1px;
+    flex-shrink: 0;
+  }
+
+  header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: #fff;
+  }
+  header h1 span { color: var(--accent); }
+
+  .badge {
+    margin-left: auto;
+    font-size: 10px;
+    padding: 4px 10px;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .layout {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    min-height: calc(100vh - 73px);
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+    padding: 24px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    overflow-y: auto;
+  }
+
+  .section-label {
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .control-group { display: flex; flex-direction: column; gap: 14px; }
+
+  .control-item label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    margin-bottom: 6px;
+    color: var(--text);
+  }
+  .control-item label .val {
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 12px;
+  }
+
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 3px;
+    background: var(--border);
+    outline: none;
+    border-radius: 2px;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    border: 2px solid var(--bg);
+    box-shadow: 0 0 8px var(--accent);
+  }
+
+  select {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 10px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2300e5ff'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+  }
+  select:focus { border-color: var(--accent); }
+
+  .results-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    padding: 14px;
+  }
+
+  .result-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+  }
+  .result-row:last-child { border-bottom: none; }
+  .result-row .key { color: var(--muted); }
+  .result-row .val { color: var(--accent3); font-weight: 700; }
+  .result-row .val.warn { color: var(--accent2); }
+
+  .formula-box {
+    background: rgba(0,229,255,0.03);
+    border: 1px solid rgba(0,229,255,0.15);
+    padding: 12px;
+    font-size: 10px;
+    line-height: 1.8;
+    color: #8899aa;
+  }
+  .formula-box strong { color: var(--accent); }
+
+  /* ── MAIN CANVAS AREA ── */
+  .main {
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
+  }
+
+  .view-controls {
+    display: flex;
+    gap: 1px;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel);
+  }
+
+  .view-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 6px 14px;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .view-btn.active, .view-btn:hover {
+    background: var(--accent);
+    color: var(--bg);
+    border-color: var(--accent);
+  }
+
+  .canvas-wrap {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+  }
+
+  canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .canvas-label {
+    position: absolute;
+    top: 16px; left: 20px;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .drag-hint {
+    position: absolute;
+    bottom: 16px; right: 20px;
+    font-size: 10px;
+    color: var(--muted);
+    display: flex; gap: 12px;
+  }
+  .drag-hint span { display: flex; align-items: center; gap: 5px; }
+
+  /* ── BOTTOM DIAGRAM ── */
+  .diagram-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    border-top: 1px solid var(--border);
+    height: 160px;
+  }
+
+  .diagram-panel {
+    background: var(--panel);
+    position: relative;
+    overflow: hidden;
+  }
+  .diagram-panel .dlabel {
+    position: absolute; top: 8px; left: 12px;
+    font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--muted);
+    z-index: 2;
+  }
+  .diagram-panel canvas { position: absolute; inset: 0; }
+
+  /* Glow pulse on load arrow */
+  @keyframes pulse-glow {
+    0%, 100% { filter: drop-shadow(0 0 6px #ff4444); }
+    50% { filter: drop-shadow(0 0 14px #ff4444); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-mark">BD</div>
+  <h1>Beam <span>Deflection</span> · 3D Simulator</h1>
+  <div class="badge">Structural · FEM</div>
+</header>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div>
+      <div class="section-label">Loading Condition</div>
+      <div class="control-group">
+        <div class="control-item">
+          <label>Load Type <span class="val" id="loadTypeLabel">Point Load</span></label>
+          <select id="loadType" onchange="update()">
+            <option value="point">Point Load (midspan)</option>
+            <option value="udl">Uniform Distributed Load</option>
+            <option value="cantilever">Cantilever (Point End)</option>
+            <option value="cantilever_udl">Cantilever (UDL)</option>
+          </select>
+        </div>
+        <div class="control-item">
+          <label>Load Magnitude <span class="val" id="loadLabel">10 kN</span></label>
+          <input type="range" id="loadVal" min="1" max="100" value="10" oninput="update()">
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-label">Beam Geometry</div>
+      <div class="control-group">
+        <div class="control-item">
+          <label>Span Length <span class="val" id="spanLabel">6 m</span></label>
+          <input type="range" id="spanVal" min="2" max="12" value="6" step="0.5" oninput="update()">
+        </div>
+        <div class="control-item">
+          <label>Section Depth <span class="val" id="depthLabel">300 mm</span></label>
+          <input type="range" id="depthVal" min="100" max="600" value="300" step="10" oninput="update()">
+        </div>
+        <div class="control-item">
+          <label>Flange Width <span class="val" id="widthLabel">150 mm</span></label>
+          <input type="range" id="widthVal" min="80" max="300" value="150" step="10" oninput="update()">
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-label">Material</div>
+      <div class="control-group">
+        <div class="control-item">
+          <label>Material <span class="val" id="matLabel">Steel</span></label>
+          <select id="matType" onchange="update()">
+            <option value="200">Steel (E = 200 GPa)</option>
+            <option value="70">Aluminium (E = 70 GPa)</option>
+            <option value="12">Timber (E = 12 GPa)</option>
+            <option value="30">Concrete (E = 30 GPa)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-label">Deflection Results</div>
+      <div class="results-box" id="results">
+        <div class="result-row"><span class="key">Max Deflection δ</span><span class="val" id="resDefl">—</span></div>
+        <div class="result-row"><span class="key">Span/Deflection</span><span class="val" id="resRatio">—</span></div>
+        <div class="result-row"><span class="key">Max Moment M</span><span class="val" id="resMoment">—</span></div>
+        <div class="result-row"><span class="key">Max Shear V</span><span class="val" id="resShear">—</span></div>
+        <div class="result-row"><span class="key">Moment of Inertia I</span><span class="val" id="resI">—</span></div>
+        <div class="result-row"><span class="key">L/d Check</span><span class="val warn" id="resLd">—</span></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-label">Formula</div>
+      <div class="formula-box" id="formulaBox">
+        δ_max = <strong>PL³ / 48EI</strong><br>
+        Simply supported · Point load<br>
+        at midspan
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN VIEW -->
+  <div class="main">
+    <div class="view-controls">
+      <button class="view-btn active" id="btn3d" onclick="setView('3d')">3D Perspective</button>
+      <button class="view-btn" id="btnSide" onclick="setView('side')">Side Elevation</button>
+      <button class="view-btn" id="btnPlan" onclick="setView('plan')">Plan View</button>
+      <button class="view-btn" id="btnIso" onclick="setView('iso')">Section</button>
+    </div>
+
+    <div class="canvas-wrap">
+      <canvas id="mainCanvas"></canvas>
+      <div class="canvas-label" id="viewLabel">3D PERSPECTIVE VIEW</div>
+      <div class="drag-hint">
+        <span>⟳ Drag to rotate</span>
+        <span>⊞ Scroll to zoom</span>
+      </div>
+    </div>
+
+    <div class="diagram-row">
+      <div class="diagram-panel">
+        <div class="dlabel">Bending Moment Diagram</div>
+        <canvas id="bmdCanvas"></canvas>
+      </div>
+      <div class="diagram-panel">
+        <div class="dlabel">Deflection Curve (Elastic Line)</div>
+        <canvas id="deflCanvas"></canvas>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── STATE ──
+let currentView = '3d';
+let rotX = 0.35, rotY = -0.55;
+let isDragging = false, lastMX = 0, lastMY = 0;
+let zoom = 1.0;
+let animT = 0;
+
+// ── BEAM PARAMS (computed) ──
+let beamData = {};
+
+function computeBeam() {
+  const P = parseFloat(document.getElementById('loadVal').value) * 1000; // N
+  const L = parseFloat(document.getElementById('spanVal').value); // m
+  const d = parseFloat(document.getElementById('depthVal').value) / 1000; // m
+  const bf = parseFloat(document.getElementById('widthVal').value) / 1000; // m
+  const E = parseFloat(document.getElementById('matType').value) * 1e9; // Pa
+  const loadType = document.getElementById('loadType').value;
+  const tw = bf * 0.25, tf = d * 0.12;
+  // Moment of Inertia for I-section (approx)
+  const I = (bf * Math.pow(d, 3) / 12)
+           - (2 * (bf - tw) / 2 * Math.pow(d - 2*tf, 3) / 12);
+
+  let deflMax, momentMax, shearMax, formula;
+  if (loadType === 'point') {
+    deflMax = (P * Math.pow(L, 3)) / (48 * E * I);
+    momentMax = P * L / 4;
+    shearMax = P / 2;
+    formula = 'δ_max = PL³ / 48EI\nSimply supported · Point load\nat midspan';
+  } else if (loadType === 'udl') {
+    const w = P / L;
+    deflMax = (5 * w * Math.pow(L, 4)) / (384 * E * I);
+    momentMax = w * L * L / 8;
+    shearMax = w * L / 2;
+    formula = 'δ_max = 5wL⁴ / 384EI\nSimply supported · UDL';
+  } else if (loadType === 'cantilever') {
+    deflMax = (P * Math.pow(L, 3)) / (3 * E * I);
+    momentMax = P * L;
+    shearMax = P;
+    formula = 'δ_max = PL³ / 3EI\nCantilever · Point load at free end';
+  } else { // cantilever_udl
+    const w = P / L;
+    deflMax = (w * Math.pow(L, 4)) / (8 * E * I);
+    momentMax = w * L * L / 2;
+    shearMax = w * L;
+    formula = 'δ_max = wL⁴ / 8EI\nCantilever · UDL';
+  }
+
+  const ratio = L / deflMax;
+  const ld = L / d;
+
+  document.getElementById('resDefl').textContent = (deflMax * 1000).toFixed(2) + ' mm';
+  document.getElementById('resRatio').textContent = 'L / ' + Math.round(ratio);
+  document.getElementById('resMoment').textContent = (momentMax / 1000).toFixed(1) + ' kNm';
+  document.getElementById('resShear').textContent = (shearMax / 1000).toFixed(1) + ' kN';
+  document.getElementById('resI').textContent = (I * 1e6).toFixed(2) + ' cm⁴';
+  const ldEl = document.getElementById('resLd');
+  ldEl.textContent = 'L/d = ' + ld.toFixed(0);
+  ldEl.className = 'val' + (ld < 20 ? ' warn' : '');
+  document.getElementById('formulaBox').innerHTML = formula.replace(
+    /δ_max = ([^\n]+)/,
+    'δ_max = <strong>$1</strong>'
+  );
+
+  // Labels
+  document.getElementById('loadLabel').textContent = document.getElementById('loadVal').value + ' kN';
+  document.getElementById('spanLabel').textContent = L + ' m';
+  document.getElementById('depthLabel').textContent = document.getElementById('depthVal').value + ' mm';
+  document.getElementById('widthLabel').textContent = document.getElementById('widthVal').value + ' mm';
+  document.getElementById('loadTypeLabel').textContent = document.getElementById('loadType').options[document.getElementById('loadType').selectedIndex].text.split(' (')[0];
+  const matSel = document.getElementById('matType');
+  document.getElementById('matLabel').textContent = matSel.options[matSel.selectedIndex].text.split(' (')[0];
+
+  beamData = { P, L, d, bf, tw, tf, E, I, deflMax, momentMax, shearMax, loadType };
+}
+
+// ── DRAWING UTILS ──
+function clearCanvas(canvas, color = '#0a0c10') {
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = color;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  return ctx;
+}
+
+function resizeCanvas(canvas) {
+  const r = canvas.getBoundingClientRect();
+  if (canvas.width !== r.width || canvas.height !== r.height) {
+    canvas.width = r.width;
+    canvas.height = r.height;
+  }
+}
+
+// ── 3D ENGINE ──
+function project3D(x, y, z, W, H, rx, ry, zoom) {
+  // Rotate Y
+  const cosY = Math.cos(ry), sinY = Math.sin(ry);
+  const x1 = x * cosY - z * sinY;
+  const z1 = x * sinY + z * cosY;
+  // Rotate X
+  const cosX = Math.cos(rx), sinX = Math.sin(rx);
+  const y1 = y * cosX - z1 * sinX;
+  const z2 = y * sinX + z1 * cosX;
+  // Perspective
+  const fov = 800 * zoom;
+  const scale = fov / (fov + z2);
+  return { sx: W/2 + x1 * scale, sy: H/2 + y1 * scale, scale };
+}
+
+function draw3DFace(ctx, pts, fillColor, strokeColor = null) {
+  ctx.beginPath();
+  ctx.moveTo(pts[0].sx, pts[0].sy);
+  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].sx, pts[i].sy);
+  ctx.closePath();
+  ctx.fillStyle = fillColor;
+  ctx.fill();
+  if (strokeColor) {
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+  }
+}
+
+// Deflection shape functions
+function deflShape(xi, loadType, animFactor) {
+  // xi = 0..1 normalized position along beam
+  let y = 0;
+  if (loadType === 'point') {
+    // EI·y = Px/48(3L²-4x²) for x<=L/2
+    const x = xi;
+    if (x <= 0.5) y = x * (3 - 4*x*x);
+    else { const x2 = 1-x; y = x2*(3-4*x2*x2); }
+    y = y / 1.0; // normalize so max ~1
+  } else if (loadType === 'udl') {
+    y = xi * (1 - xi) * (1 + xi - xi*xi) * 1.6;
+  } else if (loadType === 'cantilever') {
+    y = xi * xi * (3 - xi) / 2;
+  } else {
+    y = xi * xi * (6 - 4*xi + xi*xi) / 8 * 1.5;
+  }
+  return y * animFactor;
+}
+
+function drawBeam3D(ctx, W, H) {
+  const { d, bf, deflMax, L, loadType } = beamData;
+  // Visual sizes in pixels
+  const BW = Math.min(W * 0.7, 520) * zoom;
+  const BH = Math.max(20, Math.min(60, d / 0.6 * 50)) * zoom;
+  const BF = Math.max(14, bf / 0.3 * 44) * zoom;
+  const BT = BH * 0.14; // flange thickness
+  const BW2 = BF * 0.22; // web width
+  const DEPTH = BF * 0.7; // 3D depth
+
+  // Max visual deflection in px
+  const maxVisDef = Math.min(80, Math.max(15, deflMax * 1000 * 2.5)) * zoom;
+  const SEGS = 30;
+  const proj = (x, y, z) => project3D(x, y, z, W, H, rotX, rotY, zoom);
+
+  // Generate beam skeleton
+  const top = [], bot = [], leftF = [], rightF = [];
+  for (let i = 0; i <= SEGS; i++) {
+    const t = i / SEGS;
+    const bx = (t - 0.5) * BW;
+    const def = deflShape(t, loadType, 1) * maxVisDef;
+    top.push(proj(bx, def, 0));
+    bot.push(proj(bx, def, DEPTH));
+  }
+
+  // Draw ground/shadow
+  ctx.save();
+  const shadowY = maxVisDef + BH/2 + 30;
+  const shadow = [
+    proj(-BW*0.5-20, shadowY, -10),
+    proj(BW*0.5+20, shadowY, -10),
+    proj(BW*0.5+20, shadowY, DEPTH+10),
+    proj(-BW*0.5-20, shadowY, DEPTH+10)
+  ];
+  ctx.beginPath();
+  ctx.moveTo(shadow[0].sx, shadow[0].sy);
+  shadow.forEach(p => ctx.lineTo(p.sx, p.sy));
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(0,229,255,0.025)';
+  ctx.fill();
+  ctx.restore();
+
+  // Draw supports
+  drawSupports3D(ctx, BW, BH, BF, DEPTH, maxVisDef, loadType, proj);
+
+  // Draw load arrows
+  drawLoadArrows3D(ctx, BW, maxVisDef, loadType, DEPTH, proj);
+
+  // Draw I-beam faces
+  // For each segment, draw a cross-section quad
+  for (let i = 0; i < SEGS; i++) {
+    const t0 = i / SEGS, t1 = (i+1) / SEGS;
+    const d0 = deflShape(t0, loadType, 1) * maxVisDef;
+    const d1 = deflShape(t1, loadType, 1) * maxVisDef;
+    const bx0 = (t0 - 0.5) * BW;
+    const bx1 = (t1 - 0.5) * BW;
+
+    // Top flange - top face
+    const tf_y0 = d0 - BH/2;
+    const tf_y1 = d1 - BH/2;
+    const pts_topTop = [
+      proj(bx0, tf_y0, -BF/2), proj(bx1, tf_y1, -BF/2),
+      proj(bx1, tf_y1, BF/2 + DEPTH), proj(bx0, tf_y0, BF/2 + DEPTH)
+    ];
+    draw3DFace(ctx, pts_topTop, `hsl(42,60%,${56 + i%2*3}%)`, 'rgba(0,0,0,0.3)');
+
+    // Web top face
+    const wy0 = d0 - BH/2 + BT;
+    const wy1 = d1 - BH/2 + BT;
+    const wby0 = d0 + BH/2 - BT;
+    const wby1 = d1 + BH/2 - BT;
+
+    // Bottom flange top face
+    const bfy0 = d0 + BH/2 - BT;
+    const bfy1 = d1 + BH/2 - BT;
+    const pts_botTop = [
+      proj(bx0, bfy0, -BF/2), proj(bx1, bfy1, -BF/2),
+      proj(bx1, bfy1, BF/2 + DEPTH), proj(bx0, bfy0, BF/2 + DEPTH)
+    ];
+    draw3DFace(ctx, pts_botTop, `hsl(42,55%,42%)`, 'rgba(0,0,0,0.2)');
+
+    // Front face of top flange
+    const pts_tfFront = [
+      proj(bx0, tf_y0, -BF/2), proj(bx1, tf_y1, -BF/2),
+      proj(bx1, wy1, -BF/2), proj(bx0, wy0, -BF/2)
+    ];
+    draw3DFace(ctx, pts_tfFront, `hsl(42,50%,48%)`, null);
+
+    // Front face of web
+    const pts_webFront = [
+      proj(bx0, wy0, -BW2/2), proj(bx1, wy1, -BW2/2),
+      proj(bx1, wby1, -BW2/2), proj(bx0, wby0, -BW2/2)
+    ];
+    draw3DFace(ctx, pts_webFront, `hsl(42,45%,38%)`, null);
+
+    // Front face of bottom flange
+    const pts_bfFront = [
+      proj(bx0, bfy0, -BF/2), proj(bx1, bfy1, -BF/2),
+      proj(bx1, bfy1+BT, -BF/2), proj(bx0, bfy0+BT, -BF/2)
+    ];
+    draw3DFace(ctx, pts_bfFront, `hsl(42,45%,35%)`, null);
+  }
+
+  // End caps
+  const drawEndCap = (t) => {
+    const def = deflShape(t, loadType, 1) * maxVisDef;
+    const bx = (t - 0.5) * BW;
+    const ty = def - BH/2;
+    // Top flange cap
+    const pts = [
+      proj(bx, ty, -BF/2), proj(bx, ty, BF/2+DEPTH),
+      proj(bx, ty+BT, BF/2+DEPTH), proj(bx, ty+BT, -BF/2)
+    ];
+    draw3DFace(ctx, pts, '#c8a04a', '#8a6828');
+    // Web cap
+    const pts2 = [
+      proj(bx, ty+BT, -BW2/2), proj(bx, ty+BT, BW2/2+DEPTH),
+      proj(bx, def+BH/2-BT, BW2/2+DEPTH), proj(bx, def+BH/2-BT, -BW2/2)
+    ];
+    draw3DFace(ctx, pts2, '#a88038', '#705820');
+    // Bot flange cap
+    const pts3 = [
+      proj(bx, def+BH/2-BT, -BF/2), proj(bx, def+BH/2-BT, BF/2+DEPTH),
+      proj(bx, def+BH/2, BF/2+DEPTH), proj(bx, def+BH/2, -BF/2)
+    ];
+    draw3DFace(ctx, pts3, '#b89040', '#806020');
+  };
+  drawEndCap(0);
+  drawEndCap(1);
+
+  // Deflection indicator arrow
+  const midDef = deflShape(0.5, loadType, 1) * maxVisDef;
+  const midX = 0;
+  const defPt = proj(midX, midDef, DEPTH/2);
+  const refPt = proj(midX, 0, DEPTH/2);
+  ctx.save();
+  ctx.beginPath();
+  ctx.setLineDash([4, 3]);
+  ctx.moveTo(refPt.sx, refPt.sy);
+  ctx.lineTo(defPt.sx, defPt.sy);
+  ctx.strokeStyle = 'rgba(0,229,255,0.5)';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.setLineDash([]);
+  // delta label
+  ctx.fillStyle = '#00e5ff';
+  ctx.font = 'bold 11px Space Mono, monospace';
+  ctx.fillText('δ', (refPt.sx + defPt.sx)/2 + 8, (refPt.sy + defPt.sy)/2);
+  ctx.restore();
+}
+
+function drawSupports3D(ctx, BW, BH, BF, DEPTH, maxVisDef, loadType, proj) {
+  const supportH = 28;
+  const supportW = BF * 1.2;
+
+  const drawTriangle = (bx, isCantilever) => {
+    const baseY = maxVisDef + BH/2;
+    if (isCantilever) {
+      // Fixed wall
+      const pts = [
+        proj(bx-8, baseY - BH*0.8, -supportW/2),
+        proj(bx-8, baseY - BH*0.8, supportW/2+DEPTH),
+        proj(bx-8, baseY + supportH*1.5, supportW/2+DEPTH),
+        proj(bx-8, baseY + supportH*1.5, -supportW/2)
+      ];
+      draw3DFace(ctx, pts, '#1a2540', '#2a3a5a');
+      const pts2 = [
+        proj(bx-8, baseY - BH*0.8, -supportW/2),
+        proj(bx+4, baseY - BH*0.8, -supportW/2),
+        proj(bx+4, baseY + supportH*1.5, -supportW/2),
+        proj(bx-8, baseY + supportH*1.5, -supportW/2)
+      ];
+      draw3DFace(ctx, pts2, '#253050', '#354060');
+    } else {
+      // Triangle support
+      const ty = baseY;
+      for (let dz = 0; dz <= DEPTH; dz += DEPTH) {
+        const p0 = proj(bx, ty, dz);
+        const p1 = proj(bx - supportW/2, ty + supportH, dz);
+        const p2 = proj(bx + supportW/2, ty + supportH, dz);
+        ctx.beginPath();
+        ctx.moveTo(p0.sx, p0.sy);
+        ctx.lineTo(p1.sx, p1.sy);
+        ctx.lineTo(p2.sx, p2.sy);
+        ctx.closePath();
+        ctx.fillStyle = '#1e2d4a';
+        ctx.fill();
+        ctx.strokeStyle = '#00e5ff55';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+      // Base line
+      const b1 = proj(bx - supportW/2, ty + supportH, 0);
+      const b2 = proj(bx + supportW/2, ty + supportH, DEPTH);
+      ctx.beginPath();
+      ctx.moveTo(b1.sx, b1.sy);
+      ctx.lineTo(b2.sx, b2.sy);
+      ctx.strokeStyle = '#00e5ff88';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+  };
+
+  if (loadType === 'cantilever' || loadType === 'cantilever_udl') {
+    drawTriangle(-BW/2, true);
+  } else {
+    drawTriangle(-BW/2, false);
+    drawTriangle(BW/2, false);
+  }
+}
+
+function drawLoadArrows3D(ctx, BW, maxVisDef, loadType, DEPTH, proj) {
+  ctx.save();
+  const arrowLen = 28;
+  const arrowColor = '#ff4444';
+  ctx.strokeStyle = arrowColor;
+  ctx.fillStyle = arrowColor;
+  ctx.lineWidth = 2;
+
+  const drawArrow = (bx, bz) => {
+    const tipY = -BW * 0.055 - arrowLen * 0.1;
+    const p1 = proj(bx, tipY - arrowLen, bz);
+    const p2 = proj(bx, tipY, bz);
+    ctx.beginPath();
+    ctx.moveTo(p1.sx, p1.sy);
+    ctx.lineTo(p2.sx, p2.sy);
+    ctx.stroke();
+    // Arrowhead
+    const angle = Math.atan2(p2.sy - p1.sy, p2.sx - p1.sx);
+    ctx.save();
+    ctx.translate(p2.sx, p2.sy);
+    ctx.rotate(angle);
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(-10, -5);
+    ctx.lineTo(-10, 5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+    ctx.shadowBlur = 12;
+    ctx.shadowColor = '#ff4444';
+  };
+
+  if (loadType === 'point') {
+    drawArrow(0, DEPTH/2);
+  } else if (loadType === 'udl') {
+    for (let i = 0; i <= 8; i++) {
+      const t = i / 8;
+      drawArrow((t - 0.5) * BW, DEPTH/2);
+    }
+    // UDL line
+    const p1 = proj(-BW/2, -BW*0.055 - arrowLen, 0);
+    const p2 = proj(BW/2, -BW*0.055 - arrowLen, 0);
+    ctx.beginPath();
+    ctx.moveTo(p1.sx, p1.sy);
+    ctx.lineTo(p2.sx, p2.sy);
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  } else if (loadType === 'cantilever') {
+    drawArrow(BW/2, DEPTH/2);
+  } else {
+    for (let i = 0; i <= 8; i++) {
+      const t = i / 8;
+      drawArrow((t - 0.5) * BW, DEPTH/2);
+    }
+  }
+  ctx.restore();
+}
+
+// ── SIDE ELEVATION ──
+function drawSideView(ctx, W, H) {
+  const { deflMax, L, loadType, d } = beamData;
+  const margin = 60;
+  const BW = W - margin * 2;
+  const midY = H / 2 - 10;
+  const maxVisDef = Math.min(H * 0.28, deflMax * 1000 * 3.5);
+  const BH = Math.max(10, Math.min(30, d * 80));
+  const SEGS = 50;
+
+  // Beam neutral axis (deflected)
+  const pts = [];
+  for (let i = 0; i <= SEGS; i++) {
+    const t = i / SEGS;
+    const x = margin + t * BW;
+    const y = midY + deflShape(t, loadType, 1) * maxVisDef;
+    pts.push({ x, y });
+  }
+
+  // Filled beam body
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y - BH/2);
+  for (const p of pts) ctx.lineTo(p.x, p.y - BH/2);
+  for (let i = pts.length-1; i >= 0; i--) ctx.lineTo(pts[i].x, pts[i].y + BH/2);
+  ctx.closePath();
+  const grad = ctx.createLinearGradient(0, midY-BH, 0, midY+BH+maxVisDef);
+  grad.addColorStop(0, '#d4a84a');
+  grad.addColorStop(0.5, '#a07830');
+  grad.addColorStop(1, '#6a5020');
+  ctx.fillStyle = grad;
+  ctx.fill();
+  ctx.strokeStyle = '#e8c060';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // Original position (ghost)
+  ctx.beginPath();
+  ctx.setLineDash([6, 4]);
+  ctx.moveTo(margin, midY);
+  ctx.lineTo(margin + BW, midY);
+  ctx.strokeStyle = 'rgba(0,229,255,0.3)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Supports
+  const drawSupport2D = (x, type) => {
+    const sy = pts[type === 'left' ? 0 : SEGS].y + BH/2;
+    if (loadType.startsWith('cant') && type === 'left') {
+      ctx.fillStyle = '#1e2d4a';
+      ctx.strokeStyle = '#00e5ff88';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.rect(x-16, sy-BH*0.8, 16, BH*1.8);
+      ctx.fill(); ctx.stroke();
+    } else {
+      ctx.fillStyle = '#1e2d4a';
+      ctx.strokeStyle = '#00e5ffaa';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(x, sy);
+      ctx.lineTo(x - 14, sy + 22);
+      ctx.lineTo(x + 14, sy + 22);
+      ctx.closePath();
+      ctx.fill(); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x - 18, sy + 25);
+      ctx.lineTo(x + 18, sy + 25);
+      ctx.strokeStyle = '#00e5ff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+  };
+  drawSupport2D(margin, 'left');
+  if (!loadType.startsWith('cant')) drawSupport2D(margin + BW, 'right');
+
+  // Load arrows
+  ctx.fillStyle = '#ff4444';
+  ctx.strokeStyle = '#ff4444';
+  const drawArrow2D = (ax) => {
+    ctx.lineWidth = 2;
+    ctx.shadowBlur = 8; ctx.shadowColor = '#ff4444';
+    ctx.beginPath();
+    ctx.moveTo(ax, midY - 36);
+    ctx.lineTo(ax, midY - BH/2 - 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(ax, midY - BH/2 - 2);
+    ctx.lineTo(ax - 7, midY - BH/2 - 14);
+    ctx.lineTo(ax + 7, midY - BH/2 - 14);
+    ctx.closePath();
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  };
+  if (loadType === 'point') {
+    drawArrow2D(margin + BW/2);
+  } else if (loadType === 'udl' || loadType === 'cantilever_udl') {
+    for (let i = 0; i <= 8; i++) drawArrow2D(margin + (i/8)*BW);
+    ctx.beginPath();
+    ctx.moveTo(margin, midY-36); ctx.lineTo(margin+BW, midY-36);
+    ctx.lineWidth = 2; ctx.stroke();
+  } else {
+    drawArrow2D(margin + BW);
+  }
+
+  // Delta annotation
+  const midPt = pts[SEGS/2];
+  ctx.setLineDash([3,3]);
+  ctx.beginPath();
+  ctx.moveTo(midPt.x, midY);
+  ctx.lineTo(midPt.x, midPt.y + BH/2 + 2);
+  ctx.strokeStyle = 'rgba(0,229,255,0.5)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#00e5ff';
+  ctx.font = 'bold 12px Space Mono, monospace';
+  ctx.fillText('δ=' + (beamData.deflMax*1000).toFixed(1)+'mm', midPt.x+6, midPt.y + BH/2 + 14);
+
+  // Span label
+  ctx.fillStyle = '#4a5568';
+  ctx.font = '10px Space Mono, monospace';
+  ctx.fillText('L = ' + beamData.L + 'm', margin + BW/2 - 20, H - 12);
+  ctx.restore();
+}
+
+// ── BMD ──
+function drawBMD(ctx, W, H) {
+  const { momentMax, L, loadType } = beamData;
+  const margin = { l: 50, r: 20, t: 30, b: 30 };
+  const bw = W - margin.l - margin.r;
+  const bh = H - margin.t - margin.b;
+  const baseY = margin.t + bh * 0.45;
+  const SEGS = 60;
+
+  const getMoment = (xi) => {
+    if (loadType === 'point') {
+      if (xi <= 0.5) return xi * 2;
+      else return (1 - xi) * 2;
+    } else if (loadType === 'udl') {
+      return 4 * xi * (1 - xi);
+    } else if (loadType === 'cantilever') {
+      return (1 - xi);
+    } else {
+      return 0.5 * (1 - xi) * (1 - xi);
+    }
+  };
+
+  const pts = [];
+  for (let i = 0; i <= SEGS; i++) {
+    const t = i / SEGS;
+    const m = getMoment(t) * momentMax;
+    const x = margin.l + t * bw;
+    const y = baseY - (m / momentMax) * bh * 0.45;
+    pts.push({ x, y, m });
+  }
+
+  // Filled diagram
+  ctx.save();
+  const grad = ctx.createLinearGradient(0, baseY - bh*0.45, 0, baseY);
+  grad.addColorStop(0, 'rgba(255, 107, 53, 0.7)');
+  grad.addColorStop(1, 'rgba(255, 107, 53, 0.05)');
+  ctx.beginPath();
+  ctx.moveTo(margin.l, baseY);
+  for (const p of pts) ctx.lineTo(p.x, p.y);
+  ctx.lineTo(margin.l + bw, baseY);
+  ctx.closePath();
+  ctx.fillStyle = grad;
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  for (const p of pts) ctx.lineTo(p.x, p.y);
+  ctx.strokeStyle = '#ff6b35';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Baseline
+  ctx.beginPath();
+  ctx.moveTo(margin.l, baseY);
+  ctx.lineTo(margin.l + bw, baseY);
+  ctx.strokeStyle = '#2a3a4a';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // Max label
+  const maxPt = pts.reduce((a, b) => a.y < b.y ? a : b);
+  ctx.fillStyle = '#ff6b35';
+  ctx.font = 'bold 10px Space Mono, monospace';
+  ctx.fillText((momentMax/1000).toFixed(1) + ' kNm', maxPt.x + 4, maxPt.y - 4);
+
+  // Axis labels
+  ctx.fillStyle = '#4a5568';
+  ctx.font = '9px Space Mono, monospace';
+  ctx.fillText('0', margin.l - 20, baseY + 3);
+  ctx.fillText('M', margin.l - 12, margin.t + 12);
+  ctx.restore();
+}
+
+// ── DEFLECTION CURVE ──
+function drawDeflCurve(ctx, W, H) {
+  const { deflMax, L, loadType } = beamData;
+  const margin = { l: 50, r: 20, t: 30, b: 30 };
+  const bw = W - margin.l - margin.r;
+  const bh = H - margin.t - margin.b;
+  const baseY = margin.t + bh * 0.15;
+  const SEGS = 60;
+
+  const pts = [];
+  for (let i = 0; i <= SEGS; i++) {
+    const t = i / SEGS;
+    const y = deflShape(t, loadType, 1);
+    const x = margin.l + t * bw;
+    const py = baseY + y * bh * 0.75;
+    pts.push({ x, py, y: y * deflMax * 1000 });
+  }
+
+  // Shade
+  ctx.save();
+  const grad = ctx.createLinearGradient(0, baseY, 0, baseY + bh);
+  grad.addColorStop(0, 'rgba(0,229,255,0.05)');
+  grad.addColorStop(1, 'rgba(0,229,255,0.25)');
+  ctx.beginPath();
+  ctx.moveTo(margin.l, baseY);
+  for (const p of pts) ctx.lineTo(p.x, p.py);
+  ctx.lineTo(margin.l + bw, baseY);
+  ctx.closePath();
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].py);
+  for (const p of pts) ctx.lineTo(p.x, p.py);
+  ctx.strokeStyle = '#00e5ff';
+  ctx.lineWidth = 2;
+  ctx.shadowBlur = 8;
+  ctx.shadowColor = '#00e5ff';
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // Max
+  const maxPt = pts.reduce((a,b) => a.py > b.py ? a : b);
+  ctx.fillStyle = '#00e5ff';
+  ctx.font = 'bold 10px Space Mono, monospace';
+  ctx.fillText((deflMax*1000).toFixed(2)+'mm', maxPt.x+4, maxPt.py-4);
+
+  // Baseline
+  ctx.beginPath();
+  ctx.moveTo(margin.l, baseY);
+  ctx.lineTo(margin.l + bw, baseY);
+  ctx.strokeStyle = '#2a3a4a';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 3]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = '#4a5568';
+  ctx.font = '9px Space Mono, monospace';
+  ctx.fillText('δ', margin.l - 14, baseY + 3);
+  ctx.restore();
+}
+
+// ── SECTION VIEW ──
+function drawSectionView(ctx, W, H) {
+  const { d, bf, loadType } = beamData;
+  const cx = W / 2, cy = H / 2 + 5;
+  const scale = Math.min(W, H) * 0.55 / Math.max(d, bf);
+  const D = d * scale, B = bf * scale;
+  const tw = B * 0.22, tf = D * 0.14;
+
+  ctx.save();
+  // Background
+  ctx.fillStyle = '#0f1520';
+  ctx.fillRect(0, 0, W, H);
+
+  // Grid lines
+  ctx.strokeStyle = '#1a2535';
+  ctx.lineWidth = 0.5;
+  for (let i = -10; i <= 10; i++) {
+    const gx = cx + i * 20;
+    const gy = cy + i * 20;
+    ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke();
+  }
+
+  // Centroid cross
+  ctx.strokeStyle = '#1e3a5a';
+  ctx.setLineDash([4, 3]);
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(cx-60, cy); ctx.lineTo(cx+60, cy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx, cy-60); ctx.lineTo(cx, cy+60); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // I-section
+  const drawSection = (fillColor, strokeColor) => {
+    // Top flange
+    ctx.fillStyle = fillColor;
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.rect(cx - B/2, cy - D/2, B, tf);
+    ctx.fill(); ctx.stroke();
+    // Web
+    ctx.beginPath();
+    ctx.rect(cx - tw/2, cy - D/2 + tf, tw, D - 2*tf);
+    ctx.fill(); ctx.stroke();
+    // Bottom flange
+    ctx.beginPath();
+    ctx.rect(cx - B/2, cy + D/2 - tf, B, tf);
+    ctx.fill(); ctx.stroke();
+  };
+
+  // Shadow/glow
+  ctx.save();
+  ctx.shadowBlur = 20;
+  ctx.shadowColor = 'rgba(192,160,96,0.3)';
+  drawSection('rgba(192,160,96,0.2)', 'rgba(192,160,96,0.1)');
+  ctx.restore();
+  drawSection('#c0a060', '#e8c070');
+
+  // Dimension annotations
+  ctx.strokeStyle = '#00e5ff66';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([3, 3]);
+  // Width
+  ctx.beginPath(); ctx.moveTo(cx-B/2, cy+D/2+18); ctx.lineTo(cx+B/2, cy+D/2+18); ctx.stroke();
+  // Height
+  ctx.beginPath(); ctx.moveTo(cx+B/2+18, cy-D/2); ctx.lineTo(cx+B/2+18, cy+D/2); ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = '#00e5ff';
+  ctx.font = 'bold 10px Space Mono, monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('b = '+beamData.bf*1000+'mm', cx, cy+D/2+32);
+  ctx.textAlign = 'left';
+  ctx.fillText('d = '+beamData.d*1000+'mm', cx+B/2+22, cy+4);
+
+  // Centroid label
+  ctx.fillStyle = '#4a6a8a';
+  ctx.font = '10px Space Mono, monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('Centroid', cx, cy - D/2 - 14);
+  ctx.fillStyle = '#00e5ff';
+  ctx.beginPath();
+  ctx.arc(cx, cy, 4, 0, Math.PI*2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+// ── MAIN RENDER ──
+function render() {
+  const mainCanvas = document.getElementById('mainCanvas');
+  const bmdCanvas = document.getElementById('bmdCanvas');
+  const deflCanvas = document.getElementById('deflCanvas');
+
+  resizeCanvas(mainCanvas);
+  resizeCanvas(bmdCanvas);
+  resizeCanvas(deflCanvas);
+
+  const W = mainCanvas.width, H = mainCanvas.height;
+  const ctx = clearCanvas(mainCanvas);
+
+  if (currentView === '3d') {
+    drawBeam3D(ctx, W, H);
+  } else if (currentView === 'side') {
+    drawSideView(ctx, W, H);
+  } else if (currentView === 'plan') {
+    drawPlanView(ctx, W, H);
+  } else if (currentView === 'iso') {
+    drawSectionView(ctx, W, H);
+  }
+
+  const bmdCtx = clearCanvas(bmdCanvas);
+  drawBMD(bmdCtx, bmdCanvas.width, bmdCanvas.height);
+
+  const deflCtx = clearCanvas(deflCanvas);
+  drawDeflCurve(deflCtx, deflCanvas.width, deflCanvas.height);
+}
+
+function drawPlanView(ctx, W, H) {
+  const { bf, L, loadType } = beamData;
+  const margin = 60;
+  const BW = W - margin*2;
+  const BH = Math.min(bf * 220, 60);
+  const cy = H/2;
+
+  ctx.save();
+  const grad = ctx.createLinearGradient(0, cy-BH/2, 0, cy+BH/2);
+  grad.addColorStop(0, '#e8c060');
+  grad.addColorStop(0.5, '#a07830');
+  grad.addColorStop(1, '#e8c060');
+  ctx.fillStyle = grad;
+  ctx.strokeStyle = '#c8a040';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.rect(margin, cy - BH/2, BW, BH);
+  ctx.fill(); ctx.stroke();
+
+  // Center line
+  ctx.beginPath();
+  ctx.setLineDash([8, 5]);
+  ctx.moveTo(margin, cy);
+  ctx.lineTo(margin+BW, cy);
+  ctx.strokeStyle = 'rgba(0,229,255,0.4)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Span label
+  ctx.fillStyle = '#4a5568';
+  ctx.font = '10px Space Mono, monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('L = ' + L + ' m', W/2, cy + BH/2 + 20);
+  ctx.fillText('b = ' + (bf*1000).toFixed(0) + ' mm (flange width)', W/2, cy - BH/2 - 8);
+  ctx.restore();
+}
+
+function setView(v) {
+  currentView = v;
+  document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn'+v.charAt(0).toUpperCase()+v.slice(1)).classList.add('active');
+  const labels = { '3d':'3D PERSPECTIVE VIEW','side':'SIDE ELEVATION','plan':'PLAN VIEW','iso':'CROSS-SECTION' };
+  document.getElementById('viewLabel').textContent = labels[v];
+  render();
+}
+
+function update() {
+  computeBeam();
+  render();
+}
+
+// ── DRAG TO ROTATE ──
+const mainCanvas = document.getElementById('mainCanvas');
+mainCanvas.addEventListener('mousedown', e => { isDragging = true; lastMX = e.clientX; lastMY = e.clientY; });
+window.addEventListener('mouseup', () => isDragging = false);
+window.addEventListener('mousemove', e => {
+  if (!isDragging || currentView !== '3d') return;
+  rotY += (e.clientX - lastMX) * 0.007;
+  rotX += (e.clientY - lastMY) * 0.005;
+  rotX = Math.max(-1.0, Math.min(1.0, rotX));
+  lastMX = e.clientX; lastMY = e.clientY;
+  render();
+});
+mainCanvas.addEventListener('wheel', e => {
+  e.preventDefault();
+  zoom *= e.deltaY > 0 ? 0.92 : 1.08;
+  zoom = Math.max(0.4, Math.min(2.5, zoom));
+  render();
+}, { passive: false });
+
+// Touch support
+mainCanvas.addEventListener('touchstart', e => {
+  isDragging = true;
+  lastMX = e.touches[0].clientX;
+  lastMY = e.touches[0].clientY;
+});
+window.addEventListener('touchend', () => isDragging = false);
+window.addEventListener('touchmove', e => {
+  if (!isDragging || currentView !== '3d') return;
+  rotY += (e.touches[0].clientX - lastMX) * 0.007;
+  rotX += (e.touches[0].clientY - lastMY) * 0.005;
+  lastMX = e.touches[0].clientX;
+  lastMY = e.touches[0].clientY;
+  render();
+});
+
+window.addEventListener('resize', render);
+
+// Init
+computeBeam();
+render();
+</script>
+</body>
+</html>
