@@ -124,11 +124,20 @@ class TwoStoreyHouseBuilder:
 
         self._build_ui()
 
-        if not STAAD_AVAILABLE:
-            self.log("WARNING: openstaadpy not found!", "warning")
-            self.log("Install:  pip install openstaadpy", "warning")
-        else:
-            self.log("openstaadpy ✓  — open STAAD.Pro with an empty model, then Build.", "success")
+        # Defer log messages until after mainloop starts
+        # (log_text widget exists but after() needs the event loop running)
+        def _startup_log():
+            self.log("=" * 55, "success")
+            self.log("  STAAD.Pro Two-Storey House Builder — NSCP 2015", "success")
+            self.log("=" * 55, "success")
+            if not STAAD_AVAILABLE:
+                self.log("WARNING: openstaadpy not found!", "warning")
+                self.log("  Install:  pip install openstaadpy", "warning")
+            else:
+                self.log("openstaadpy ✓  — open STAAD.Pro with an empty model,", "success")
+                self.log("  then click  ▶ Build Model  to generate your structure.", "success")
+            self.log("Tip: Click  🔷 3D Preview  to see the model before building.", "info")
+        self.root.after(200, _startup_log)
 
     def _apply_theme(self):
         """Apply dark engineering theme to all ttk widgets."""
@@ -387,6 +396,11 @@ class TwoStoreyHouseBuilder:
                                       style="Analyze.TButton",
                                       command=self.build_and_analyze, width=18)
         self.btn_analyze.pack(side="left", padx=(0,4))
+
+        self.btn_3d = ttk.Button(bf, text="🔷  3D Preview",
+                                 style="Seismic.TButton",
+                                 command=self.show_3d_preview, width=14)
+        self.btn_3d.pack(side="left", padx=(0,4))
 
         self.btn_clear = ttk.Button(bf, text="✕  Clear Log",
                                     style="Clear.TButton",
@@ -1179,10 +1193,13 @@ NOTES:
         mat_name = "CONCRETE" if mat == "Concrete (RC)" else "STEEL"
         W(f"MATERIAL {mat_name} MEMB {ml(col_mems+beam_mems+sbm_mems)}")
 
-        # Supports
+        # Supports — must come AFTER CONSTANTS, with blank line separator
         base_nodes = [node_map[(0,ix,iz)] for ix in range(nx) for iz in range(nz)]
+        W(f"")   # blank line — STAAD parser needs this after CONSTANTS block
         W(f"SUPPORTS")
+        # Write each base node explicitly with support type
         W(f"{ml(base_nodes)} {sup_type}")
+        W(f"")   # blank line after supports
 
         # Loads
         W(f"LOAD 1 LOADTYPE Dead TITLE DEAD LOAD")
@@ -1349,6 +1366,292 @@ NOTES:
             "  → Rendering tab → check 'Beam'"))
 
     # ──────────────────────────────────────────────────────────────────────────
+    #  3D PREVIEW WINDOW
+    # ──────────────────────────────────────────────────────────────────────────
+    def show_3d_preview(self):
+        """Interactive 3D wireframe preview with rotation, zoom, supports."""
+        try:
+            p = self._collect_params()
+        except Exception as e:
+            messagebox.showerror("Input Error", str(e)); return
+
+        # ── Build geometry ─────────────────────────────────────────────────
+        nx = p['bays_x']+1;  nz = p['bays_z']+1
+        bw = p['bay_w'];     bd = p['bay_d']
+        h1 = p['h1'];        h2 = p['h2']
+
+        # Node positions  (lv, ix, iz) → (x, y, z)
+        node_map = {}
+        for lv, yy in enumerate([0.0, h1, h1+h2]):
+            for ix in range(nx):
+                for iz in range(nz):
+                    node_map[(lv,ix,iz)] = (ix*bw, yy, iz*bd)
+
+        # Member lists: (n1_key, n2_key, type)
+        members = []
+        for ix in range(nx):
+            for iz in range(nz):
+                for lv in range(2):
+                    members.append(((lv,ix,iz),(lv+1,ix,iz),"col"))
+        for lv in [1,2]:
+            for iz in range(nz):
+                for ix in range(nx-1):
+                    members.append(((lv,ix,iz),(lv,ix+1,iz),"beam"))
+        for lv in [1,2]:
+            for ix in range(nx):
+                for iz in range(nz-1):
+                    members.append(((lv,ix,iz),(lv,ix,iz+1),"sbm"))
+
+        base_keys = [(0,ix,iz) for ix in range(nx) for iz in range(nz)]
+
+        # ── Window ────────────────────────────────────────────────────────
+        win = tk.Toplevel(self.root)
+        win.title("3D Model Preview — NSCP 2015 House")
+        win.geometry("900x680")
+        win.configure(bg=self.C_BG)
+        win.resizable(True, True)
+
+        # Header
+        hf = tk.Frame(win, bg=self.C_SURFACE, height=40)
+        hf.pack(fill="x"); hf.pack_propagate(False)
+        tk.Label(hf, text="  🔷  3D Model Preview",
+                 bg=self.C_SURFACE, fg=self.C_ACCENT,
+                 font=("Segoe UI", 11, "bold")).pack(side="left", padx=10, pady=6)
+        mat_str = p['mat']
+        tk.Label(hf, text=f"  {p['bays_x']}×{p['bays_z']} bays  |  "
+                          f"{p['bays_x']*bw:.0f}×{p['bays_z']*bd:.0f}m  |  "
+                          f"H={h1+h2:.1f}m  |  {mat_str}",
+                 bg=self.C_SURFACE, fg=self.C_FG2,
+                 font=("Segoe UI", 8)).pack(side="left", padx=4)
+        tk.Frame(win, bg=self.C_ACCENT, height=2).pack(fill="x")
+
+        # Canvas
+        canvas = tk.Canvas(win, bg="#060e18", highlightthickness=0)
+        canvas.pack(fill="both", expand=True, padx=0, pady=0)
+
+        # Legend
+        legend_f = tk.Frame(win, bg=self.C_SURFACE, height=32)
+        legend_f.pack(fill="x"); legend_f.pack_propagate(False)
+        legends = [
+            ("█ Columns",       "#4da6e8"),
+            ("█ Primary Beams", "#f0a500"),
+            ("█ Sec Beams",     "#27c98a"),
+            ("▲ Supports",      "#e85d4a"),
+            ("○ Base Level",    "#6a8fad"),
+        ]
+        for txt, clr in legends:
+            tk.Label(legend_f, text=f"  {txt}", bg=self.C_SURFACE,
+                     fg=clr, font=("Segoe UI", 8)).pack(side="left")
+        tk.Label(legend_f,
+                 text="  Drag to rotate  |  Scroll to zoom  |  Middle-drag to pan  ",
+                 bg=self.C_SURFACE, fg=self.C_FG2,
+                 font=("Segoe UI", 7, "italic")).pack(side="right", padx=10)
+
+        # ── 3D projection state ────────────────────────────────────────────
+        state = {
+            "az":  -35.0,   # azimuth  (degrees)
+            "el":   25.0,   # elevation (degrees)
+            "zoom": 1.0,
+            "pan_x": 0.0,
+            "pan_y": 0.0,
+            "drag_x": None,
+            "drag_y": None,
+            "mid_x": None,
+            "mid_y": None,
+        }
+
+        def project(x, y, z, W, H):
+            """Isometric 3D → 2D projection."""
+            az = math.radians(state["az"])
+            el = math.radians(state["el"])
+            # Rotate around Y axis (azimuth)
+            rx =  x * math.cos(az) + z * math.sin(az)
+            ry =  y
+            rz = -x * math.sin(az) + z * math.cos(az)
+            # Rotate around X axis (elevation)
+            px =  rx
+            py =  ry * math.cos(el) - rz * math.sin(el)
+            # Scale
+            scale = min(W, H) * 0.38 * state["zoom"]
+            cx = W/2 + state["pan_x"]
+            cy = H/2 + state["pan_y"]
+            # Normalize by bounding box
+            span = max(p['bays_x']*bw, p['bays_z']*bd, h1+h2) or 1.0
+            sx = cx + px / span * scale
+            sy = cy - py / span * scale   # flip Y
+            return sx, sy
+
+        def draw():
+            canvas.delete("all")
+            W = canvas.winfo_width()  or 880
+            H = canvas.winfo_height() or 580
+            if W < 10 or H < 10: return
+
+            # Grid floor
+            for ix in range(nx):
+                for iz in range(nz-1):
+                    x1,y1,z1 = ix*bw, 0, iz*bd
+                    x2,y2,z2 = ix*bw, 0, (iz+1)*bd
+                    px1,py1 = project(x1,y1,z1,W,H)
+                    px2,py2 = project(x2,y2,z2,W,H)
+                    canvas.create_line(px1,py1,px2,py2, fill="#0d2030", width=1)
+            for iz in range(nz):
+                for ix in range(nx-1):
+                    x1,y1,z1 = ix*bw, 0, iz*bd
+                    x2,y2,z2 = (ix+1)*bw, 0, iz*bd
+                    px1,py1 = project(x1,y1,z1,W,H)
+                    px2,py2 = project(x2,y2,z2,W,H)
+                    canvas.create_line(px1,py1,px2,py2, fill="#0d2030", width=1)
+
+            # Members
+            colors = {"col":"#4da6e8","beam":"#f0a500","sbm":"#27c98a"}
+            widths = {"col":2.5,"beam":2,"sbm":1.5}
+            for (k1,k2,mtype) in members:
+                x1,y1,z1 = node_map[k1]
+                x2,y2,z2 = node_map[k2]
+                px1,py1 = project(x1,y1,z1,W,H)
+                px2,py2 = project(x2,y2,z2,W,H)
+                canvas.create_line(px1,py1,px2,py2,
+                                   fill=colors[mtype],
+                                   width=widths[mtype],
+                                   capstyle="round")
+
+            # Nodes — floor levels
+            for lv in range(3):
+                for ix in range(nx):
+                    for iz in range(nz):
+                        x,y,z = node_map[(lv,ix,iz)]
+                        px,py = project(x,y,z,W,H)
+                        r = 3 if lv > 0 else 4
+                        clr = "#4da6e8" if lv > 0 else "#6a8fad"
+                        canvas.create_oval(px-r,py-r,px+r,py+r,
+                                           fill=clr, outline="", tags="node")
+
+            # Support triangles at base nodes
+            sup_type_p = p.get('support_type','FIXED') if 'support_type' in p else 'FIXED'
+            for key in base_keys:
+                x,y,z = node_map[key]
+                px,py = project(x,y,z,W,H)
+                # Triangle pointing down = support
+                s = 8
+                canvas.create_polygon(
+                    px,      py,
+                    px-s,    py+s*1.6,
+                    px+s,    py+s*1.6,
+                    fill="#e85d4a", outline="#ff8870", width=1.5,
+                    tags="support")
+                # Hatch lines under triangle
+                canvas.create_line(px-s-2, py+s*1.6+3,
+                                   px+s+2, py+s*1.6+3,
+                                   fill="#e85d4a", width=2)
+                canvas.create_line(px-s,   py+s*1.6+7,
+                                   px+s,   py+s*1.6+7,
+                                   fill="#e85d4a", width=1)
+
+            # Axes
+            orig_x, orig_y = project(0,0,0,W,H)
+            def axis(dx,dy,dz,clr,lbl):
+                span = max(p['bays_x']*bw, p['bays_z']*bd,h1+h2) or 1.0
+                sc = span * 0.18
+                ex,ey = project(dx*sc,dy*sc,dz*sc,W,H)
+                canvas.create_line(orig_x,orig_y,ex,ey,
+                                   fill=clr,width=2,arrow=tk.LAST)
+                canvas.create_text(ex+8,ey, text=lbl,
+                                   fill=clr, font=("Consolas",8,"bold"))
+            axis(1,0,0,"#e85d4a","X")
+            axis(0,1,0,"#27c98a","Y")
+            axis(0,0,1,"#4da6e8","Z")
+
+            # Info overlay
+            info_lines = [
+                f"Az: {state['az']:.0f}°  El: {state['el']:.0f}°  Zoom: {state['zoom']:.1f}×",
+                f"Support: {p.get('support_type','FIXED')}",
+                f"Nodes: {nx*nz*3}  Members: {len(members)}",
+            ]
+            for i, txt in enumerate(info_lines):
+                canvas.create_text(10, 10+i*16, anchor="nw", text=txt,
+                                   fill=self.C_FG2, font=("Consolas", 7))
+
+        # ── Mouse interaction ──────────────────────────────────────────────
+        def on_mouse_press(e):
+            state["drag_x"] = e.x; state["drag_y"] = e.y
+
+        def on_mouse_drag(e):
+            if state["drag_x"] is None: return
+            dx = e.x - state["drag_x"]
+            dy = e.y - state["drag_y"]
+            state["az"] += dx * 0.4
+            state["el"] = max(-85, min(85, state["el"] - dy * 0.4))
+            state["drag_x"] = e.x; state["drag_y"] = e.y
+            draw()
+
+        def on_middle_press(e):
+            state["mid_x"] = e.x; state["mid_y"] = e.y
+
+        def on_middle_drag(e):
+            if state["mid_x"] is None: return
+            state["pan_x"] += e.x - state["mid_x"]
+            state["pan_y"] += e.y - state["mid_y"]
+            state["mid_x"] = e.x; state["mid_y"] = e.y
+            draw()
+
+        def on_scroll(e):
+            factor = 1.1 if e.delta > 0 else 0.9
+            state["zoom"] = max(0.2, min(10.0, state["zoom"] * factor))
+            draw()
+
+        def on_scroll_linux(e):
+            if e.num == 4: state["zoom"] = min(10.0, state["zoom"]*1.1)
+            else:          state["zoom"] = max(0.2,  state["zoom"]*0.9)
+            draw()
+
+        canvas.bind("<ButtonPress-1>",   on_mouse_press)
+        canvas.bind("<B1-Motion>",       on_mouse_drag)
+        canvas.bind("<ButtonRelease-1>", lambda e: state.update(drag_x=None))
+        canvas.bind("<ButtonPress-2>",   on_middle_press)
+        canvas.bind("<B2-Motion>",       on_middle_drag)
+        canvas.bind("<ButtonRelease-2>", lambda e: state.update(mid_x=None))
+        canvas.bind("<MouseWheel>",      on_scroll)
+        canvas.bind("<Button-4>",        on_scroll_linux)
+        canvas.bind("<Button-5>",        on_scroll_linux)
+        canvas.bind("<Configure>",       lambda e: draw())
+
+        # View preset buttons
+        vf = tk.Frame(win, bg=self.C_SURFACE2)
+        vf.pack(fill="x")
+        tk.Label(vf, text="  View:", bg=self.C_SURFACE2,
+                 fg=self.C_FG2, font=("Segoe UI",8)).pack(side="left",padx=6,pady=3)
+        presets = [
+            ("Isometric",   -35, 25),
+            ("Front",         0,  0),
+            ("Side",        -90,  0),
+            ("Top",           0, 89),
+            ("SW Iso",       45, 30),
+        ]
+        for name, az, el in presets:
+            def make_cmd(a,e):
+                def cmd():
+                    state["az"]=a; state["el"]=e; draw()
+                return cmd
+            tk.Button(vf, text=name, bg=self.C_SURFACE2, fg=self.C_ACCENT2,
+                      activebackground=self.C_ACCENT2, activeforeground=self.C_BG,
+                      font=("Segoe UI",8), relief="flat", padx=8, pady=2,
+                      bd=0, cursor="hand2",
+                      command=make_cmd(az,el)).pack(side="left", padx=2, pady=3)
+
+        # Reset button
+        def reset_view():
+            state.update(az=-35, el=25, zoom=1.0, pan_x=0, pan_y=0)
+            draw()
+        tk.Button(vf, text="↺ Reset", bg=self.C_SURFACE2, fg=self.C_ACCENT,
+                  activebackground=self.C_ACCENT, activeforeground=self.C_BG,
+                  font=("Segoe UI",8,"bold"), relief="flat", padx=8, pady=2,
+                  bd=0, cursor="hand2",
+                  command=reset_view).pack(side="right", padx=8, pady=3)
+
+        win.after(100, draw)   # draw after window is fully rendered
+
+    # ──────────────────────────────────────────────────────────────────────────
     #  UTILITIES
     # ──────────────────────────────────────────────────────────────────────────
     def log(self, msg, tag="info"):
@@ -1365,7 +1668,7 @@ NOTES:
 
     def _set_btns(self, state):
         for b in [self.btn_preview, self.btn_seismic,
-                  self.btn_build, self.btn_analyze]:
+                  self.btn_build, self.btn_analyze, self.btn_3d]:
             b['state'] = state
         if state == "disabled":
             self.status_var.set("Building …")
