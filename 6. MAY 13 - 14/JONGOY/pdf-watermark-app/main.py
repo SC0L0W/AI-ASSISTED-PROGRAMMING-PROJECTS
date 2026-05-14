@@ -102,9 +102,9 @@ def main():
         print("No project code entered.")
         return
 
-    # Output file
-    base, ext = os.path.splitext(file_path)
-    output_path = base + "_watermarked.pdf"
+    # Save output using the project code as filename
+    directory = os.path.dirname(file_path)
+    output_path = os.path.join(directory, f"{project_code}.pdf")
 
     print("Processing...")
 
