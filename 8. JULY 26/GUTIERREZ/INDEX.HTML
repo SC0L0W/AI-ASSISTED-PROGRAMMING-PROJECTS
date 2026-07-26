@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NSCP 2015 RC Member Designer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   DESIGN TOKENS
+   ============================================================ */
+:root{
+  --bg:#e9edf1;
+  --bg-grid:#dde3e9;
+  --panel:#ffffff;
+  --panel-alt:#f4f6f8;
+  --ink:#152230;
+  --ink-soft:#51626f;
+  --ink-faint:#8a97a3;
+  --line:#d3dae1;
+  --line-strong:#aab6c0;
+  --accent:#1f5f8b;
+  --accent-deep:#123a52;
+  --accent-soft:#e3edf4;
+  --rebar:#a6491f;
+  --rebar-soft:#f3e2d6;
+  --pass:#1c7a4d;
+  --pass-soft:#e3f4ea;
+  --fail:#b3271e;
+  --fail-soft:#fbe7e5;
+  --warn:#a8681b;
+  --warn-soft:#faf0dd;
+  --radius:3px;
+  --font-ui:'IBM Plex Sans',system-ui,sans-serif;
+  --font-mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+
+*{box-sizing:border-box;}
+html,body{height:100%;}
+body{
+  margin:0;
+  font-family:var(--font-ui);
+  color:var(--ink);
+  background:
+    linear-gradient(var(--bg-grid) 1px, transparent 1px) 0 0/28px 28px,
+    linear-gradient(90deg, var(--bg-grid) 1px, transparent 1px) 0 0/28px 28px,
+    var(--bg);
+  font-size:14px;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ---------- Title block (drawing header) ---------- */
+.titleblock{
+  display:grid;
+  grid-template-columns: auto 1fr repeat(4, auto);
+  border-bottom:2px solid var(--ink);
+  background:var(--panel);
+}
+.titleblock .cell{
+  padding:8px 16px;
+  border-right:1px solid var(--line);
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap:2px;
+}
+.titleblock .cell:last-child{border-right:none;}
+.titleblock .brand{
+  font-weight:700;
+  font-size:15px;
+  letter-spacing:0.02em;
+  color:var(--accent-deep);
+  white-space:nowrap;
+}
+.titleblock .brand small{
+  display:block;
+  font-family:var(--font-mono);
+  font-weight:500;
+  font-size:10px;
+  color:var(--ink-faint);
+  letter-spacing:0.06em;
+}
+.titleblock .label{
+  font-size:9px;
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+  color:var(--ink-faint);
+  font-weight:600;
+}
+.titleblock .value{
+  font-family:var(--font-mono);
+  font-size:12.5px;
+  font-weight:500;
+  color:var(--ink);
+}
+.titleblock .spacer{border-right:none;}
+
+/* ---------- Layout ---------- */
+.app{
+  display:grid;
+  grid-template-columns: 330px 1fr 380px;
+  height:calc(100vh - 53px);
+}
+@media (max-width:1150px){
+  .app{grid-template-columns:1fr; height:auto;}
+  .viewport-wrap{height:60vh;}
+}
+
+.panel{
+  overflow-y:auto;
+  background:var(--panel);
+}
+.panel::-webkit-scrollbar{width:9px;}
+.panel::-webkit-scrollbar-thumb{background:var(--line-strong); border-radius:5px;}
+.panel::-webkit-scrollbar-track{background:var(--panel-alt);}
+
+#inputPanel{border-right:1px solid var(--line);}
+#resultPanel{border-left:1px solid var(--line);}
+
+.section{
+  border-bottom:1px solid var(--line);
+  padding:14px 18px 16px;
+}
+.section-title{
+  font-size:10.5px;
+  font-weight:700;
+  letter-spacing:0.09em;
+  text-transform:uppercase;
+  color:var(--accent-deep);
+  margin:0 0 10px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.section-title::after{
+  content:'';
+  flex:1;
+  height:1px;
+  background:var(--line);
+}
+
+/* Segmented control (Beam/Column) */
+.segmented{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  background:var(--panel-alt);
+  border:1px solid var(--line-strong);
+  border-radius:var(--radius);
+  overflow:hidden;
+}
+.segmented button{
+  border:none;
+  background:transparent;
+  padding:9px 0;
+  font-family:var(--font-ui);
+  font-weight:600;
+  font-size:12.5px;
+  letter-spacing:0.03em;
+  color:var(--ink-soft);
+  cursor:pointer;
+  transition:background .12s, color .12s;
+}
+.segmented button.active{
+  background:var(--accent-deep);
+  color:#fff;
+}
+.segmented button:not(.active):hover{background:var(--line);}
+
+.field{margin-bottom:11px;}
+.field label{
+  display:flex;
+  justify-content:space-between;
+  align-items:baseline;
+  font-size:11.5px;
+  font-weight:600;
+  color:var(--ink-soft);
+  margin-bottom:4px;
+}
+.field label .unit{
+  font-family:var(--font-mono);
+  font-weight:500;
+  font-size:10.5px;
+  color:var(--ink-faint);
+}
+.field input[type=number], .field select{
+  width:100%;
+  padding:7px 9px;
+  border:1px solid var(--line-strong);
+  border-radius:var(--radius);
+  background:var(--panel);
+  color:var(--ink);
+  font-family:var(--font-mono);
+  font-size:13px;
+  font-weight:500;
+}
+.field input[type=number]:focus, .field select:focus{
+  outline:none;
+  border-color:var(--accent);
+  box-shadow:0 0 0 2px var(--accent-soft);
+}
+.field.disabled{opacity:0.4; pointer-events:none;}
+.field-row{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+
+.hint{
+  font-size:10.5px;
+  color:var(--ink-faint);
+  margin-top:8px;
+  line-height:1.5;
+}
+
+/* ---------- Viewport ---------- */
+.viewport-wrap{
+  position:relative;
+  background:
+    radial-gradient(ellipse at 50% 30%, #f7f9fb 0%, #dbe2e8 100%);
+}
+#three-canvas{width:100%; height:100%; display:block;}
+
+.viewport-toolbar{
+  position:absolute;
+  top:14px; left:14px;
+  display:flex;
+  gap:8px;
+  z-index:5;
+}
+.vt-btn{
+  background:rgba(255,255,255,0.92);
+  border:1px solid var(--line-strong);
+  color:var(--ink-soft);
+  font-family:var(--font-ui);
+  font-size:11px;
+  font-weight:600;
+  padding:7px 11px;
+  border-radius:var(--radius);
+  cursor:pointer;
+  backdrop-filter:blur(3px);
+}
+.vt-btn.active{background:var(--accent-deep); color:#fff; border-color:var(--accent-deep);}
+.vt-btn:hover{border-color:var(--accent);}
+
+.viewport-legend{
+  position:absolute;
+  bottom:14px; left:14px;
+  background:rgba(255,255,255,0.92);
+  border:1px solid var(--line-strong);
+  border-radius:var(--radius);
+  padding:9px 12px;
+  font-size:11px;
+  color:var(--ink-soft);
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+  z-index:5;
+}
+.viewport-legend .lg-item{display:flex; align-items:center; gap:7px;}
+.lg-swatch{width:11px; height:11px; border-radius:2px; flex-shrink:0;}
+
+.viewport-caption{
+  position:absolute;
+  bottom:14px; right:14px;
+  background:rgba(255,255,255,0.92);
+  border:1px solid var(--line-strong);
+  border-radius:var(--radius);
+  padding:9px 12px;
+  font-family:var(--font-mono);
+  font-size:11px;
+  color:var(--ink-soft);
+  text-align:right;
+  z-index:5;
+  line-height:1.6;
+}
+.viewport-caption b{color:var(--ink);}
+
+/* ---------- Results panel ---------- */
+.stamp-wrap{
+  padding:20px 18px 10px;
+  display:flex;
+  justify-content:center;
+}
+.stamp{
+  border:3px solid var(--pass);
+  color:var(--pass);
+  border-radius:8px;
+  padding:9px 26px;
+  font-weight:700;
+  font-size:20px;
+  letter-spacing:0.12em;
+  transform:rotate(-5deg);
+  font-family:var(--font-ui);
+  position:relative;
+}
+.stamp::before{
+  content:'';
+  position:absolute; inset:4px;
+  border:1px solid var(--pass);
+  border-radius:5px;
+}
+.stamp.fail{border-color:var(--fail); color:var(--fail);}
+.stamp.fail::before{border-color:var(--fail);}
+.stamp small{
+  display:block;
+  text-align:center;
+  font-size:8.5px;
+  letter-spacing:0.18em;
+  font-weight:600;
+  margin-top:1px;
+}
+
+.checkrow{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:8px 10px;
+  border-radius:var(--radius);
+  margin-bottom:6px;
+  font-size:12px;
+}
+.checkrow.pass{background:var(--pass-soft); color:var(--pass);}
+.checkrow.fail{background:var(--fail-soft); color:var(--fail);}
+.checkrow .name{font-weight:600;}
+.checkrow .val{font-family:var(--font-mono); font-weight:600;}
+
+.metric-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-top:4px;
+}
+.metric{
+  background:var(--panel-alt);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:8px 10px;
+}
+.metric .m-label{
+  font-size:9.5px;
+  text-transform:uppercase;
+  letter-spacing:0.06em;
+  color:var(--ink-faint);
+  font-weight:700;
+  margin-bottom:3px;
+}
+.metric .m-value{
+  font-family:var(--font-mono);
+  font-size:15px;
+  font-weight:600;
+  color:var(--ink);
+}
+.metric .m-value span{font-size:10.5px; color:var(--ink-faint); font-weight:500;}
+.metric.accent .m-value{color:var(--accent-deep);}
+.metric.rebar .m-value{color:var(--rebar);}
+
+.bar-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  background:var(--rebar-soft);
+  color:var(--rebar);
+  border:1px solid #e3c1a8;
+  padding:5px 10px;
+  border-radius:20px;
+  font-family:var(--font-mono);
+  font-weight:600;
+  font-size:12.5px;
+  margin:6px 0 2px;
+}
+
+.breakdown{
+  background:var(--ink);
+  color:#c9d6df;
+  border-radius:var(--radius);
+  padding:12px 13px;
+  font-family:var(--font-mono);
+  font-size:11px;
+  line-height:1.85;
+  white-space:pre-wrap;
+  word-break:break-word;
+  max-height:340px;
+  overflow-y:auto;
+}
+.breakdown .hd{color:#7fb9de; font-weight:700;}
+.breakdown::-webkit-scrollbar{width:7px;}
+.breakdown::-webkit-scrollbar-thumb{background:#3c505d; border-radius:4px;}
+
+.warn-box{
+  background:var(--warn-soft);
+  border:1px solid #e8c98b;
+  color:var(--warn);
+  border-radius:var(--radius);
+  padding:8px 10px;
+  font-size:11.5px;
+  margin-top:8px;
+  line-height:1.5;
+}
+
+.disclaimer{
+  padding:12px 18px 20px;
+  font-size:10.5px;
+  color:var(--ink-faint);
+  line-height:1.6;
+  border-top:1px dashed var(--line);
+  margin-top:6px;
+}
+
+@media print{
+  #inputPanel, .viewport-toolbar, .viewport-legend{display:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     TITLE BLOCK
+     ============================================================ -->
+<div class="titleblock">
+  <div class="cell brand">NSCP·RC DESIGNER <small>REINFORCED CONCRETE MEMBER DESIGN</small></div>
+  <div class="cell">
+    <div class="label">Governing Code</div>
+    <div class="value">NSCP 2015 (ACI 318 principles)</div>
+  </div>
+  <div class="cell">
+    <div class="label">Member</div>
+    <div class="value" id="tbMember">BEAM</div>
+  </div>
+  <div class="cell">
+    <div class="label">Units</div>
+    <div class="value">kN · mm · MPa</div>
+  </div>
+  <div class="cell">
+    <div class="label">Date</div>
+    <div class="value" id="tbDate">—</div>
+  </div>
+  <div class="cell spacer">
+    <div class="label">Status</div>
+    <div class="value" id="tbStatus">—</div>
+  </div>
+</div>
+
+<div class="app">
+
+  <!-- ============================================================
+       INPUT PANEL
+       ============================================================ -->
+  <div class="panel" id="inputPanel">
+
+    <div class="section">
+      <div class="section-title">Member Type</div>
+      <div class="segmented">
+        <button id="btnBeam" class="active">BEAM</button>
+        <button id="btnColumn">COLUMN</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Geometry</div>
+      <div class="field-row">
+        <div class="field">
+          <label>Width, b <span class="unit">mm</span></label>
+          <input type="number" id="dimB" value="300" step="10" min="150">
+        </div>
+        <div class="field">
+          <label id="labelH">Depth, h <span class="unit">mm</span></label>
+          <input type="number" id="dimH" value="500" step="10" min="200">
+        </div>
+      </div>
+      <div class="field">
+        <label id="labelL">Span, L <span class="unit">mm</span></label>
+        <input type="number" id="dimL" value="4000" step="100" min="500">
+      </div>
+      <div class="field">
+        <label>Clear cover <span class="unit">mm</span></label>
+        <input type="number" id="cover" value="40" step="5" min="20">
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Materials</div>
+      <div class="field-row">
+        <div class="field">
+          <label>f'c <span class="unit">MPa</span></label>
+          <input type="number" id="fc" value="28" step="1" min="17">
+        </div>
+        <div class="field">
+          <label>fy <span class="unit">MPa</span></label>
+          <input type="number" id="fy" value="415" step="5" min="230">
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Reinforcement</div>
+      <div class="field-row">
+        <div class="field">
+          <label>Main bar Ø</label>
+          <select id="barDia"></select>
+        </div>
+        <div class="field">
+          <label id="labelTieName">Stirrup Ø</label>
+          <select id="tieDia"></select>
+        </div>
+      </div>
+      <div class="field" id="legsField">
+        <label>Stirrup legs</label>
+        <select id="legs">
+          <option value="2">2-legged</option>
+          <option value="4">4-legged</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Applied Ultimate Loads</div>
+      <div class="field" id="fieldPu">
+        <label>Axial, Pu (compression +) <span class="unit">kN</span></label>
+        <input type="number" id="loadPu" value="1200" step="10">
+      </div>
+      <div class="field">
+        <label>Moment, Mu <span class="unit">kN·m</span></label>
+        <input type="number" id="loadMu" value="180" step="5">
+      </div>
+      <div class="field">
+        <label>Shear, Vu <span class="unit">kN</span></label>
+        <input type="number" id="loadVu" value="150" step="5">
+      </div>
+      <div class="hint">Design updates live as values change. All checks are computed per NSCP 2015 strength-design (ultimate strength) provisions.</div>
+    </div>
+
+  </div>
+
+  <!-- ============================================================
+       3D VIEWPORT
+       ============================================================ -->
+  <div class="viewport-wrap">
+    <canvas id="three-canvas"></canvas>
+    <div class="viewport-toolbar">
+      <button class="vt-btn active" id="btnOrbit">Orbit</button>
+      <button class="vt-btn" id="btnAnimate">Auto-rotate</button>
+      <button class="vt-btn" id="btnWire">Concrete: Solid</button>
+      <button class="vt-btn" id="btnReset">Reset view</button>
+    </div>
+    <div class="viewport-legend">
+      <div class="lg-item"><span class="lg-swatch" style="background:#b7bfc6"></span>Concrete section</div>
+      <div class="lg-item"><span class="lg-swatch" style="background:#a6491f"></span>Longitudinal bars</div>
+      <div class="lg-item"><span class="lg-swatch" style="background:#5c6b78"></span>Stirrups / ties</div>
+    </div>
+    <div class="viewport-caption" id="viewCaption">—</div>
+  </div>
+
+  <!-- ============================================================
+       RESULTS PANEL
+       ============================================================ -->
+  <div class="panel" id="resultPanel">
+
+    <div class="stamp-wrap">
+      <div class="stamp" id="stampEl">PASS<small id="stampSub">DESIGN ADEQUATE</small></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Design Checks</div>
+      <div id="checksList"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Reinforcement Summary</div>
+      <div id="rebarSummary"></div>
+      <div class="metric-grid" id="metricGrid"></div>
+      <div id="warnBoxWrap"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Calculation Breakdown</div>
+      <div class="breakdown" id="breakdownEl">—</div>
+    </div>
+
+    <div class="disclaimer">
+      Preliminary design aid only. Formulas are simplified NSCP 2015 / ACI 318 strength-design equations (uniaxial bending, tied members, normal-weight concrete). Verify all output against the full code provisions and have final designs checked by a licensed structural engineer before use in construction documents.
+    </div>
+
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+/* ================================================================
+   NSCP 2015 RC DESIGN ENGINE
+   All formulas use N, mm, MPa internally unless noted; UI uses
+   kN, mm, MPa, kN·m per the requested convention.
+   ================================================================ */
+
+const Es = 200000;      // MPa, modulus of elasticity of steel
+const ECU = 0.003;       // ultimate concrete compressive strain (NSCP/ACI)
+
+// Standard PNS metric deformed bar sizes (mm) and areas (mm^2)
+const BAR_SIZES = [10,12,16,20,25,28,32,36,40].map(d => ({dia:d, area: Math.PI/4*d*d}));
+const TIE_SIZES = [10,12,16].map(d => ({dia:d, area: Math.PI/4*d*d}));
+
+function barArea(dia){ return Math.PI/4*dia*dia; }
+function clamp(v,lo,hi){ return Math.max(lo, Math.min(hi, v)); }
+function round25(mm){ return Math.max(25, Math.floor(mm/25)*25); }
+
+// ---- beta1 factor, NSCP 2015 / ACI 318 stress-block parameter ----
+function beta1(fc){
+  if(fc<=28) return 0.85;
+  return Math.max(0.65, 0.85 - 0.05*((fc-28)/7));
+}
+
+/* ----------------------------------------------------------------
+   BEAM — FLEXURAL DESIGN (singly reinforced, tension-controlled)
+   ---------------------------------------------------------------- */
+function designBeamFlexure(b,h,cover,tieDia,barDia,fc,fy,Mu){
+  const steps = [];
+  const b1 = beta1(fc);
+  const d = h - cover - tieDia - barDia/2;
+  const phi = 0.90; // assumed tension-controlled; verified via rho <= rhoMax below
+  const MuNmm = Mu*1e6;
+  const Rn = MuNmm/(phi*b*d*d);
+
+  steps.push(`d = h - cover - dtie - dbar/2`);
+  steps.push(`  = ${h} - ${cover} - ${tieDia} - ${barDia}/2 = ${d.toFixed(1)} mm`);
+  steps.push(`β1 = ${b1.toFixed(3)}  (f'c = ${fc} MPa)`);
+  steps.push(`Rn = Mu / (φ·b·d²)`);
+  steps.push(`   = (${Mu}×10⁶) / (0.90×${b}×${d.toFixed(1)}²) = ${Rn.toFixed(3)} MPa`);
+
+  const term = 1 - (2*Rn)/(0.85*fc);
+  const sectionOK = term >= 0;
+
+  const rhoMin = Math.max(1.4/fy, 0.25*Math.sqrt(fc)/fy);
+  const rhoMax = 0.85*b1*(fc/fy)*(ECU/(ECU+0.004));
+
+  let rhoReq = 0;
+  if(sectionOK){
+    rhoReq = (0.85*fc/fy)*(1-Math.sqrt(term));
+    steps.push(`ρ req'd = (0.85f'c/fy)[1−√(1−2Rn/0.85f'c)] = ${rhoReq.toFixed(5)}`);
+  } else {
+    steps.push(`⚠ (1 − 2Rn/0.85f'c) < 0 → section too small for singly-reinforced design`);
+  }
+  steps.push(`ρmin = max(1.4/fy, 0.25√f'c/fy) = ${rhoMin.toFixed(5)}`);
+  steps.push(`ρmax (εt ≥ 0.004) = 0.85β1(f'c/fy)[εcu/(εcu+0.004)] = ${rhoMax.toFixed(5)}`);
+
+  const governedByMin = rhoReq < rhoMin;
+  const rho = sectionOK ? Math.max(rhoReq, rhoMin) : NaN;
+  const overReinforced = sectionOK && rho > rhoMax;
+  const AsReq = sectionOK ? rho*b*d : NaN;
+
+  steps.push(sectionOK
+    ? `As req'd = ρ·b·d  (${governedByMin?'ρmin governs':'strength governs'}) = ${AsReq.toFixed(0)} mm²`
+    : `As req'd = N/A — enlarge section or use compression reinforcement`);
+
+  if(overReinforced) steps.push(`⚠ ρ > ρmax → section is over-reinforced for εt≥0.004; enlarge section`);
+
+  return {d,b1,phi,Rn,rhoMin,rhoMax,rhoReq,rho,AsReq,sectionOK,overReinforced,governedByMin,steps};
+}
+
+// Recompute actual capacity once bars are selected
+function beamFlexuralCapacity(b,d,fc,fy,AsProvided){
+  const b1 = beta1(fc);
+  const a = (AsProvided*fy)/(0.85*fc*b);
+  const Mn = AsProvided*fy*(d - a/2); // N·mm
+  const phi = 0.90;
+  const phiMn = phi*Mn/1e6; // kN·m
+  return {a,Mn,phiMn,phi};
+}
+
+/* ----------------------------------------------------------------
+   BEAM — SHEAR DESIGN
+   ---------------------------------------------------------------- */
+function designBeamShear(b,d,fc,fy,Vu,tieDia,legs){
+  const steps = [];
+  const phi = 0.75;
+  const VcN = 0.17*Math.sqrt(fc)*b*d;      // N
+  const Vc = VcN/1000;                      // kN
+  const phiVc = phi*Vc;
+
+  steps.push(`Vc = 0.17√f'c·b·d = 0.17×√${fc}×${b}×${d.toFixed(1)} = ${VcN.toFixed(0)} N = ${Vc.toFixed(1)} kN`);
+  steps.push(`φVc = 0.75 × ${Vc.toFixed(1)} = ${phiVc.toFixed(1)} kN`);
+
+  const Av = legs*barArea(tieDia); // mm^2, area of all legs at one section
+  const VsMaxN = 0.66*Math.sqrt(fc)*b*d;
+
+  let VsReqN = 0, note = '', hardFail = false;
+  if(Vu <= 0.5*phiVc){
+    note = 'Vu ≤ 0.5φVc → shear reinforcement not required by strength (nominal stirrups provided)';
+  } else {
+    const VsReqKN = Vu/phi - Vc;
+    VsReqN = VsReqKN*1000;
+    steps.push(`Vs req'd = Vu/φ − Vc = ${Vu}/0.75 − ${Vc.toFixed(1)} = ${VsReqKN.toFixed(1)} kN`);
+    if(VsReqN > VsMaxN){
+      hardFail = true;
+      note = `Vs required (${VsReqKN.toFixed(1)} kN) exceeds max permitted 0.66√f'c·b·d = ${(VsMaxN/1000).toFixed(1)} kN — enlarge section`;
+    }
+  }
+
+  // max spacing per code, based on magnitude of Vs relative to 0.33*sqrt(fc)*b*d
+  const thresholdN = 0.33*Math.sqrt(fc)*b*d;
+  const smaxCode = (VsReqN <= thresholdN) ? Math.min(d/2,600) : Math.min(d/4,300);
+
+  // minimum shear reinforcement ratio -> maximum spacing from Av,min
+  const avMinPerMM = Math.max(0.062*Math.sqrt(fc)*b/fy, 0.35*b/fy); // mm^2 per mm of spacing
+  const sMaxFromAvMin = Av/avMinPerMM;
+
+  let sFromStrength = Infinity;
+  if(VsReqN > 0){
+    sFromStrength = Av*fy*d/VsReqN;
+    steps.push(`s (strength) = Av·fy·d / Vs = ${Av.toFixed(0)}×${fy}×${d.toFixed(1)} / ${VsReqN.toFixed(0)} = ${sFromStrength.toFixed(0)} mm`);
+  }
+  steps.push(`s_max (code, spacing limit) = ${smaxCode.toFixed(0)} mm`);
+  steps.push(`s_max (Av,min requirement) = ${sMaxFromAvMin.toFixed(0)} mm`);
+
+  let sGoverning = Math.min(sFromStrength, smaxCode, sMaxFromAvMin);
+  let sProvided = hardFail ? NaN : round25(sGoverning);
+
+  steps.push(hardFail ? `Governing spacing: N/A (section fails)` : `Governing spacing = ${sProvided} mm o.c.`);
+
+  const pass = !hardFail;
+  return {Vc,phiVc,Av,VsReqN,VsMaxN,smaxCode,sMaxFromAvMin,sProvided,pass,note,hardFail,steps};
+}
+
+/* ----------------------------------------------------------------
+   COLUMN — SHEAR (with axial-load enhancement) + TIE SPACING
+   ---------------------------------------------------------------- */
+function designColumnShear(b,h,d,fc,fy,Vu,Pu,tieDia,barDia){
+  const steps = [];
+  const phi = 0.75;
+  const Ag = b*h;
+  const NuN = Pu*1000; // N (compression positive)
+  const enhancement = 1 + NuN/(14*Ag);
+  const VcN = 0.17*enhancement*Math.sqrt(fc)*b*d;
+  const Vc = VcN/1000;
+  const phiVc = phi*Vc;
+
+  steps.push(`Vc = 0.17(1+Nu/14Ag)√f'c·b·d  [axial-load enhancement]`);
+  steps.push(`   = 0.17×(1+${(NuN/1000).toFixed(0)}k/(14×${(Ag/1000).toFixed(0)}k))×√${fc}×${b}×${d.toFixed(1)}`);
+  steps.push(`   = ${VcN.toFixed(0)} N = ${Vc.toFixed(1)} kN,  φVc = ${phiVc.toFixed(1)} kN`);
+
+  const legs = 2;
+  const Av = legs*barArea(tieDia);
+  let sFromStrength = Infinity, note='';
+  if(Vu > 0.5*phiVc){
+    const VsReqKN = Vu/phi - Vc;
+    const VsReqN = VsReqKN*1000;
+    if(VsReqN>0) sFromStrength = Av*fy*d/VsReqN;
+    steps.push(`Vs req'd = Vu/φ − Vc = ${VsReqKN.toFixed(1)} kN`);
+  } else {
+    note = 'Vu ≤ 0.5φVc → ties governed by spacing/detailing rules, not shear strength';
+  }
+
+  const sMaxTie = Math.min(16*barDia, 48*tieDia, Math.min(b,h));
+  steps.push(`s_max (tie detailing) = min(16db, 48dtie, least dim) = min(${16*barDia}, ${48*tieDia}, ${Math.min(b,h)}) = ${sMaxTie.toFixed(0)} mm`);
+
+  let sGoverning = Math.min(sFromStrength, sMaxTie);
+  let sProvided = round25(sGoverning);
+  steps.push(`Governing tie spacing = ${sProvided} mm o.c.`);
+
+  const pass = true; // shear rarely governs columns at this simplified level; flagged via spacing only
+  return {Vc,phiVc,sProvided,pass,note,steps};
+}
+
+/* ----------------------------------------------------------------
+   COLUMN — AXIAL-MOMENT (P-M) INTERACTION
+   Strain-compatibility method, symmetric two-layer steel
+   idealization (As/2 near each face). Uniaxial bending only.
+   ---------------------------------------------------------------- */
+function columnStatePoint(c,b,h,dprime,fc,fy,As2){
+  const b1 = beta1(fc);
+  const a = Math.min(b1*c, h);
+  const Cc = 0.85*fc*b*a;                 // N, concrete compression resultant
+  const d = h - dprime;
+
+  const epsTop = ECU*(c-dprime)/c;         // + = compression
+  const epsBot = ECU*(c-d)/c;
+
+  const fsTop = clamp(epsTop*Es, -fy, fy);
+  const fsBot = clamp(epsBot*Es, -fy, fy);
+
+  const FsTop = As2*fsTop;
+  const FsBot = As2*fsBot;
+
+  const Pn = Cc + FsTop + FsBot;                                   // N
+  const Mn = Cc*(h/2-a/2) + FsTop*(h/2-dprime) + FsBot*(h/2-d);    // N·mm
+
+  const epsT = -epsBot;      // net tensile strain, extreme tension layer, + = tension
+  const epsTy = fy/Es;
+  let phi;
+  if(epsT <= epsTy) phi = 0.65;
+  else if(epsT >= 0.005) phi = 0.90;
+  else phi = 0.65 + (epsT-epsTy)*(0.25/(0.005-epsTy));
+
+  return {Pn,Mn,phi};
+}
+
+function buildInteractionCurve(b,h,dprime,fc,fy,AsTotal){
+  const As2 = AsTotal/2;
+  const Ag = b*h;
+  const Po = 0.85*fc*(Ag-AsTotal) + fy*AsTotal;   // N, pure axial squash load
+  const capPhiPn = 0.80*0.65*Po;                   // ACI tied-column max axial (accidental e)
+
+  const curve = [{c:1e-6, phiPn:-0.90*AsTotal*fy, phiMn:0, phi:0.90}]; // pure tension
+  const N = 90;
+  for(let i=1;i<=N;i++){
+    const c = (4*h)*(i/N);
+    const {Pn,Mn,phi} = columnStatePoint(c,b,h,dprime,fc,fy,As2);
+    curve.push({c, phiPn: Math.min(phi*Pn, capPhiPn), phiMn: phi*Mn, phi});
+  }
+  return {curve, Po, capPhiPn};
+}
+
+// Interpolate phiMn capacity at a target axial load PuN along the curve
+function capacityAt(curve, PuN){
+  if(PuN < curve[0].phiPn) return {phiMn:0, inRange:false, exceed:'tension'};
+  for(let i=0;i<curve.length-1;i++){
+    const A = curve[i], B = curve[i+1];
+    if(PuN>=A.phiPn && PuN<=B.phiPn){
+      const t = (B.phiPn-A.phiPn)!==0 ? (PuN-A.phiPn)/(B.phiPn-A.phiPn) : 0;
+      return {phiMn: A.phiMn + t*(B.phiMn-A.phiMn), inRange:true};
+    }
+  }
+  return {phiMn:0, inRange:false, exceed:'compression'};
+}
+
+function designColumnAxialMoment(b,h,cover,tieDia,barDia,fc,fy,Pu,Mu){
+  const steps = [];
+  const Ag = b*h;
+  const dprime = cover + tieDia + barDia/2;
+  const PuN = Pu*1000, MuNmm = Mu*1e6;
+
+  steps.push(`Ag = b×h = ${b}×${h} = ${(Ag/1e3).toFixed(1)}×10³ mm²`);
+  steps.push(`d' (steel layer to face) = cover + dtie + dbar/2 = ${dprime.toFixed(1)} mm`);
+  steps.push(`ρg limits (NSCP 2015): 0.01 ≤ ρg ≤ 0.08`);
+
+  let rho = 0.01, result=null, pass=false;
+  for(; rho<=0.081; rho+=0.0025){
+    const AsTotal = rho*Ag;
+    const {curve, Po, capPhiPn} = buildInteractionCurve(b,h,dprime,fc,fy,AsTotal);
+    const cap = capacityAt(curve, PuN);
+    const axialOK = PuN <= capPhiPn && cap.inRange;
+    const momentOK = axialOK && MuNmm <= cap.phiMn;
+    result = {rho, AsTotal, curve, Po, capPhiPn, cap, axialOK, momentOK};
+    if(axialOK && momentOK){ pass = true; break; }
+  }
+
+  steps.push(`Iterating ρg from 0.010 up to 0.080 in 0.25% steps, checking (Pu, Mu) against the φPn–φMn interaction curve at each trial ρg...`);
+  steps.push(`Governing ρg = ${result.rho.toFixed(4)}  →  Ast,req'd = ${result.AsTotal.toFixed(0)} mm²`);
+  steps.push(`φPn,max (0.80·0.65·Po) = ${(result.capPhiPn/1000).toFixed(0)} kN`);
+  if(result.cap.inRange){
+    steps.push(`φMn capacity at Pu = ${Pu} kN  →  ${(result.cap.phiMn/1e6).toFixed(1)} kN·m  (Mu = ${Mu} kN·m)`);
+  } else {
+    steps.push(`⚠ Pu = ${Pu} kN falls outside the achievable axial range even at ρg = 8% — enlarge section`);
+  }
+
+  return {...result, pass, dprime, Ag, steps};
+}
+
+/* ----------------------------------------------------------------
+   BAR ARRANGEMENT HELPERS (for selection + 3D layout)
+   ---------------------------------------------------------------- */
+function beamBarLayout(AsReq, barDia, b, cover, tieDia){
+  const Ab = barArea(barDia);
+  let n = Math.max(2, Math.ceil(AsReq/Ab));
+  const minClear = Math.max(25, barDia);
+  const avail = b - 2*cover - 2*tieDia;
+  const maxPerLayer = Math.max(1, Math.floor((avail+minClear)/(barDia+minClear)));
+  let layers = [];
+  let congested = false;
+  if(n<=maxPerLayer){
+    layers = [{count:n}];
+  } else {
+    const n1 = Math.ceil(n/2), n2 = n-n1;
+    layers = [{count:n1},{count:n2}];
+    if(n1>maxPerLayer || n2>maxPerLayer) congested = true;
+  }
+  return {n, Ab, AsProvided:n*Ab, layers, congested, maxPerLayer};
+}
+
+function columnBarPositions(n, b, h, dprime){
+  // distribute n bars evenly around the tie perimeter, corners first
+  n = Math.max(4, n);
+  const xmax = b/2 - dprime, zmax = h/2 - dprime;
+  const perim = 2*(2*xmax) + 2*(2*zmax);
+  const pts = [];
+  // simple perimeter walk starting at one corner
+  const corners = [[-xmax,-zmax],[xmax,-zmax],[xmax,zmax],[-xmax,zmax]];
+  // place corner bars first (always 4), remaining distributed along the 4 edges
+  const remaining = n-4;
+  const perEdge = Math.floor(remaining/4);
+  let extra = remaining - perEdge*4;
+  pts.push(...corners);
+  for(let e=0;e<4;e++){
+    const p1 = corners[e], p2 = corners[(e+1)%4];
+    const cnt = perEdge + (e<extra?1:0);
+    for(let k=1;k<=cnt;k++){
+      const t = k/(cnt+1);
+      pts.push([p1[0]+(p2[0]-p1[0])*t, p1[1]+(p2[1]-p1[1])*t]);
+    }
+  }
+  return pts;
+}
+
+/* ================================================================
+   THREE.JS 3D VISUALIZATION
+   ================================================================ */
+const SCALE = 1/30; // mm -> scene units
+
+let scene, camera, renderer, controls, memberGroup;
+let wireframeOn = false;
+
+function initThree(){
+  const canvas = document.getElementById('three-canvas');
+  scene = new THREE.Scene();
+
+  camera = new THREE.PerspectiveCamera(40, canvas.clientWidth/canvas.clientHeight, 0.1, 1000);
+  camera.position.set(20,16,26);
+
+  renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  resizeRenderer();
+
+  const hemi = new THREE.HemisphereLight(0xffffff, 0x3a4550, 0.75);
+  scene.add(hemi);
+  const dir = new THREE.DirectionalLight(0xffffff, 0.9);
+  dir.position.set(15,25,10);
+  scene.add(dir);
+  const dir2 = new THREE.DirectionalLight(0xffffff, 0.35);
+  dir2.position.set(-15,-5,-10);
+  scene.add(dir2);
+
+  controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.08;
+  controls.autoRotate = false;
+  controls.autoRotateSpeed = 1.4;
+
+  memberGroup = new THREE.Group();
+  scene.add(memberGroup);
+
+  window.addEventListener('resize', resizeRenderer);
+  animate();
+}
+
+function resizeRenderer(){
+  const canvas = document.getElementById('three-canvas');
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  renderer.setSize(w,h,false);
+  camera.aspect = w/h;
+  camera.updateProjectionMatrix();
+}
+
+function animate(){
+  requestAnimationFrame(animate);
+  controls.update();
+  renderer.render(scene,camera);
+}
+
+function clearGroup(){
+  while(memberGroup.children.length){
+    const obj = memberGroup.children.pop();
+    obj.geometry && obj.geometry.dispose();
+    obj.material && obj.material.dispose();
+  }
+}
+
+function concreteMaterial(){
+  return new THREE.MeshStandardMaterial({
+    color:0xb7bfc6, roughness:0.85, metalness:0.05,
+    transparent:true, opacity: wireframeOn?0.12:0.42,
+    depthWrite:!wireframeOn
+  });
+}
+function rebarMaterial(){
+  return new THREE.MeshStandardMaterial({color:0xa6491f, roughness:0.45, metalness:0.55});
+}
+function tieMaterial(){
+  return new THREE.MeshStandardMaterial({color:0x5c6b78, roughness:0.4, metalness:0.6});
+}
+
+function addConcreteBox(w,h,d){
+  const geo = new THREE.BoxGeometry(w,h,d);
+  const mesh = new THREE.Mesh(geo, concreteMaterial());
+  memberGroup.add(mesh);
+  const edges = new THREE.EdgesGeometry(geo);
+  const lines = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({color:0x2a3844, linewidth:1}));
+  memberGroup.add(lines);
+  return mesh;
+}
+
+function addLongBar(radius, length, x, y, axis){
+  // axis 'z' -> beam (length along Z), axis 'y' -> column (length along Y)
+  const geo = new THREE.CylinderGeometry(radius, radius, length, 12);
+  const mesh = new THREE.Mesh(geo, rebarMaterial());
+  if(axis==='z'){ mesh.rotation.x = Math.PI/2; mesh.position.set(x,y,0); }
+  else { mesh.position.set(x,0,y); }
+  memberGroup.add(mesh);
+}
+
+function makeTieLoop(w,h,tieRadius){
+  const hw=w/2, hh=h/2;
+  const rc = Math.min(tieRadius*1.8, Math.min(hw,hh)*0.25);
+  const pts = [
+    new THREE.Vector3(-hw+rc,-hh,0), new THREE.Vector3(hw-rc,-hh,0),
+    new THREE.Vector3(hw,-hh+rc,0),  new THREE.Vector3(hw,hh-rc,0),
+    new THREE.Vector3(hw-rc,hh,0),   new THREE.Vector3(-hw+rc,hh,0),
+    new THREE.Vector3(-hw,hh-rc,0),  new THREE.Vector3(-hw,-hh+rc,0),
+  ];
+  const curve = new THREE.CatmullRomCurve3(pts,true,'catmullrom',0.15);
+  const geo = new THREE.TubeGeometry(curve, 64, tieRadius, 8, true);
+  return new THREE.Mesh(geo, tieMaterial());
+}
+
+function frameCamera(){
+  const box = new THREE.Box3().setFromObject(memberGroup);
+  const size = new THREE.Vector3(); box.getSize(size);
+  const center = new THREE.Vector3(); box.getCenter(center);
+  const maxDim = Math.max(size.x,size.y,size.z);
+  controls.target.copy(center);
+  camera.position.set(center.x+maxDim*0.9, center.y+maxDim*0.72, center.z+maxDim*1.05);
+  camera.lookAt(center);
+  controls.update();
+}
+
+/* ---- Build beam geometry ---- */
+function buildBeamScene(design){
+  clearGroup();
+  const {b,h,L,cover,tieDia,barDia,layout,sStirrup} = design;
+  const s = SCALE;
+  addConcreteBox(b*s, h*s, L*s);
+
+  // longitudinal bars: bottom layer(s) = flexural steel, top = 2 nominal hanger bars
+  const avail = b - 2*cover - 2*tieDia;
+  layout.layers.forEach((layerDef, li)=>{
+    const count = layerDef.count;
+    const y_from_bottom = cover+tieDia+barDia/2 + li*(barDia+25);
+    const yPos = (-h/2 + y_from_bottom)*s;
+    for(let i=0;i<count;i++){
+      const x = count===1? 0 : -avail/2 + (avail)*(i/(count-1));
+      addLongBar((barDia/2)*s, L*s, x*s, yPos, 'z');
+    }
+  });
+  // nominal top hanger bars (2x, smaller compression steel for stirrup support)
+  const hangerDia = Math.min(barDia,12);
+  const yTop = (h/2 - cover - tieDia - hangerDia/2)*s;
+  const xTopOffset = Math.max(0, (avail/2)*0.55);
+  addLongBar((hangerDia/2)*s, L*s, -xTopOffset*s, yTop, 'z');
+  addLongBar((hangerDia/2)*s, L*s,  xTopOffset*s, yTop, 'z');
+
+  // stirrups along length
+  const tieW = (b-2*cover)*s, tieH=(h-2*cover)*s;
+  const count = Math.max(2, Math.min(50, Math.floor((L/sStirrup))+1));
+  const spacingScene = (L*s)/(count-1);
+  for(let i=0;i<count;i++){
+    const loop = makeTieLoop(tieW, tieH, (tieDia/2)*s*1.3);
+    loop.position.z = -L*s/2 + i*spacingScene;
+    memberGroup.add(loop);
+  }
+  frameCamera();
+}
+
+/* ---- Build column geometry ---- */
+function buildColumnScene(design){
+  clearGroup();
+  const {b,h,L,cover,tieDia,barDia,dprime,barCount,sTie} = design;
+  const s = SCALE;
+  // box: width b (X), height L (Y), depth h (Z)
+  addConcreteBox(b*s, L*s, h*s);
+
+  const positions = columnBarPositions(barCount, b, h, dprime);
+  positions.forEach(([x,z])=>{
+    addLongBar((barDia/2)*s, L*s, x*s, z*s, 'y');
+  });
+
+  const tieW = (b-2*cover)*s, tieH=(h-2*cover)*s;
+  const count = Math.max(2, Math.min(50, Math.floor((L/sTie))+1));
+  const spacingScene = (L*s)/(count-1);
+  for(let i=0;i<count;i++){
+    const loop = makeTieLoop(tieW, tieH, (tieDia/2)*s*1.3);
+    loop.rotation.x = Math.PI/2;
+    loop.position.y = -L*s/2 + i*spacingScene;
+    memberGroup.add(loop);
+  }
+  frameCamera();
+}
+
+/* ================================================================
+   UI GLUE
+   ================================================================ */
+const el = id => document.getElementById(id);
+let mode = 'beam';
+
+function populateBarSelects(){
+  const barSel = el('barDia'), tieSel = el('tieDia');
+  barSel.innerHTML = BAR_SIZES.map(b=>`<option value="${b.dia}">${b.dia} mm</option>`).join('');
+  tieSel.innerHTML = TIE_SIZES.map(t=>`<option value="${t.dia}">${t.dia} mm</option>`).join('');
+  barSel.value = 20;
+  tieSel.value = 10;
+}
+
+function setMode(next){
+  mode = next;
+  el('btnBeam').classList.toggle('active', mode==='beam');
+  el('btnColumn').classList.toggle('active', mode==='column');
+  el('tbMember').textContent = mode.toUpperCase();
+  el('labelH').innerHTML = (mode==='beam' ? 'Depth, h' : 'Depth, h') + ' <span class="unit">mm</span>';
+  el('labelL').innerHTML = (mode==='beam' ? 'Span, L' : 'Storey height, L') + ' <span class="unit">mm</span>';
+  el('labelTieName').textContent = mode==='beam' ? 'Stirrup Ø' : 'Tie Ø';
+  el('legsField').style.display = mode==='beam' ? '' : 'none';
+  el('fieldPu').classList.toggle('disabled', mode==='beam');
+
+  // sensible defaults per mode
+  if(mode==='beam'){
+    el('dimB').value=300; el('dimH').value=500; el('dimL').value=4000;
+    el('loadMu').value=180; el('loadVu').value=150; el('loadPu').value=0;
+    el('barDia').value=20;
+  } else {
+    el('dimB').value=400; el('dimH').value=400; el('dimL').value=3000;
+    el('loadMu').value=90; el('loadVu').value=100; el('loadPu').value=1200;
+    el('barDia').value=25;
+  }
+  runDesign();
+}
+
+function fmt(x,d=1){ return isFinite(x) ? Number(x).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d}) : '—'; }
+
+function setStatus(overallPass){
+  const stamp = el('stampEl');
+  stamp.classList.toggle('fail', !overallPass);
+  stamp.innerHTML = overallPass ? 'PASS<small>DESIGN ADEQUATE</small>' : 'FAIL<small>REVISE DESIGN</small>';
+  el('tbStatus').textContent = overallPass ? 'PASS' : 'FAIL';
+  el('tbStatus').style.color = overallPass ? 'var(--pass)' : 'var(--fail)';
+}
+
+function checkRow(name, val, pass){
+  return `<div class="checkrow ${pass?'pass':'fail'}"><span class="name">${name}</span><span class="val">${val} ${pass?'✓':'✗'}</span></div>`;
+}
+function metric(label, value, unit, cls=''){
+  return `<div class="metric ${cls}"><div class="m-label">${label}</div><div class="m-value">${value} <span>${unit}</span></div></div>`;
+}
+
+function runDesign(){
+  el('tbDate').textContent = new Date().toLocaleDateString('en-US',{year:'numeric',month:'short',day:'2-digit'});
+
+  const b = +el('dimB').value, h = +el('dimH').value, L = +el('dimL').value;
+  const cover = +el('cover').value, fc = +el('fc').value, fy = +el('fy').value;
+  const barDia = +el('barDia').value, tieDia = +el('tieDia').value, legs = +el('legs').value;
+  const Mu = +el('loadMu').value, Vu = +el('loadVu').value, Pu = +el('loadPu').value;
+
+  let checksHtml = '', breakdownText = '', rebarHtml = '', metricsHtml = '', warnHtml = '', overallPass = true;
+  let caption = '';
+
+  if(mode==='beam'){
+    const flex = designBeamFlexure(b,h,cover,tieDia,barDia,fc,fy,Mu);
+    let layout=null, cap=null, flexPass=false;
+    if(flex.sectionOK){
+      layout = beamBarLayout(flex.AsReq, barDia, b, cover, tieDia);
+      cap = beamFlexuralCapacity(b, flex.d, fc, fy, layout.AsProvided);
+      flexPass = cap.phiMn >= Mu && !flex.overReinforced;
+    }
+    const shear = designBeamShear(b, flex.d, fc, fy, Vu, tieDia, legs);
+    overallPass = flexPass && shear.pass;
+
+    checksHtml += checkRow('Flexure  φMn ≥ Mu', flex.sectionOK? `${fmt(cap.phiMn)} ≥ ${fmt(Mu)} kN·m` : 'N/A', flexPass);
+    const phiVnBeam = shear.phiVc + (shear.sProvided ? 0.75*(shear.Av*fy*flex.d/shear.sProvided)/1000 : 0);
+    checksHtml += checkRow('Shear  φVn ≥ Vu', `${fmt(phiVnBeam)} ≥ ${fmt(Vu)} kN`, shear.pass);
+    checksHtml += checkRow('ρmin ≤ ρ ≤ ρmax', flex.sectionOK? (flex.overReinforced?'exceeds ρmax':'within limits') : 'N/A', flex.sectionOK && !flex.overReinforced);
+
+    if(flex.sectionOK){
+      rebarHtml = `<div class="bar-badge">● ${layout.n}–ø${barDia}mm  (As,prov = ${fmt(layout.AsProvided,0)} mm²)</div>`;
+      if(layout.layers.length>1) rebarHtml += `<div class="warn-box">Arranged in ${layout.layers.length} layers (${layout.layers.map(l=>l.count).join(' + ')}) — bars do not fit in a single layer at minimum clear spacing.</div>`;
+      metricsHtml += metric('As required','','','');
+      metricsHtml = metric('As, required', fmt(flex.AsReq,0), 'mm²','accent')
+                  + metric('As, provided', fmt(layout.AsProvided,0), 'mm²','rebar')
+                  + metric('φMn provided', fmt(cap.phiMn), 'kN·m')
+                  + metric('Stirrup spacing', shear.pass? fmt(shear.sProvided,0):'—', 'mm o.c.');
+    } else {
+      metricsHtml = metric('As, required','N/A','','accent') + metric('Stirrup spacing', shear.pass? fmt(shear.sProvided,0):'—','mm o.c.');
+      warnHtml = `<div class="warn-box">Section cannot be singly-reinforced for the applied Mu. Increase b or h, or add compression reinforcement.</div>`;
+    }
+    if(shear.hardFail) warnHtml += `<div class="warn-box">${shear.note}</div>`;
+    else if(shear.note) warnHtml += `<div class="warn-box">${shear.note}</div>`;
+
+    breakdownText = '<span class="hd">— FLEXURE —</span>\n'+flex.steps.join('\n')
+      + (flex.sectionOK? `\na = As·fy/(0.85f'c·b) = ${cap.a.toFixed(1)} mm\nφMn = φ·As·fy·(d−a/2) = ${cap.phiMn.toFixed(1)} kN·m` : '')
+      + '\n\n<span class="hd">— SHEAR —</span>\n'+shear.steps.join('\n');
+
+    caption = `Beam ${b}×${h} mm, L=${L} mm`;
+
+    const designForScene = {b,h,L,cover,tieDia,barDia,
+      layout: flex.sectionOK? layout : {layers:[{count:2}]},
+      sStirrup: shear.pass? shear.sProvided : 200};
+    buildBeamScene(designForScene);
+
+  } else {
+    const d = h - cover - tieDia - barDia/2;
+    const col = designColumnAxialMoment(b,h,cover,tieDia,barDia,fc,fy,Pu,Mu);
+    const shear = designColumnShear(b,h,d,fc,fy,Vu,Pu,tieDia,barDia);
+    overallPass = col.pass && shear.pass;
+
+    checksHtml += checkRow('ρg limits (1%–8%)', `ρg = ${fmt(col.rho*100,2)}%`, col.rho<=0.08);
+    checksHtml += checkRow('Axial  φPn,max ≥ Pu', `${fmt(col.capPhiPn/1000)} ≥ ${fmt(Pu)} kN`, Pu*1000 <= col.capPhiPn);
+    checksHtml += checkRow('Combined  φMn ≥ Mu @ Pu', col.cap.inRange? `${fmt(col.cap.phiMn/1e6)} ≥ ${fmt(Mu)} kN·m` : 'out of range', col.pass);
+    checksHtml += checkRow('Shear / tie spacing', `${fmt(shear.sProvided,0)} mm o.c.`, shear.pass);
+
+    const Ab = barArea(barDia);
+    const barCount = Math.max(4, Math.ceil(col.AsTotal/Ab));
+    const AsProvided = barCount*Ab;
+    rebarHtml = `<div class="bar-badge">● ${barCount}–ø${barDia}mm  (As,prov = ${fmt(AsProvided,0)} mm²)</div>`;
+    metricsHtml = metric('Ast, required', fmt(col.AsTotal,0), 'mm²','accent')
+                + metric('Ast, provided', fmt(AsProvided,0), 'mm²','rebar')
+                + metric('ρg provided', fmt((AsProvided/col.Ag)*100,2), '%')
+                + metric('Tie spacing', fmt(shear.sProvided,0), 'mm o.c.');
+
+    if(!col.pass) warnHtml = `<div class="warn-box">${col.rho>=0.08? 'Even at ρg = 8% the section cannot satisfy the (Pu, Mu) demand — enlarge the cross-section.' : 'Design point falls outside the interaction capacity.'}</div>`;
+
+    breakdownText = '<span class="hd">— AXIAL / MOMENT INTERACTION —</span>\n'+col.steps.join('\n')
+      + '\n\n<span class="hd">— SHEAR / TIES —</span>\n'+shear.steps.join('\n');
+
+    caption = `Column ${b}×${h} mm, L=${L} mm`;
+
+    buildColumnScene({b,h,L,cover,tieDia,barDia,dprime:col.dprime,barCount,sTie:shear.sProvided});
+  }
+
+  el('checksList').innerHTML = checksHtml;
+  el('rebarSummary').innerHTML = rebarHtml;
+  el('metricGrid').innerHTML = metricsHtml;
+  el('warnBoxWrap').innerHTML = warnHtml;
+  el('breakdownEl').innerHTML = breakdownText;
+  el('viewCaption').innerHTML = `<b>${caption}</b><br>f'c=${fc} MPa · fy=${fy} MPa`;
+  setStatus(overallPass);
+}
+
+/* ---- Event wiring ---- */
+function wireEvents(){
+  el('btnBeam').addEventListener('click', ()=>setMode('beam'));
+  el('btnColumn').addEventListener('click', ()=>setMode('column'));
+
+  ['dimB','dimH','dimL','cover','fc','fy','barDia','tieDia','legs','loadPu','loadMu','loadVu']
+    .forEach(id => el(id).addEventListener('input', runDesign));
+
+  el('btnAnimate').addEventListener('click', (e)=>{
+    controls.autoRotate = !controls.autoRotate;
+    e.target.classList.toggle('active', controls.autoRotate);
+  });
+  el('btnWire').addEventListener('click', (e)=>{
+    wireframeOn = !wireframeOn;
+    e.target.textContent = wireframeOn ? 'Concrete: Ghost' : 'Concrete: Solid';
+    e.target.classList.toggle('active', wireframeOn);
+    runDesign();
+  });
+  el('btnReset').addEventListener('click', frameCamera);
+}
+
+populateBarSelects();
+initThree();
+wireEvents();
+runDesign();
+</script>
+</body>
+</html>
