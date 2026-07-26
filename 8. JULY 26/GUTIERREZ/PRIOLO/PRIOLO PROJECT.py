@@ -197,16 +197,21 @@ prop.AssignMemberSpecToBeam(bracing_members, truss_spec)
 # -------------------------------------------------------------------
 # Supports: pinned bases at every portal frame column
 # -------------------------------------------------------------------
-# --- Supports: pinned support at every column base ---
+# --- Pinned support symbols at the base of every warehouse column ---
 pinned_support = sup.CreateSupportPinned()
 
-base_nodes = []
+column_base_nodes = []
 for frame_index in range(len(frame_positions)):
-    n = frame_nodes[frame_index]
-    base_nodes.append(n["left_base"])
-    base_nodes.append(n["right_base"])
+    frame = frame_nodes[frame_index]
+    column_base_nodes.extend([
+        frame["left_base"],
+        frame["right_base"],
+    ])
 
-sup.AssignSupportToNode(base_nodes, pinned_support)
+sup.AssignSupportToNode(column_base_nodes, pinned_support)
+
+# Save so STAAD.Pro updates the model display
+staad.SaveModel(True)
 # -------------------------------------------------------------------
 # Load case 1: Dead load
 # Selfweight plus assumed metal roof/deck/cladding allowance.
