@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Isolated Footing Design Calculator - Engineering Design Aid</title>
+    <style>
+
+:root{
+  --primary:#163a70;--primary-light:#2f6fbd;--success:#14804a;--danger:#b42318;
+  --warning:#b54708;--background:#f4f7fb;--card-bg:#fff;--text:#172033;--muted:#667085;
+  --border:#d0d5dd;--info:#0e7490;--editable:#eef6ff
+}
+*{box-sizing:border-box}
+body{font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+background:var(--background);color:var(--text);margin:0;padding:20px;line-height:1.45}
+header{text-align:center;margin-bottom:18px} header h1{color:var(--primary);margin:0 0 4px;font-size:1.7rem}
+header p{color:var(--muted);margin:0;font-size:.92rem}
+.app-container{max-width:1640px;margin:0 auto;display:grid;grid-template-columns:360px minmax(0,1fr);gap:18px}
+@media(max-width:1250px){.app-container{grid-template-columns:1fr}}
+.card,.report-sheet{background:var(--card-bg);border:1px solid var(--border);border-radius:10px}
+.card{padding:18px;margin-bottom:18px;box-shadow:0 3px 10px rgba(16,24,40,.06)}
+.card h2{font-size:1.1rem;color:var(--primary);margin:0 0 12px;border-bottom:2px solid #e4e7ec;padding-bottom:8px}
+.card h3{font-size:.88rem;color:#344054;margin:16px 0 8px}
+.form-group{margin-bottom:9px} label{display:block;font-weight:700;font-size:.76rem;margin-bottom:4px}
+input,select{width:100%;padding:7px 9px;border:1px solid var(--border);border-radius:6px;font-size:.84rem;background:#fff;color:var(--text)}
+input.editable,select.editable{background:var(--editable)}
+input:focus,select:focus{outline:none;border-color:var(--primary-light);box-shadow:0 0 0 3px rgba(47,111,189,.14)}
+input.invalid{border-color:var(--danger);background:#fff5f4}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.btn{width:100%;padding:10px;border:0;border-radius:6px;color:#fff;font-weight:700;cursor:pointer}
+.btn-calculate{background:var(--primary);margin-top:8px}.btn-calculate:hover{background:#0f2f5c}
+.btn-print{background:#0e7490;margin-top:8px}.btn-print:hover{background:#0a5c70}
+.notice{font-size:.76rem;border-left:4px solid var(--warning);background:#fff8eb;padding:9px 10px;margin-top:10px;color:#7a2e0a}
+.error-box{display:none;border-left:4px solid var(--danger);background:#fff4f2;padding:9px 10px;margin:10px 0;font-size:.8rem;color:#8b1e17}
+.report-sheet{padding:30px;box-shadow:0 8px 22px rgba(16,24,40,.08)}
+.report-header{display:flex;justify-content:space-between;gap:18px;align-items:flex-end;border-bottom:3px solid var(--primary);padding-bottom:12px;margin-bottom:18px}
+.report-header h3{margin:0;color:var(--primary);font-size:1.3rem}.report-header p{margin:2px 0;font-size:.8rem;color:var(--muted)}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:0 0 18px}
+@media(max-width:900px){.kpi-grid{grid-template-columns:1fr 1fr}.report-header{flex-direction:column;align-items:flex-start}}
+.kpi{border:1px solid var(--border);border-radius:8px;padding:10px;background:#fbfcfe}.kpi .label{font-size:.7rem;color:var(--muted);font-weight:700}.kpi .value{font-size:1.05rem;font-weight:800;margin-top:3px}
+.section-title{font-size:1rem;color:var(--primary);border-bottom:1px solid var(--border);padding-bottom:5px;margin:22px 0 12px;font-weight:800}
+.calc-step{background:#fbfcfe;border-left:4px solid var(--primary-light);padding:11px 13px;margin-bottom:11px;border-radius:0 6px 6px 0}
+.calc-step-title{font-weight:800;font-size:.86rem;color:var(--primary);margin-bottom:4px}
+.formula-box{font-family:"Courier New",monospace;background:#f2f4f7;padding:7px 9px;border-radius:5px;font-size:.8rem;color:#101828;overflow-x:auto;white-space:pre-wrap}
+.substitution-box{font-family:"Courier New",monospace;font-size:.78rem;color:#344054;white-space:pre-wrap;margin:5px 0}
+.result-line{display:flex;justify-content:space-between;gap:12px;font-size:.83rem;font-weight:700;margin-top:7px;padding-top:5px;border-top:1px dashed var(--border)}
+.badge{display:inline-block;padding:3px 8px;border-radius:999px;font-size:.68rem;font-weight:800;text-transform:uppercase;white-space:nowrap}
+.badge-pass{background:#ecfdf3;color:var(--success)} .badge-fail{background:#fef3f2;color:var(--danger)}
+.badge-warn{background:#fff7ed;color:var(--warning)} .badge-na{background:#f2f4f7;color:#475467}
+.citation-tag{font-size:.7rem;color:var(--muted);font-style:italic;margin-top:5px}
+.assumption{font-size:.72rem;color:#475467;background:#f8fafc;border:1px solid #e4e7ec;padding:8px;border-radius:6px;margin-bottom:10px}
+.visualizer-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-bottom:16px}
+@media(max-width:900px){.visualizer-grid{grid-template-columns:1fr}}
+canvas{display:block;width:100%;height:auto;aspect-ratio:400/260;background:#fff;border:1px solid var(--border);border-radius:6px;box-sizing:border-box}
+.report-footer{margin-top:18px;padding-top:10px;border-top:1px solid var(--border);font-size:.7rem;color:var(--muted)}
+@media print{
+ body{background:#fff;padding:0} header,.no-print{display:none!important}.app-container{display:block}
+ .report-sheet{border:none;box-shadow:none;padding:0}.calc-step{break-inside:avoid}.visualizer-grid{grid-template-columns:1fr 1fr}
+ canvas{print-color-adjust:exact;-webkit-print-color-adjust:exact}
+}
+
+
+.three-d-wrap{grid-column:1/-1}
+#threeDCanvas{background:linear-gradient(#fff,#f8fafc)}
+</style>
+</head>
+<body>
+
+    <header class="no-print">
+        <h1>Isolated Footing Design Calculator</h1>
+        <p>Engineering Design Aid. Verify project-specific NSCP 2015 / ACI 318-14 requirements before issue.</p>
+    </header>
+
+    <div class="app-container">
+        <!-- Input Sidebar -->
+        <div class="no-print">
+            <div class="card">
+                <h2>Design Parameters</h2>
+
+                <div class="form-group">
+                    <label for="unitSystem">Unit System</label>
+                    <select id="unitSystem" onchange="toggleUnits()">
+                        <option value="SI">SI (Metric - m, mm, kN, kPa)</option>
+                        <option value="Imperial">Imperial (ft, in, kips, psf)</option>
+                    </select>
+                </div>
+                
+                <h3>Footing & Column</h3>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="B" id="lbl_B">Width B (m)</label>
+                        <input type="number" id="B" value="2.0" step="0.1" min="0.5">
+                    </div>
+                    <div class="form-group">
+                        <label for="L" id="lbl_L">Length L (m)</label>
+                        <input type="number" id="L" value="2.0" step="0.1" min="0.5">
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="h" id="lbl_h">Thickness h (mm)</label>
+                        <input type="number" id="h" value="500" step="50" min="200">
+                    </div>
+                    <div class="form-group">
+                        <label for="Df" id="lbl_Df">Depth Df (m)</label>
+                        <input type="number" id="Df" value="1.5" step="0.1" min="0.0">
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="cx" id="lbl_cx">Column cx (mm)</label>
+                        <input type="number" id="cx" value="400" step="50" min="200">
+                    </div>
+                    <div class="form-group">
+                        <label for="cy" id="lbl_cy">Column cy (mm)</label>
+                        <input type="number" id="cy" value="400" step="50" min="200">
+                    </div>
+                </div>
+
+                <h3>Column Offset (Eccentricity on Pad)</h3>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="offset_x" id="lbl_offsetX">Offset X from Center (m)</label>
+                        <input type="number" id="offset_x" value="0.2" step="0.05">
+                    </div>
+                    <div class="form-group">
+                        <label for="offset_y" id="lbl_offsetY">Offset Y from Center (m)</label>
+                        <input type="number" id="offset_y" value="-0.15" step="0.05">
+                    </div>
+                </div>
+
+                <h3>Materials</h3>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="fc" id="lbl_fc">f'c (MPa)</label>
+                        <input type="number" id="fc" value="27.6" step="0.7">
+                    </div>
+                    <div class="form-group">
+                        <label for="fy" id="lbl_fy">fy (MPa)</label>
+                        <input type="number" id="fy" value="415" step="10">
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="cover" id="lbl_cover">Cover (mm)</label>
+                        <input type="number" id="cover" value="75" step="5">
+                    </div>
+                    <div class="form-group">
+                        <label for="db" id="lbl_db">Rebar db (mm)</label>
+                        <input type="number" id="db" value="20" step="2">
+                    </div>
+                </div>
+
+                <h3>Service Loads</h3>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="PDL" id="lbl_pdl">DL (kN)</label>
+                        <input type="number" id="PDL" value="800" step="10">
+                    </div>
+                    <div class="form-group">
+                        <label for="PLL" id="lbl_pll">LL (kN)</label>
+                        <input type="number" id="PLL" value="500" step="10">
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="MX" id="lbl_mx">Mx (kN-m)</label>
+                        <input type="number" id="MX" value="50" step="5">
+                    </div>
+                    <div class="form-group">
+                        <label for="MY" id="lbl_my">My (kN-m)</label>
+                        <input type="number" id="MY" value="40" step="5">
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="HX" id="lbl_hx">Hx (kN)</label>
+                        <input type="number" id="HX" value="0" step="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="HY" id="lbl_hy">Hy (kN)</label>
+                        <input type="number" id="HY" value="0" step="1">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="hL" id="lbl_hL">Load Elevation Above Footing Base = Df / NGL (m)</label>
+                    <input type="number" id="hL" value="1.5" step="0.1" min="0" readonly title="Load application is fixed at Natural Ground Level (NGL), so hL = Df.">
+                </div>
+
+                <h3>Geotechnical & Water Table</h3>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="qa" id="lbl_qa_in">qa (kPa)</label>
+                        <input type="number" id="qa" value="250" step="10">
+                    </div>
+                    <div class="form-group">
+                        <label for="gamma_s" id="lbl_gs">γs (kN/m³)</label>
+                        <input type="number" id="gamma_s" value="16.0" step="0.5">
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="gamma_c" id="lbl_gc">γc (kN/m³)</label>
+                        <input type="number" id="gamma_c" value="24.0" step="0.5">
+                    </div>
+                    <div class="form-group">
+                        <label for="q_sur" id="lbl_qsur">Surcharge q_sur (kPa)</label>
+                        <input type="number" id="q_sur" value="10.0" step="2.0" min="0">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="dw" id="lbl_dw">Water Table Depth dw (m)</label>
+                    <input type="number" id="dw" value="1.0" step="0.1" min="0.0">
+                </div>
+
+                <button class="btn-calculate" onclick="runCalculations()">Run Calculation & Analysis</button>
+                <button class="btn-print" onclick="window.print()">Print Consultant Report</button>
+            </div>
+        </div>
+
+        <!-- Consultant Report Sheet View -->
+        <div>
+            <div class="report-sheet">
+                <div class="report-header">
+                    <div>
+                        <h3>STRUCTURAL DESIGN CALCULATION SHEET</h3>
+                        <p>Subject: Isolated Footing Detailed Code Evaluation</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <p><strong>Codes:</strong> NSCP 2015 & ACI 318-14M</p>
+                        <p><strong>Status:</strong> <span id="master_status" class="badge">-</span></p>
+                    </div>
+                </div>
+
+                
+<div id="input_error" class="error-box no-print"></div>
+<div class="assumption">
+  <strong>Engineering-use notice:</strong> This browser calculator is a screening/design-aid tool.
+  Verify the governing project criteria, geotechnical report, load combinations, footing contact model,
+  reinforcement provisions, development/anchorage, durability, and all code clause references before issue for construction.
+</div>
+<div class="kpi-grid">
+  <div class="kpi"><div class="label">Bearing qmax</div><div class="value"><span id="kpi_qmax">-</span> <span id="kpi_q_unit">kPa</span></div></div>
+  <div class="kpi"><div class="label">Service Contact</div><div class="value"><span id="kpi_contact">-</span></div></div>
+  <div class="kpi"><div class="label">Min. Overturning FS</div><div class="value"><span id="kpi_fs">-</span></div></div>
+  <div class="kpi"><div class="label">Governing DCR</div><div class="value"><span id="kpi_dcr">-</span></div></div>
+</div>
+
+                <div class="visualizer-grid">
+                    <div>
+                        <label style="font-weight:700; color:var(--primary); font-size:0.85rem;">1. Plan View (Footing & Column)</label>
+                        <canvas id="planCanvas" width="400" height="260"></canvas>
+                    </div>
+                    <div>
+                        <label style="font-weight:700; color:var(--primary); font-size:0.85rem;">2. Elevation & Cross-Section View (Loads & Soils)</label>
+                        <canvas id="elevationCanvas" width="400" height="260"></canvas>
+                    </div>
+                    <div>
+                        <label style="font-weight:700; color:var(--primary); font-size:0.85rem;">3. Soil Pressure Distribution</label>
+                        <canvas id="pressureCanvas" width="400" height="260"></canvas>
+                    </div>
+                    <div>
+                        <label style="font-weight:700; color:var(--primary); font-size:0.85rem;">4. Rebar Arrangement & Detailing View</label>
+                        <canvas id="rebarCanvas" width="400" height="260"></canvas>
+                    </div>
+                    <div style="grid-column:1 / -1">
+                        <label style="font-weight:700; color:var(--primary); font-size:0.85rem;">5. 3D Structural Visualization (Drag to Rotate / Wheel to Zoom)</label>
+                        <canvas id="threeDCanvas" width="800" height="420" style="cursor:grab"></canvas>
+                        <div class="citation-tag">3D view is a visualization aid. Geometry, offsets, dimensions and load vectors are based on the current calculator inputs.</div>
+                    </div>
+                </div>
+
+                <!-- Section 1 -->
+                <div class="section-title">1. Geotechnical Stability & Soil Bearing Verification (With Surcharge & Groundwater)</div>
+                
+                <div class="calc-step">
+                    <div class="calc-step-title">Effective Overburden, Surcharge & Buoyant Soil Weight</div>
+                    <div class="formula-box">P_total = P_DL + P_LL + W_footing + W_soil_eff + W_surcharge - U_uplift</div>
+                    <div class="substitution-box" id="sub_Ptotal">-</div>
+                    <div class="citation-tag">NSCP 2015 Section 304 / Foundation Loading & Hydrostatic Uplift Criteria</div>
+                </div>
+
+                <div class="calc-step">
+                    <div class="calc-step-title">Soil Bearing Pressures (Biaxial / Uniaxial Eccentricity & Uplift Check)</div>
+                    <div class="formula-box">q_max,min = (P_total / A) * [1 ± (6*ex_total / B) ± (6*ey_total / L)]</div>
+                    <div class="substitution-box" id="sub_pressure">-</div>
+                    <div class="result-line">
+                        <span>Max Pressure q_max = <span id="res_qmax">-</span> <span id="unit_stress">kPa</span> (Allowable qa = <span id="lbl_qa">250</span> <span id="unit_stress2">kPa</span>)</span>
+                        <span id="badge_bearing" class="badge">-</span>
+                    </div>
+                    <div class="citation-tag">NSCP 2015 Section 304.3.2 / Allowable Soil Bearing Limit State</div>
+                </div>
+
+                <div class="calc-step">
+                    <div class="calc-step-title">Overturning Safety Factor Check</div>
+                    <div class="formula-box">FS_ot = M_resisting / M_overturning ≥ 1.5</div>
+                    <div class="substitution-box" id="sub_ot">-</div>
+                    <div class="result-line">
+                        <span>Overturning Ratio FS_ot = <span id="res_fs">-</span></span>
+                        <span id="badge_ot" class="badge">-</span>
+                    </div>
+                    <div class="citation-tag">NSCP 2015 Section 208.6 / Global Stability & Overturning</div>
+                </div>
+
+                <!-- Section 2 -->
+                <div class="section-title">2. Ultimate Strength Design & Shear Checks (ACI 318-14M)</div>
+
+                <div class="calc-step">
+                    <div class="calc-step-title">Factored Load & Net Upward Soil Pressure</div>
+                    <div class="formula-box">Pu = 1.2(PDL) + 1.6(PLL)  |  qu_net = Pu / (B × L)</div>
+                    <div class="substitution-box" id="sub_qu">-</div>
+                    <div class="citation-tag">NSCP 2015 Section 203 / ACI 318-14M Chapter 5 Load Combinations</div>
+                </div>
+
+                <div class="calc-step">
+                    <div class="calc-step-title">One-Way Shear (Beam Action) Capacity Check</div>
+                    <div class="formula-box">Vu_1way = qu_net × tributary_area  vs  φVc = φ × 0.17 × λ × √f'c × bw × d</div>
+                    <div class="substitution-box" id="sub_oneway">-</div>
+                    <div class="result-line">
+                        <span>Vu = <span id="res_vu1">-</span> <span id="unit_force">kN</span>  |  φVc = <span id="res_vc1">-</span> <span id="unit_force2">kN</span> (φ = 0.75)</span>
+                        <span id="badge_oneway" class="badge">-</span>
+                    </div>
+                    <div class="citation-tag">NSCP 2015 Section 422.5.1 / ACI 318-14M Eq. 22.5.5.1</div>
+                </div>
+
+                <div class="calc-step">
+                    <div class="calc-step-title">Two-Way Shear (Punching Shear) Capacity Check</div>
+                    <div class="formula-box">Vu_2way = Pu - qu_net × (cx × cy)  vs  φVc = φ × min[(0.17 + 3/β), (αs*d/bo + 0.19), 0.33] × λ × √f'c × bo × d</div>
+                    <div class="substitution-box" id="sub_twoway">-</div>
+                    <div class="result-line">
+                        <span>Vu = <span id="res_vu2">-</span> <span id="unit_force3">kN</span>  |  φVc = <span id="res_vc2">-</span> <span id="unit_force4">kN</span></span>
+                        <span id="badge_twoway" class="badge">-</span>
+                    </div>
+                    <div class="citation-tag">NSCP 2015 Section 422.6.5.2 / ACI 318-14M Table 22.6.5.1</div>
+                </div>
+
+                <!-- Section 3 -->
+                <div class="section-title">3. Flexural Reinforcement Design</div>
+
+                <div class="calc-step">
+                    <div class="calc-step-title">Ultimate Bending Moment & Required Steel Area (As)</div>
+                    <div class="formula-box">Mu = qu_net × max_cantilever_span² / 2  |  As = Mu / [φ × fy × (d - a/2)]</div>
+                    <div class="substitution-box" id="sub_flexure">-</div>
+                    <div class="result-line">
+                        <span>Governing Required As = <span id="res_as">-</span> <span id="unit_area">mm²</span> | Governing Min As = <span id="res_asmin">-</span> <span id="unit_area2">mm²</span></span>
+                        <span id="badge_flex" class="badge">-</span>
+                    </div>
+                    <div class="result-line" style="border-top:1px solid var(--border); margin-top:10px; display:block;">
+                        <div style="font-weight:800;color:var(--primary);margin-bottom:5px;">B-DIRECTION REINFORCEMENT (bars parallel to B, design for Mu about Y)</div>
+                        <div id="res_flex_B" class="substitution-box">-</div>
+                    </div>
+                    <div class="result-line" style="border-top:1px solid var(--border); margin-top:8px; display:block;">
+                        <div style="font-weight:800;color:var(--primary);margin-bottom:5px;">L-DIRECTION REINFORCEMENT (bars parallel to L, design for Mu about X)</div>
+                        <div id="res_flex_L" class="substitution-box">-</div>
+                    </div>
+                    <div class="result-line" style="border-top:none; margin-top:3px; font-weight:700; color:var(--primary); display:block;">
+                        <span>Final Reinforcement Schedule:</span>
+                        <div id="res_layout" style="margin-top:4px;">-</div>
+                    </div>
+                    <div class="citation-tag">NSCP 2015 Section 407.6.1 / ACI 318-14M Section 8.6.1.1 (Shrinkage & Temperature minimums)</div>
+                </div>
+            
+<div class="section-title">4. Engineering Notes / Model Limitations</div>
+<div class="calc-step">
+  <div class="calc-step-title">Checks explicitly included in this revision</div>
+  <div class="substitution-box">
+• Separate service bearing and ultimate structural demand checks.
+• Biaxial service eccentricity with no-tension contact requirement.
+• Two-axis overturning stability.
+• One-way shear checks in both footing directions.
+• Punching shear using the d/2 critical perimeter and enclosed critical area.
+• Flexural demand in both directions with factored moments treated conservatively.
+• Minimum reinforcement check against the adopted 0.0018 ratio used by this tool.
+• Input validation, zero-load handling, unit conversion without resetting user inputs, and visible calculation errors.
+  </div>
+  <div class="citation-tag">Code references shown in this workbook should be checked against the project's adopted NSCP/ACI edition and geotechnical report before formal issue.</div>
+</div>
+
+            </div>
+        </div>
+    </div>
+
+    
+<script>
+"use strict";
+
+const IDS = [
+  "B","L","h","Df","cx","cy","offset_x","offset_y","fc","fy","cover","db",
+  "PDL","PLL","MX","MY","HX","HY","hL","qa","gamma_s","gamma_c","q_sur","dw"
+];
+
+const DEFAULTS = {
+  SI:{B:2,L:2,h:500,Df:1.5,cx:400,cy:400,offset_x:0.2,offset_y:-0.15,fc:27.6,fy:415,cover:75,db:20,PDL:800,PLL:500,MX:50,MY:40,qa:250,gamma_s:16,gamma_c:24,q_sur:10,dw:1},
+  Imperial:{B:6.5,L:6.5,h:20,Df:5,cx:16,cy:16,offset_x:0.6,offset_y:-0.5,fc:4000,fy:60000,cover:3,db:0.75,PDL:180,PLL:110,MX:35,MY:30,qa:5000,gamma_s:100,gamma_c:150,q_sur:200,dw:3.3}
+};
+
+const SI_CONV = {
+  B:v=>v*0.3048, L:v=>v*0.3048, h:v=>v*25.4, Df:v=>v*0.3048, cx:v=>v*25.4, cy:v=>v*25.4,
+  offset_x:v=>v*0.3048, offset_y:v=>v*0.3048, fc:v=>v*0.006894757293, fy:v=>v*0.006894757293,
+  cover:v=>v*25.4, db:v=>v*25.4, PDL:v=>v*4.4482216153, PLL:v=>v*4.4482216153,
+  MX:v=>v*1.3558179483, MY:v=>v*1.3558179483, HX:v=>v*4.4482216153, HY:v=>v*4.4482216153, hL:v=>v*0.3048, qa:v=>v*0.04788025898,
+  gamma_s:v=>v*0.1570874641, gamma_c:v=>v*0.1570874641, q_sur:v=>v*0.04788025898, dw:v=>v*0.3048
+};
+
+function num(id){
+  const el=document.getElementById(id);
+  const v=Number(el?.value);
+  return Number.isFinite(v) ? v : NaN;
+}
+function setText(id,val){
+  const el=document.getElementById(id); if(el) el.textContent=String(val);
+}
+function fmt(v,d=2){ return Number.isFinite(v) ? v.toFixed(d) : "-"; }
+function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+
+function displayUnitText(system){
+  const si = system==="SI";
+  const map = {
+    B:si?"Width B (m)":"Width B (ft)", L:si?"Length L (m)":"Length L (ft)",
+    h:si?"Thickness h (mm)":"Thickness h (in)", Df:si?"Depth Df (m)":"Depth Df (ft)",
+    cx:si?"Column cx (mm)":"Column cx (in)", cy:si?"Column cy (mm)":"Column cy (in)",
+    offset_x:si?"Offset X from Center (m)":"Offset X from Center (ft)",
+    offset_y:si?"Offset Y from Center (m)":"Offset Y from Center (ft)",
+    fc:si?"f'c (MPa)":"f'c (psi)", fy:si?"fy (MPa)":"fy (psi)",
+    cover:si?"Cover (mm)":"Cover (in)", db:si?"Rebar db (mm)":"Rebar db (in)",
+    PDL:si?"DL (kN)":"DL (kips)", PLL:si?"LL (kN)":"LL (kips)",
+    MX:si?"Mx (kN-m)":"Mx (kip-ft)", MY:si?"My (kN-m)":"My (kip-ft)", HX:si?"Hx (kN)":"Hx (kips)", HY:si?"Hy (kN)":"Hy (kips)", hL:si?"Load Elevation Above Footing Base = Df / NGL (m)":"Load Elevation Above Footing Base = Df / NGL (ft)",
+    qa:si?"qa (kPa)":"qa (psf)", gamma_s:si?"γs (kN/m³)":"γs (pcf)",
+    gamma_c:si?"γc (kN/m³)":"γc (pcf)", q_sur:si?"Surcharge q_sur (kPa)":"Surcharge q_sur (psf)",
+    dw:si?"Water Table Depth dw (m)":"Water Table Depth dw (ft)"
+  };
+  Object.entries(map).forEach(([id,t])=>{
+    const label=document.querySelector(`label[for="${id}"]`);
+    if(label) label.textContent=t;
+  });
+  setText("unit_stress",si?"kPa":"psf"); setText("unit_stress2",si?"kPa":"psf");
+  setText("unit_force",si?"kN":"kips"); setText("unit_force2",si?"kN":"kips");
+  setText("unit_force3",si?"kN":"kips"); setText("unit_force4",si?"kN":"kips");
+  setText("unit_area",si?"mm²":"in²"); setText("unit_area2",si?"mm²":"in²");
+  setText("kpi_q_unit",si?"kPa":"psf");
+}
+
+function toSI(id,v,system){
+  return system==="SI" ? v : (SI_CONV[id] ? SI_CONV[id](v) : v);
+}
+function fromSI(id,v,system){
+  if(system==="SI") return v;
+  const conv=SI_CONV[id];
+  return conv ? inverseConvert(id,v) : v;
+}
+function inverseConvert(id,v){
+  const f={
+    B:v=>v/0.3048,L:v=>v/0.3048,h:v=>v/25.4,Df:v=>v/0.3048,cx:v=>v/25.4,cy:v=>v/25.4,
+    offset_x:v=>v/0.3048,offset_y:v=>v/0.3048,fc:v=>v/0.006894757293,fy:v=>v/0.006894757293,
+    cover:v=>v/25.4,db:v=>v/25.4,PDL:v=>v/4.4482216153,PLL:v=>v/4.4482216153,
+    MX:v=>v/1.3558179483,MY:v=>v/1.3558179483,HX:v=>v/4.4482216153,HY:v=>v/4.4482216153,hL:v=>v/0.3048,qa:v=>v/0.04788025898,
+    gamma_s:v=>v/0.1570874641,gamma_c:v=>v/0.1570874641,q_sur:v=>v/0.04788025898,dw:v=>v/0.3048
+  };
+  return f[id](v);
+}
+function convertCurrentInputs(nextSystem){
+  const curSystem=document.getElementById("unitSystem").dataset.prevSystem || "SI";
+  if(curSystem===nextSystem){ displayUnitText(nextSystem); runCalculations(); return; }
+  IDS.forEach(id=>{
+    const v=num(id); if(!Number.isFinite(v)) return;
+    const si=toSI(id,v,curSystem);
+    document.getElementById(id).value=fromSI(id,si,nextSystem);
+  });
+  document.getElementById("unitSystem").dataset.prevSystem=nextSystem;
+  displayUnitText(nextSystem);
+  runCalculations();
+}
+function toggleUnits(){
+  const next=document.getElementById("unitSystem").value;
+  convertCurrentInputs(next);
+}
+
+function setBadgeStatus(id,pass,passText="PASS",failText="FAIL"){
+  const el=document.getElementById(id); if(!el) return;
+  el.textContent=pass?passText:failText;
+  el.className=`badge ${pass?"badge-pass":"badge-fail"}`;
+}
+function setNA(id){
+  const el=document.getElementById(id); if(!el) return;
+  el.textContent="N/A"; el.className="badge badge-na";
+}
+
+function validateInputs(){
+  const system=document.getElementById("unitSystem").value;
+  const raw={}; const issues=[];
+  IDS.forEach(id=>raw[id]=num(id));
+  IDS.forEach(id=>{
+    if(!Number.isFinite(raw[id])) issues.push(`${id}: enter a valid number.`);
+  });
+  const SI={};
+  IDS.forEach(id=>{ if(Number.isFinite(raw[id])) SI[id]=toSI(id,raw[id],system); });
+  const positive=["B","L","h","Df","cx","cy","fc","fy","cover","db","qa","gamma_s","gamma_c"];
+  positive.forEach(id=>{if(Number.isFinite(SI[id]) && SI[id]<=0) issues.push(`${id}: value must be > 0.`);});
+  ["PDL","PLL"].forEach(id=>{if(Number.isFinite(SI[id]) && SI[id]<0) issues.push(`${id}: load cannot be negative.`);});
+  ["qa","gamma_s","gamma_c","q_sur"].forEach(id=>{if(Number.isFinite(SI[id]) && SI[id]<0) issues.push(`${id}: cannot be negative.`);});
+  if(Number.isFinite(SI["B"]) && Number.isFinite(SI["cx"]) && SI["cx"]/1000>=SI["B"]) issues.push("Column cx must be smaller than footing width B.");
+  if(Number.isFinite(SI["L"]) && Number.isFinite(SI["cy"]) && SI["cy"]/1000>=SI["L"]) issues.push("Column cy must be smaller than footing length L.");
+  if(Number.isFinite(SI["h"]) && Number.isFinite(SI["Df"]) && SI["h"]/1000>SI["Df"]) issues.push("Footing thickness cannot exceed embedment depth in this soil-cover model.");
+  if(Number.isFinite(SI["cover"]) && Number.isFinite(SI["h"]) && SI["cover"]>=SI["h"]) issues.push("Concrete cover must be less than footing thickness.");
+  if(Number.isFinite(SI["db"]) && Number.isFinite(SI["h"]) && SI["cover"]+SI["db"]/2>=SI["h"]) issues.push("Effective depth d is not positive. Check h, cover and bar diameter.");
+  if(Number.isFinite(SI["dw"]) && Number.isFinite(SI["Df"]) && SI["dw"]<0) issues.push("Water table depth cannot be negative.");
+  // Load application point is fixed at NGL. Therefore its elevation above footing base equals Df.
+  if(Number.isFinite(SI["Df"])) { SI["hL"] = SI["Df"]; }
+  IDS.forEach(id=>document.getElementById(id)?.classList.toggle("invalid",issues.some(x=>x.startsWith(id+":"))));
+  const box=document.getElementById("input_error");
+  if(issues.length){box.style.display="block";box.innerHTML="<strong>Input review required</strong><br>"+issues.join("<br>");}
+  else {box.style.display="none";box.textContent="";}
+  return {ok:issues.length===0,SI,raw,system};
+}
+
+function runCalculations(){
+  try {
+  const vr=validateInputs(); if(!vr.ok){ clearResults(); return; }
+  const {SI,raw,system}=vr;
+  const B=SI.B,L=SI.L,h=SI.h/1000,Df=SI.Df,cx=SI.cx/1000,cy=SI.cy/1000;
+  const ox=SI.offset_x,oy=SI.offset_y,fc=SI.fc,fy=SI.fy,cover=SI.cover,db=SI.db;
+  const PDL=SI.PDL,PLL=SI.PLL,MX=SI.MX,MY=SI.MY,HX=SI.HX,HY=SI.HY,hL=Df,qa=SI.qa,gs=SI.gamma_s,gc=SI.gamma_c,qsur=SI.q_sur,dw=SI.dw;
+  const gammaW=9.81, lambda=1.0, phiV=0.75, phiFlex=0.90, betaMin=1e-9;
+
+  // 1. Service geotechnical model
+  const A=B*L;
+  const Wf=A*h*gc;
+  const soilHeight=Math.max(0,Df-h);
+  const aboveWT=Math.min(soilHeight,Math.max(0,dw));
+  const belowWT=Math.max(0,soilHeight-aboveWT);
+  const Wsoil=A*(aboveWT*gs + belowWT*Math.max(0,gs-gammaW));
+  const Wsur=A*qsur;
+
+  // Net hydrostatic uplift across the footing thickness only.
+  // This avoids the original model's over-aggressive use of a water head over full embedment.
+  const waterHeadAtBottom=Math.max(0,Df-dw);
+  const submergedThickness=Math.min(h,waterHeadAtBottom);
+  const U=A*gammaW*submergedThickness;
+
+  const Psvc=PDL+PLL+Wf+Wsoil+Wsur-U;
+  if(Psvc<=0){showFatal("Net service vertical compression is not positive after uplift."); return;}
+
+  const Vh=Math.hypot(HX,HY);
+  const MxLat=HY*hL;
+  const MyLat=HX*hL;
+  const MxRes=MX+Psvc*oy+MxLat;
+  const MyRes=MY+Psvc*ox+MyLat;
+  const ex=MyRes/Psvc;
+  const ey=MxRes/Psvc;
+  const kernX=B/6, kernY=L/6;
+  const noTension=(Math.abs(ex)<=kernX && Math.abs(ey)<=kernY);
+
+  // Elastic corner pressures, valid for full-contact rectangular pressure.
+  let qCorners;
+  if(noTension){
+    const q0=Psvc/A;
+    qCorners=[
+      q0*(1+6*ex/B+6*ey/L)+qsur,
+      q0*(1+6*ex/B-6*ey/L)+qsur,
+      q0*(1-6*ex/B+6*ey/L)+qsur,
+      q0*(1-6*ex/B-6*ey/L)+qsur
+    ];
+  }else{
+    // Do not present a fabricated "exact" partial-contact equation.
+    // The tool flags loss of full contact and requires a more detailed contact analysis.
+    qCorners=[NaN,NaN,NaN,NaN];
+  }
+  const qmax=noTension?Math.max(...qCorners):NaN;
+  const qmin=noTension?Math.min(...qCorners):NaN;
+  const bearingPass=noTension && qmax<=qa && qmin>=0;
+
+  const FSx=Math.abs(MyRes)<1e-9?Infinity:(Psvc*(B/2))/Math.abs(MyRes);
+  const FSy=Math.abs(MxRes)<1e-9?Infinity:(Psvc*(L/2))/Math.abs(MxRes);
+  const FSmin=Math.min(FSx,FSy);
+  const mu=0.35;
+  const Rfric=mu*Math.max(Psvc,0);
+  const FSslide=Vh<1e-9?Infinity:Rfric/Vh;
+  const otPass=FSmin>=1.5;
+  const slidePass=FSslide>=1.5;
+
+  setText("sub_Ptotal",
+    `Psvc = ${fmt(PDL,1)} + ${fmt(PLL,1)} + Wf(${fmt(Wf,1)}) + Wsoil(${fmt(Wsoil,1)}) + Wsur(${fmt(Wsur,1)}) − U(${fmt(U,1)}) = ${fmt(Psvc,2)} kN`);
+  setText("sub_pressure",
+    `Vh = √(Hx² + Hy²) = ${fmt(Vh,2)} kN; load acts at NGL; hL = Df = ${fmt(Df,2)} m; Mlat,x = Hy·Df = ${fmt(MxLat,2)} kN-m; Mlat,y = Hx·Df = ${fmt(MyLat,2)} kN-m\n`+
+    `ex = My,res/P = ${fmt(MyRes,2)}/${fmt(Psvc,2)} = ${fmt(ex,3)} m; ey = Mx,res/P = ${fmt(MxRes,2)}/${fmt(Psvc,2)} = ${fmt(ey,3)} m
+`+
+    (noTension
+      ? `qcorner = (P/A)[1 ± 6ex/B ± 6ey/L] + qsur; qmin = ${fmt(qmin,2)} kPa; qmax = ${fmt(qmax,2)} kPa`
+      : `|ex| > B/6 or |ey| > L/6. Full-contact elastic pressure equation is invalid. Detailed partial-contact analysis is required.`)
+  );
+  setText("res_qmax",Number.isFinite(qmax)?fmt(system==="SI"?qmax:qmax/0.04788025898,1):"N/A");
+  setText("lbl_qa",fmt(system==="SI"?qa:qa/0.04788025898,0));
+  setBadgeStatus("badge_bearing",bearingPass);
+  setText("sub_ot",
+    `FSx = P(B/2)/|My,res| = ${fmt(FSx,2)}; FSy = P(L/2)/|Mx,res| = ${fmt(FSy,2)}; minimum = ${fmt(FSmin,2)}\n`+
+    `FSsliding = μP/H = 0.35·${fmt(Psvc,2)}/${fmt(Vh,2)} = ${Number.isFinite(FSslide)?fmt(FSslide,2):"∞"}`);
+  setText("res_fs",Number.isFinite(FSmin)?fmt(FSmin,2):"∞");
+  setBadgeStatus("badge_ot",otPass);
+
+  // 2. Ultimate structural demands. Moments are multiplied by 1.6 to remain conservative
+  // when the user has not split dead/live moment components.
+  const Pu=1.2*(PDL+Wf+Wsoil)+1.6*PLL+1.2*Wsur;
+  const Hxu=HX, Hyu=HY;
+  const Mxu=1.6*MX + Hyu*hL;
+  const Myu=1.6*MY + Hxu*hL;
+  const exu=(Myu/Pu)+ox;
+  const eyu=(Mxu/Pu)+oy;
+  const qu0=Pu/A;
+  const quCorners=[
+    qu0*(1+6*exu/B+6*eyu/L)+1.2*qsur,
+    qu0*(1+6*exu/B-6*eyu/L)+1.2*qsur,
+    qu0*(1-6*exu/B+6*eyu/L)+1.2*qsur,
+    qu0*(1-6*exu/B-6*eyu/L)+1.2*qsur
+  ];
+  const quMax=Math.max(...quCorners);
+  const quFullContact=(Math.abs(exu)<=B/6 && Math.abs(eyu)<=L/6 && Math.min(...quCorners)>=0);
+
+  setText("sub_qu",`Pu = 1.2(PDL+Wf+Wsoil) + 1.6PLL + 1.2Wsur = ${fmt(Pu,2)} kN | qu,avg = ${fmt(qu0,2)} kPa | Mu = 1.6·Mservice`);
+
+  // 3. Effective depth
+  const d=SI.h-cover-db/2;
+  const bW=B*1000,bL=L*1000;
+  const dmm=d;
+  if(dmm<=0){showFatal("Effective depth d is not positive."); return;}
+
+  // 4. One-way shear, both directions. Conservative use of factored maximum pressure.
+  const projX1=Math.max(0,B/2-cx/2-d);
+  const projX2=Math.max(0,B/2+ox-cx/2-d, B/2-ox-cx/2-d);
+  const projX=Math.max(projX1,projX2);
+  const projY1=Math.max(0,L/2-cy/2-d);
+  const projY2=Math.max(0,L/2+oy-cy/2-d, L/2-oy-cy/2-d);
+  const projY=Math.max(projY1,projY2);
+  const VuX=Math.hypot(quMax*L*projX,Hxu);
+  const VuY=Math.hypot(quMax*B*projY,Hyu);
+  const VcX=(0.17*lambda*Math.sqrt(Math.max(fc,0))*L*1000*dmm)/1000;
+  const VcY=(0.17*lambda*Math.sqrt(Math.max(fc,0))*B*1000*dmm)/1000;
+  const phiVcX=phiV*VcX,phiVcY=phiV*VcY;
+  const DCRx=VuX/Math.max(phiVcX,1e-9),DCRy=VuY/Math.max(phiVcY,1e-9);
+  const oneWayPass=DCRx<=1 && DCRy<=1;
+
+  setText("sub_oneway",
+    `B-direction: Vu = qu,max(${fmt(quMax,2)})·L(${fmt(L,2)})·x(${fmt(projX,3)}) = ${fmt(VuX,1)} kN; φVc = ${fmt(phiVcX,1)} kN
+`+
+    `L-direction: Vu = qu,max(${fmt(quMax,2)})·B(${fmt(B,2)})·y(${fmt(projY,3)}) = ${fmt(VuY,1)} kN; φVc = ${fmt(phiVcY,1)} kN`);
+  const maxVu=Math.max(VuX,VuY), maxPhiVc=Math.min(phiVcX,phiVcY);
+  setText("res_vu1",fmt(system==="SI"?maxVu:maxVu/4.4482216153,1));
+  setText("res_vc1",fmt(system==="SI"?maxPhiVc:maxPhiVc/4.4482216153,1));
+  setBadgeStatus("badge_oneway",oneWayPass);
+
+  // 5. Punching shear. Critical perimeter at d/2 from column face.
+  const b0=2*((cx*1000+dmm)+(cy*1000+dmm));
+  const Acrit=((cx*1000+dmm)*(cy*1000+dmm))/1e6;
+  const Vu2=Math.max(0,Pu-quMax*Acrit);
+  const beta=Math.max(cx,cy)/Math.max(Math.min(cx,cy),betaMin);
+  const alphaS=40;
+  const v1=(0.17+3/beta)*lambda*Math.sqrt(Math.max(fc,0));
+  const v2=(alphaS*dmm/(b0)+0.19)*lambda*Math.sqrt(Math.max(fc,0));
+  const v3=0.33*lambda*Math.sqrt(Math.max(fc,0));
+  const vcPunch=Math.min(v1,v2,v3)*b0*dmm/1000;
+  const phiVcp=phiV*vcPunch;
+  const punchDCR=Vu2/Math.max(phiVcp,1e-9);
+  const punchPass=Vu2<=phiVcp;
+  setText("sub_twoway",
+    `b0 = 2[(cx+d)+(cy+d)] = ${fmt(b0,1)} mm; Acrit = (cx+d)(cy+d) = ${fmt(Acrit,3)} m²
+`+
+    `Vu = Pu − qu,max·Acrit = ${fmt(Pu,2)} − ${fmt(quMax,2)}·${fmt(Acrit,3)} = ${fmt(Vu2,1)} kN
+`+
+    `Vc = min[v1=${fmt(v1,3)}, v2=${fmt(v2,3)}, v3=${fmt(v3,3)}]·b0·d = ${fmt(vcPunch,1)} kN; φVc = ${fmt(phiVcp,1)} kN`);
+  setText("res_vu2",fmt(system==="SI"?Vu2:Vu2/4.4482216153,1));
+  setText("res_vc2",fmt(system==="SI"?phiVcp:phiVcp/4.4482216153,1));
+  setBadgeStatus("badge_twoway",punchPass);
+
+  // 6. Flexure, both directions. Conservative max-pressure cantilever method.
+  const cantB=Math.max(B/2+ox-cx/2,B/2-ox-cx/2,0);
+  const cantL=Math.max(L/2+oy-cy/2,L/2-oy-cy/2,0);
+  const MuB=quMax*L*cantB*cantB/2;
+  const MuL=quMax*B*cantL*cantL/2;
+  const AsB=requiredAs(MuB*1e6,bW,fy,dmm,fc,phiFlex);
+  const AsL=requiredAs(MuL*1e6,bL,fy,dmm,fc,phiFlex);
+  const AsMinB=0.0018*bW*SI.h;
+  const AsMinL=0.0018*bL*SI.h;
+  const AsReqB=Math.max(AsB,AsMinB), AsReqL=Math.max(AsL,AsMinL);
+  const barA=Math.PI*db*db/4;
+  const nB=Math.max(2,Math.ceil(AsReqB/barA));
+  const nL=Math.max(2,Math.ceil(AsReqL/barA));
+  const clearB=Math.max(0,bW-2*cover),clearL=Math.max(0,bL-2*cover);
+  const spB=nB>1?clearB/(nB-1):clearB;
+  const spL=nL>1?clearL/(nL-1):clearL;
+  const AsProvB=nB*barA,AsProvL=nL*barA;
+  const flexPass=AsProvB>=AsReqB && AsProvL>=AsReqL;
+
+  const barDiaDisp=system==="SI"?`${fmt(db,0)} mm`:`${fmt(db/25.4,2)} in`;
+  const spBDisp=system==="SI"?`${fmt(spB,0)} mm`:`${fmt(spB/25.4,1)} in`;
+  const spLDisp=system==="SI"?`${fmt(spL,0)} mm`:`${fmt(spL/25.4,1)} in`;
+  const asBDisp=system==="SI"?fmt(AsReqB,1):fmt(AsReqB/645.16,2);
+  const asLDisp=system==="SI"?fmt(AsReqL,1):fmt(AsReqL/645.16,2);
+  const asMinBDisp=system==="SI"?fmt(AsMinB,1):fmt(AsMinB/645.16,2);
+  const asMinLDisp=system==="SI"?fmt(AsMinL,1):fmt(AsMinL/645.16,2);
+  const asProvBDisp=system==="SI"?fmt(AsProvB,1):fmt(AsProvB/645.16,2);
+  const asProvLDisp=system==="SI"?fmt(AsProvL,1):fmt(AsProvL/645.16,2);
+  const areaUnit=system==="SI"?"mm²":"in²";
+  const momentUnit=system==="SI"?"kN-m":"kip-ft";
+  setText("sub_flexure",
+    `B-direction: Mu = qu,max·L·cB²/2 = ${fmt(quMax,2)}·${fmt(L,2)}·${fmt(cantB,3)}²/2 = ${fmt(MuB,2)} kN-m; As,flex = ${fmt(AsB,1)} mm²; As,min = ${fmt(AsMinB,1)} mm²; As,req = max = ${fmt(AsReqB,1)} mm²
+`+
+    `L-direction: Mu = qu,max·B·cL²/2 = ${fmt(quMax,2)}·${fmt(B,2)}·${fmt(cantL,3)}²/2 = ${fmt(MuL,2)} kN-m; As,flex = ${fmt(AsL,1)} mm²; As,min = ${fmt(AsMinL,1)} mm²; As,req = max = ${fmt(AsReqL,1)} mm²`);
+  const governingAs=Math.max(AsReqB,AsReqL);
+  const governingMin=Math.max(AsMinB,AsMinL);
+  setText("res_as",system==="SI"?fmt(governingAs,1):fmt(governingAs/645.16,2));
+  setText("res_asmin",system==="SI"?fmt(governingMin,1):fmt(governingMin/645.16,2));
+  setText("res_flex_B",
+    `Mu = ${fmt(MuB,2)} ${momentUnit} | As,req = ${asBDisp} ${areaUnit} | As,min = ${asMinBDisp} ${areaUnit} | As,prov = ${asProvBDisp} ${areaUnit} | `+
+    `REQUIRED: ${nB} pcs Ø${barDiaDisp} @ ${spBDisp} o.c. | DCR = ${fmt(AsReqB/Math.max(AsProvB,1e-9),2)}`);
+  setText("res_flex_L",
+    `Mu = ${fmt(MuL,2)} ${momentUnit} | As,req = ${asLDisp} ${areaUnit} | As,min = ${asMinLDisp} ${areaUnit} | As,prov = ${asProvLDisp} ${areaUnit} | `+
+    `REQUIRED: ${nL} pcs Ø${barDiaDisp} @ ${spLDisp} o.c. | DCR = ${fmt(AsReqL/Math.max(AsProvL,1e-9),2)}`);
+  setText("res_layout",
+    `B-DIR: ${nB} pcs Ø${barDiaDisp} @ ${spBDisp} o.c.    |    L-DIR: ${nL} pcs Ø${barDiaDisp} @ ${spLDisp} o.c.`);
+  setBadgeStatus("badge_flex",flexPass);
+
+  // 7. Overall status. Loss of service full contact is treated as fail rather than hidden.
+  const dcr=Math.max(
+    Number.isFinite(qmax)?qmax/Math.max(qa,1e-9):Infinity,
+    FSmin>0?1.5/FSmin:Infinity,
+    DCRx,DCRy,punchDCR,
+    AsReqB/Math.max(AsProvB,1e-9),AsReqL/Math.max(AsProvL,1e-9)
+  );
+  const masterPass=bearingPass && otPass && slidePass && oneWayPass && punchPass && flexPass && quFullContact;
+  setBadgeStatus("master_status",masterPass,"ADEQUATE","INADEQUATE");
+  setText("kpi_qmax",Number.isFinite(qmax)?fmt(system==="SI"?qmax:qmax/0.04788025898,1):"N/A");
+  setText("kpi_contact",noTension?"FULL CONTACT":"LOSS OF CONTACT");
+  setText("kpi_fs",Number.isFinite(FSmin)?fmt(FSmin,2):"∞");
+  setText("kpi_dcr",fmt(dcr,2));
+
+  drawCanvases({B,L,h,Df,cx,cy,ox,oy,dw,qmax,qmin,PDL,PLL,MX,MY,HX,HY,hL,qSur:qsur,system,nB,nL,db,cover});
+  } catch (err) {
+    console.error("Calculation error:", err);
+    const box=document.getElementById("input_error");
+    if(box){ box.style.display="block"; box.innerHTML=`<strong>Calculation error</strong><br>${String(err.message || err)}`; }
+    clearResults();
+  }
+}
+
+function requiredAs(MuNmm,bmm,fyMPa,dmm,fcMPa,phi){
+  if(MuNmm<=0) return 0;
+  let As=Math.max(1,MuNmm/(phi*fyMPa*Math.max(1,dmm-10)));
+  for(let i=0;i<25;i++){
+    const a=As*fyMPa/(0.85*fcMPa*bmm);
+    const jd=Math.max(1,dmm-a/2);
+    const next=MuNmm/(phi*fyMPa*jd);
+    if(Math.abs(next-As)<1e-6) return next;
+    As=next;
+  }
+  return As;
+}
+
+function clearResults(){
+  ["res_qmax","res_fs","res_vu1","res_vc1","res_vu2","res_vc2","res_as","res_asmin","res_layout",
+   "sub_Ptotal","sub_pressure","sub_ot","sub_qu","sub_oneway","sub_twoway","sub_flexure","res_flex_B","res_flex_L"].forEach(id=>setText(id,"-"));
+  ["badge_bearing","badge_ot","badge_oneway","badge_twoway","badge_flex","master_status"].forEach(id=>setNA(id));
+  setText("kpi_qmax","-");setText("kpi_contact","-");setText("kpi_fs","-");setText("kpi_dcr","-");
+}
+
+function showFatal(msg){
+  const box=document.getElementById("input_error");
+  box.style.display="block";box.innerHTML=`<strong>Calculation stopped</strong><br>${msg}`;
+  clearResults();
+}
+
+function prepareCanvas(id, aspect=400/260){
+  const c=document.getElementById(id);
+  if(!c) return null;
+  const rect=c.getBoundingClientRect();
+  const cssW=Math.max(280, Math.round(rect.width || 400));
+  const cssH=Math.max(180, Math.round(cssW/aspect));
+  const dpr=window.devicePixelRatio||1;
+  c.width=Math.round(cssW*dpr);
+  c.height=Math.round(cssH*dpr);
+  c.style.height=cssH+'px';
+  const ctx=c.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,cssW,cssH);
+  return {c,ctx,W:cssW,H:cssH};
+}
+
+function drawCanvases(x){
+  drawPlan(x); drawElevation(x); drawPressure(x); drawRebar(x); draw3D(x);
+}
+
+const view3D={yaw:-0.72,pitch:0.46,zoom:1.0,drag:false,lastX:0,lastY:0};
+function init3DControls(){
+  const c=document.getElementById("threeDCanvas"); if(!c || c.__controlsReady) return;
+  c.__controlsReady=true;
+  c.addEventListener("pointerdown",e=>{view3D.drag=true;view3D.lastX=e.clientX;view3D.lastY=e.clientY;c.setPointerCapture(e.pointerId);c.style.cursor="grabbing";});
+  c.addEventListener("pointermove",e=>{if(!view3D.drag)return;const dx=e.clientX-view3D.lastX,dy=e.clientY-view3D.lastY;view3D.lastX=e.clientX;view3D.lastY=e.clientY;view3D.yaw+=dx*0.012;view3D.pitch=clamp(view3D.pitch+dy*0.009,-0.15,1.15);draw3D(last3DData||{});});
+  c.addEventListener("pointerup",()=>{view3D.drag=false;c.style.cursor="grab";});
+  c.addEventListener("wheel",e=>{e.preventDefault();view3D.zoom=clamp(view3D.zoom*(e.deltaY>0?0.92:1.09),0.55,1.8);draw3D(last3DData||{});},{passive:false});
+}
+let last3DData=null;
+function isoProject(x,y,z,scale,cx,cy){
+  const cyaw=Math.cos(view3D.yaw),syaw=Math.sin(view3D.yaw);
+  const X=x*cyaw-y*syaw, Y=x*syaw+y*cyaw;
+  const cp=Math.cos(view3D.pitch),sp=Math.sin(view3D.pitch);
+  return {x:cx+(X)*scale, y:cy+(Y*cp-z*sp)*scale};
+}
+function draw3D(data){
+  const c=document.getElementById("threeDCanvas"); if(!c)return;
+  init3DControls(); last3DData=data;
+  const v=prepareCanvas("threeDCanvas",800/420); if(!v)return; const ctx=v.ctx,W=v.W,H=v.H;
+  const {B=2,L=2,h=0.5,Df=1.5,cx=0.4,cy=0.4,ox=0,oy=0,db=20,nB=8,nL=8,HX=0,HY=0,hL=0,PDL=0,PLL=0,MX=0,MY=0,system="SI"}=data;
+  const topZ=Math.max(h+0.001,Df);
+  const scale=(Math.min(W,H)*0.72/Math.max(B,L,Math.max(topZ,Df)))*view3D.zoom;
+  const origin={x:W/2,y:H*0.66};
+  const P=(x,y,z)=>isoProject(x,y,z,scale,origin.x,origin.y);
+  function poly(points,fill,stroke="#475467"){ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.closePath();if(fill){ctx.fillStyle=fill;ctx.fill();}ctx.strokeStyle=stroke;ctx.lineWidth=1.3;ctx.stroke();}
+  function line(a,b,color="#475467",w=1,dash=[]){ctx.strokeStyle=color;ctx.lineWidth=w;ctx.setLineDash(dash);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();ctx.setLineDash([]);}
+  function text(t,x,y,size=10,color="#101828",align="left"){ctx.fillStyle=color;ctx.font=`bold ${size}px sans-serif`;ctx.textAlign=align;ctx.fillText(t,x,y);}
+  function arrow3(a,b,color,label){line(a,b,color,2.5);const ang=Math.atan2(b.y-a.y,b.x-a.x);ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(b.x,b.y);ctx.lineTo(b.x-9*Math.cos(ang-Math.PI/6),b.y-9*Math.sin(ang-Math.PI/6));ctx.lineTo(b.x-9*Math.cos(ang+Math.PI/6),b.y-9*Math.sin(ang+Math.PI/6));ctx.closePath();ctx.fill();text(label,(a.x+b.x)/2,(a.y+b.y)/2-7,9,color,"center");}
+
+  // Natural ground plane is at z = Df. The footing base is z = 0.
+  const groundZ=Df;
+  const ground=[P(-B*0.9,-L*0.9,groundZ),P(B*0.9,-L*0.9,groundZ),P(B*0.9,L*0.9,groundZ),P(-B*0.9,L*0.9,groundZ)];
+  poly(ground,"rgba(244,246,248,.92)","#cfd4dc");
+  text("NGL",P(-B*0.78,-L*0.78,groundZ).x,P(-B*0.78,-L*0.78,groundZ).y-4,9,"#694b1f","left");
+
+  // Footing solid. Draw all six faces so the rear and underside remain visible
+  // while the view is rotated. The rear face also provides a proper closed-volume cue.
+  const fx=B/2,fy=L/2;
+  const f000=P(-fx,-fy,0),f100=P(fx,-fy,0),f110=P(fx,fy,0),f010=P(-fx,fy,0);
+  const f001=P(-fx,-fy,h),f101=P(fx,-fy,h),f111=P(fx,fy,h),f011=P(-fx,fy,h);
+  poly([f001,f101,f111,f011],"#d8dde5");              // top
+  poly([f000,f100,f101,f001],"#c8ced8");              // front
+  poly([f100,f110,f111,f101],"#bcc3cf");              // right
+  poly([f110,f010,f011,f111],"#aeb7c4");              // rear
+  poly([f010,f000,f001,f011],"#b8c0cc");              // left
+  poly([f000,f010,f110,f100],"#a6afbc");              // underside
+
+  // Column located by actual offsets
+  const cox=ox, coy=oy;
+  const cx0=cox-cx/2,cx1=cox+cx/2,cy0=coy-cy/2,cy1=coy+cy/2;
+  const c000=P(cx0,cy0,h),c100=P(cx1,cy0,h),c110=P(cx1,cy1,h),c010=P(cx0,cy1,h);
+  const c001=P(cx0,cy0,topZ),c101=P(cx1,cy0,topZ),c111=P(cx1,cy1,topZ),c011=P(cx0,cy1,topZ);
+  poly([c001,c101,c111,c011],"#64748b");          // top
+  poly([c000,c100,c101,c001],"#536273");          // front
+  poly([c100,c110,c111,c101],"#475467");          // right
+  poly([c110,c010,c011,c111],"#3f4b59");          // rear
+  poly([c010,c000,c001,c011],"#4b5968");          // left
+
+  // Rebar indication on top surface
+  ctx.strokeStyle="#d92d20";ctx.lineWidth=1;
+  for(let i=0;i<Math.min(nB,12);i++){const t=(Math.min(nB,12)===1?0.5:i/(Math.min(nB,12)-1));line(P(-fx+0.08,-fy+0.08+t*(L-0.16),h+0.006),P(fx-0.08,-fy+0.08+t*(L-0.16),h+0.006),"#d92d20",1);}
+  for(let i=0;i<Math.min(nL,12);i++){const t=(Math.min(nL,12)===1?0.5:i/(Math.min(nL,12)-1));line(P(-fx+0.08+t*(B-0.16),-fy+0.08,h+0.009),P(-fx+0.08+t*(B-0.16),fy-0.08,h+0.009),"#d92d20",1);}
+
+  // Global axis triad and independent load vectors.
+  // IMPORTANT: Hx is strictly parallel to global +X/-X. Hy is strictly parallel to global +Y/-Y.
+  // The camera projection changes their appearance on screen, but never changes their 3D direction.
+  const top=P(cox,coy,topZ);
+  const loadScale=Math.max(B,L)*0.34;
+  const axisBase=P(0,0,0.06);
+  const xTip=P(Math.max(B,L)*0.28,0,0.06);
+  const yTip=P(0,Math.max(B,L)*0.28,0.06);
+  line(axisBase,xTip,"#b42318",1.8); line(axisBase,yTip,"#d92d20",1.8);
+  ctx.fillStyle="#b42318";ctx.beginPath();ctx.arc(xTip.x,xTip.y,3,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle="#d92d20";ctx.beginPath();ctx.arc(yTip.x,yTip.y,3,0,Math.PI*2);ctx.fill();
+  text("+X",xTip.x+7,xTip.y+2,8,"#b42318","left");
+  text("+Y",yTip.x+7,yTip.y+2,8,"#d92d20","left");
+  text("Z",axisBase.x+7,axisBase.y-6,8,"#155eef","left");
+
+  // Positive axial P is compression into the footing, therefore it is DOWNWARD in global -Z.
+  arrow3(top,P(cox,coy,topZ-loadScale),"#155eef",`P ↓ = ${fmt(PDL+PLL,1)} ${system==="SI"?"kN":"kips"}`);
+
+  // Hx: independent global-X force. Positive = +X, negative = -X.
+  if(Math.abs(HX)>1e-9){
+    const xEnd=P(cox+Math.sign(HX)*loadScale,coy,topZ);
+    arrow3(top,xEnd,"#b42318",`Hx ${HX>=0?"+X":"−X"} = ${fmt(Math.abs(HX),1)} ${system==="SI"?"kN":"kips"}`);
+  }
+  // Hy: independent global-Y force. Positive = +Y, negative = -Y.
+  if(Math.abs(HY)>1e-9){
+    const yEnd=P(cox,coy+Math.sign(HY)*loadScale,topZ);
+    arrow3(top,yEnd,"#d92d20",`Hy ${HY>=0?"+Y":"−Y"} = ${fmt(Math.abs(HY),1)} ${system==="SI"?"kN":"kips"}`);
+  }
+
+  // Moment vector arcs at top of column, with arrowheads
+  function momentArc(mx,my,r,color,label){
+    if(Math.abs(mx)+Math.abs(my)<1e-9)return;
+    const center=top; const rr=r; const start=mx>=0?0.35*Math.PI:1.35*Math.PI; const end=mx>=0?1.65*Math.PI:2.65*Math.PI;
+    ctx.strokeStyle=color;ctx.lineWidth=2.3;ctx.beginPath();ctx.arc(center.x,center.y,rr,start,end);ctx.stroke();
+    const a=end;const ax=center.x+rr*Math.cos(a),ay=center.y+rr*Math.sin(a);ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(ax-9*Math.cos(a-0.5),ay-9*Math.sin(a-0.5));ctx.lineTo(ax-9*Math.cos(a+0.5),ay-9*Math.sin(a+0.5));ctx.closePath();ctx.fill();text(label,center.x,center.y-rr-8,8,color,"center");
+  }
+  momentArc(MX,0,24,"#7c3aed",`Mx = ${fmt(MX,1)}`);
+  momentArc(MY,0,34,"#c026d3",`My = ${fmt(MY,1)}`);
+
+  // Dimensions
+  const dimY=H-38;
+  line(P(-fx,-fy,0),P(-fx,-fy,0),"#667085");
+  const b1=P(-fx,-fy,-0.15),b2=P(fx,-fy,-0.15);line(b1,b2,"#344054",1.1);
+  text(`B = ${system==="SI"?fmt(B,2)+" m":fmt(B/0.3048,2)+" ft"}`,(b1.x+b2.x)/2,(b1.y+b2.y)/2-5,9,"#344054","center");
+  const l1=P(fx,-fy,-0.05),l2=P(fx,fy,-0.05);line(l1,l2,"#344054",1.1);
+  text(`L = ${system==="SI"?fmt(L,2)+" m":fmt(L/0.3048,2)+" ft"}`,(l1.x+l2.x)/2+8,(l1.y+l2.y)/2,9,"#344054","left");
+  const d1=P(-fx-L*0.02,-fy,0),d2=P(-fx-L*0.02,-fy,Df);line(d1,d2,"#344054",1.1);
+  text(`Df = ${system==="SI"?fmt(Df,2)+" m":fmt(Df/0.3048,1)+" ft"}`,d1.x-4,(d1.y+d2.y)/2,9,"#344054","right");
+  text(`NGL → Top of footing = ${system==="SI"?fmt(Math.max(0,Df-h),2)+" m":fmt(Math.max(0,Df-h)/0.3048,2)+" ft"}`,12,H-27,9,"#475467","left");
+  text(`LOAD APPLICATION = NGL; NGL→LOAD LEVEL = 0.00 ${system==="SI"?"m":"ft"}`,W-12,H-27,9,"#475467","right");
+  text(`Column offset: ox = ${system==="SI"?fmt(ox,3)+" m":fmt(ox/0.3048,2)+" ft"}, oy = ${system==="SI"?fmt(oy,3)+" m":fmt(oy/0.3048,2)+" ft"}`,W/2,H-12,9,"#475467","center");
+  text("Global axes: X / Y / Z. Hx and Hy are separate vectors.",W-10,18,8,"#667085","right");
+  text("Interactive 3D. Drag to rotate. Scroll to zoom.",W-10,30,8,"#667085","right");
+}
+function fitScale(value,maxPx,minPx=20){return Math.max(minPx,Math.min(maxPx,value));}
+function arrowHead(ctx,x,y,angle,size=7){
+  ctx.beginPath();
+  ctx.moveTo(x,y);
+  ctx.lineTo(x-size*Math.cos(angle-Math.PI/6),y-size*Math.sin(angle-Math.PI/6));
+  ctx.lineTo(x-size*Math.cos(angle+Math.PI/6),y-size*Math.sin(angle+Math.PI/6));
+  ctx.closePath();ctx.fill();
+}
+function drawPlan({B,L,cx,cy,ox,oy,system}){
+  const v=prepareCanvas('planCanvas');if(!v)return;
+  const {c,ctx,W,H}=v;
+  const margin={l:42,r:28,t:32,b:26};
+  const availW=W-margin.l-margin.r,availH=H-margin.t-margin.b;
+  const s=Math.min(availW/Math.max(B,0.001),availH/Math.max(L,0.001));
+  const x0=margin.l+availW/2,y0=margin.t+availH/2;
+  const w=B*s,l=L*s,cw=cx*s,cl=cy*s;
+  ctx.fillStyle='#e5e7eb';ctx.strokeStyle='#344054';ctx.lineWidth=2;
+  ctx.fillRect(x0-w/2,y0-l/2,w,l);ctx.strokeRect(x0-w/2,y0-l/2,w,l);
+  ctx.strokeStyle='#98a2b3';ctx.lineWidth=1;ctx.setLineDash([4,4]);ctx.beginPath();
+  ctx.moveTo(x0-w/2-12,y0);ctx.lineTo(x0+w/2+12,y0);ctx.moveTo(x0,y0-l/2-12);ctx.lineTo(x0,y0+l/2+12);ctx.stroke();ctx.setLineDash([]);
+  const ccx=x0+ox*s,ccy=y0-oy*s;
+  ctx.fillStyle='#475467';ctx.strokeStyle='#101828';ctx.lineWidth=1.5;
+  ctx.fillRect(ccx-cw/2,ccy-cl/2,cw,cl);ctx.strokeRect(ccx-cw/2,ccy-cl/2,cw,cl);
+  ctx.fillStyle='#1d2939';ctx.font=`bold ${Math.max(9,W/46)}px sans-serif`;ctx.textAlign='center';
+  ctx.fillText(`B = ${system==='SI'?fmt(B,2)+' m':fmt(B/0.3048,2)+' ft'}`,x0,17);
+  ctx.fillText(`L = ${system==='SI'?fmt(L,2)+' m':fmt(L/0.3048,2)+' ft'}`,x0,H-7);
+  ctx.textAlign='left';ctx.font=`bold ${Math.max(8,W/52)}px sans-serif`;
+  ctx.fillText(`Column = ${system==='SI'?fmt(cx*1000,0)+' × '+fmt(cy*1000,0)+' mm':fmt(cx/0.0254,1)+' × '+fmt(cy/0.0254,1)+' in'}`,8,H-26);
+  ctx.fillText(`Offset X ${system==='SI'?fmt(ox,3)+' m':fmt(ox/0.3048,2)+' ft'} | Y ${system==='SI'?fmt(oy,3)+' m':fmt(oy/0.3048,2)+' ft'}`,8,28);
+}
+function drawElevation({B,L,h,Df,cx,cy,dw,system,PDL,PLL,MX,MY,HX,HY,hL=1.0,ox,oy}){
+  const v=prepareCanvas('elevationCanvas');if(!v)return;
+  const {c,ctx,W,H}=v;
+  const leftMargin=48,rightMargin=58,topMargin=54,bottomMargin=46;
+  const groundY=topMargin;
+  const soilAvailH=H-topMargin-bottomMargin;
+  const maxDepthPx=Math.min(155,soilAvailH-8);
+  const sv=maxDepthPx/Math.max(Df+0.5,0.5);
+  const embedPx=Math.max(48,Df*sv);
+  const hPx=Math.max(20,Math.min(90,h*sv));
+  const padBottomY=groundY+embedPx;
+  const padTopY=padBottomY-hPx;
+  const topZ=Math.max(h+0.001,Df);
+  const columnAboveFooting=Math.max(0,topZ-h);
+  const colAbovePx=Math.max(26,columnAboveFooting*sv);
+  const availW=W-leftMargin-rightMargin;
+  const padW=clamp(availW*0.58,125,Math.min(240,availW));
+  const colW=clamp(padW*(cx/Math.max(B,0.001)),34,Math.min(86,padW*.45));
+  const xc=leftMargin+availW/2;
+  const colCenterX=xc+(ox/Math.max(B,0.001))*padW;
+  const colTop=padBottomY-topZ*sv;
+  const colBottom=padTopY;
+  const waterY=groundY+dw*sv;
+
+  // Soil background and water zone.
+  ctx.fillStyle='#f6d7a8';ctx.fillRect(leftMargin,groundY,availW,Math.max(0,padBottomY-groundY+8));
+  if(waterY<padBottomY+8){ctx.fillStyle='#b9def8';ctx.fillRect(leftMargin,Math.max(groundY,waterY),availW,(padBottomY+8)-Math.max(groundY,waterY));}
+  ctx.strokeStyle='#694b1f';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(leftMargin-4,groundY);ctx.lineTo(W-rightMargin+4,groundY);ctx.stroke();
+  ctx.fillStyle='#694b1f';ctx.font=`bold ${Math.max(8,W/52)}px sans-serif`;ctx.textAlign='left';ctx.fillText('NATURAL GROUND LEVEL',leftMargin,groundY-8);
+  ctx.strokeStyle='#0077b6';ctx.lineWidth=1.4;ctx.setLineDash([5,4]);ctx.beginPath();ctx.moveTo(leftMargin,waterY);ctx.lineTo(W-rightMargin,waterY);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='#005f8f';ctx.font=`bold ${Math.max(8,W/54)}px sans-serif`;ctx.fillText(`WT = ${system==='SI'?fmt(dw,2)+' m':fmt(dw/0.3048,1)+' ft'}`,leftMargin+4,waterY-5);
+
+  // Footing and column, with actual horizontal offset from footing center.
+  ctx.fillStyle='#d0d5dd';ctx.strokeStyle='#344054';ctx.lineWidth=1.8;
+  ctx.fillRect(xc-padW/2,padTopY,padW,hPx);ctx.strokeRect(xc-padW/2,padTopY,padW,hPx);
+  ctx.fillStyle='#475467';ctx.strokeStyle='#101828';
+  ctx.fillRect(colCenterX-colW/2,colTop,colW,colBottom-colTop);ctx.strokeRect(colCenterX-colW/2,colTop,colW,colBottom-colTop);
+
+  // Column centerline and footing centerline.
+  ctx.strokeStyle='#98a2b3';ctx.lineWidth=1;ctx.setLineDash([3,3]);ctx.beginPath();
+  ctx.moveTo(xc,padTopY-7);ctx.lineTo(xc,padBottomY+8);ctx.moveTo(colCenterX,colTop-4);ctx.lineTo(colCenterX,padBottomY+8);ctx.stroke();ctx.setLineDash([]);
+
+  // Axial load vector at the actual column location.
+  ctx.strokeStyle='#155eef';ctx.fillStyle='#155eef';ctx.lineWidth=2.3;
+  ctx.beginPath();ctx.moveTo(colCenterX,colTop-29);ctx.lineTo(colCenterX,colTop);ctx.stroke();
+  arrowHead(ctx,colCenterX,colTop,Math.PI/2,7);
+  ctx.font=`bold ${Math.max(8,W/52)}px sans-serif`;ctx.textAlign='left';
+  ctx.fillText(`DL = ${PDL} ${system==='SI'?'kN':'kips'}`,Math.min(W-120,colCenterX+14),colTop-17);
+  ctx.fillText(`LL = ${PLL} ${system==='SI'?'kN':'kips'}`,Math.min(W-120,colCenterX+14),colTop-5);
+
+  // Applied lateral actions are drawn at the TOP of the column.
+  const hUnit=system==='SI'?'kN':'kips';
+  if(Math.abs(HX)>1e-9){
+    const dir=Math.sign(HX);ctx.strokeStyle='#dc6803';ctx.fillStyle='#dc6803';ctx.lineWidth=2.2;
+    const y=colTop+8;ctx.beginPath();ctx.moveTo(colCenterX,y);ctx.lineTo(colCenterX+dir*48,y);ctx.stroke();arrowHead(ctx,colCenterX+dir*48,y,dir>0?0:Math.PI,8);
+    ctx.font=`bold ${Math.max(8,W/54)}px sans-serif`;ctx.textAlign=dir>0?'left':'right';ctx.fillText(`Hx = ${Math.abs(HX).toFixed(1)} ${hUnit}`,colCenterX+dir*53,y-4);
+  }
+  if(Math.abs(HY)>1e-9){
+    const dir=Math.sign(HY);ctx.strokeStyle='#dc6803';ctx.fillStyle='#dc6803';ctx.lineWidth=2.2;
+    const x=colCenterX+4;ctx.beginPath();ctx.moveTo(x,colTop+18);ctx.lineTo(x,colTop+18+dir*35);ctx.stroke();arrowHead(ctx,x,colTop+18+dir*35,dir>0?Math.PI/2:-Math.PI/2,8);
+    ctx.font=`bold ${Math.max(8,W/54)}px sans-serif`;ctx.textAlign='left';ctx.fillText(`Hy = ${Math.abs(HY).toFixed(1)} ${hUnit}`,x+8,colTop+30+dir*35);
+  }
+
+  // Moments remain attached to the actual column center.
+  const mUnit=system==='SI'?'kN·m':'kip·ft';
+  function drawMoment(xc0,yc0,r,value,label,side){
+    if(Math.abs(value)<1e-9)return;
+    const sign=Math.sign(value),start=sign>=0?-0.95:2.20,end=sign>=0?1.30:4.45;
+    ctx.save();ctx.strokeStyle='#7c3aed';ctx.fillStyle='#7c3aed';ctx.lineWidth=2.3;
+    ctx.beginPath();ctx.arc(xc0,yc0,r,start,end,sign<0);ctx.stroke();
+    const a=end;const ax=xc0+r*Math.cos(a),ay=yc0+r*Math.sin(a);
+    const tangent=a+(sign>=0?Math.PI/2:-Math.PI/2);
+    arrowHead(ctx,ax,ay,tangent,8);
+    ctx.font=`bold ${Math.max(8,W/52)}px sans-serif`;ctx.textAlign=side<0?'right':'left';
+    const tx=side<0?xc0-r-8:xc0+r+8;
+    ctx.fillText(`${label} = ${fmt(Math.abs(value),2)} ${mUnit} ${sign>0?'↻':'↺'}`,tx,yc0-r-6);
+    ctx.restore();
+  }
+  drawMoment(colCenterX,colTop,18,MX,'Mx',-1);
+  drawMoment(colCenterX,colTop,25,MY,'My',1);
+
+  // NGL to top-of-footing and NGL to top-of-column dimension lines.
+  const xDimTop=Math.max(18,xc-padW/2-32);
+  function vDim(x,y1,y2,label,color="#344054"){
+    ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(x-4,y1);ctx.lineTo(x+4,y1);ctx.moveTo(x-4,y2);ctx.lineTo(x+4,y2);ctx.moveTo(x,y1);ctx.lineTo(x,y2);ctx.stroke();
+    arrowHead(ctx,x,y1,Math.PI/2,5);arrowHead(ctx,x,y2,-Math.PI/2,5);
+    ctx.save();ctx.translate(x-9,(y1+y2)/2);ctx.rotate(-Math.PI/2);ctx.font=`bold ${Math.max(7,W/58)}px sans-serif`;ctx.textAlign="center";ctx.fillText(label,0,0);ctx.restore();
+  }
+  vDim(xDimTop,groundY,padTopY,`NGL to TOP FOOTING = ${system==='SI'?fmt(Math.max(0,Df-h),2)+' m':fmt(Math.max(0,Df-h)/0.3048,2)+' ft'}`,"#475467");
+  const xColDim=W-rightMargin+2;
+  vDim(xColDim,groundY,colTop,`NGL to TOP COLUMN = 0.00 ${system==='SI'?'m':'ft'}`,"#155eef");
+
+  // Horizontal B dimension beneath footing.
+  function ext(x,y1,y2){ctx.strokeStyle='#667085';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,y1);ctx.lineTo(x,y2);ctx.stroke();}
+  const yB=Math.min(H-16,padBottomY+28);
+  ext(xc-padW/2,padBottomY, yB);ext(xc+padW/2,padBottomY,yB);
+  ctx.strokeStyle='#667085';ctx.beginPath();ctx.moveTo(xc-padW/2,yB);ctx.lineTo(xc+padW/2,yB);ctx.stroke();
+  ctx.fillStyle='#344054';ctx.font=`bold ${Math.max(8,W/52)}px sans-serif`;ctx.textAlign='center';
+  ctx.fillText(`B = ${system==='SI'?fmt(B,2)+' m':fmt(B/0.3048,2)+' ft'}`,xc,yB-6);
+
+  // Lateral load application height from footing base to column top.
+  const xHL=W-rightMargin+39;
+  ext(xc+padW/2,padBottomY,xHL);ext(colCenterX,colTop,xHL);
+  ctx.strokeStyle='#dc6803';ctx.beginPath();ctx.moveTo(xHL,padBottomY);ctx.lineTo(xHL,colTop);ctx.stroke();
+  arrowHead(ctx,xHL,padBottomY,Math.PI/2,6);arrowHead(ctx,xHL,colTop,-Math.PI/2,6);
+  ctx.save();ctx.translate(xHL+10,(padBottomY+colTop)/2);ctx.rotate(-Math.PI/2);ctx.fillStyle='#9c2c00';ctx.font=`bold ${Math.max(8,W/54)}px sans-serif`;ctx.textAlign='center';ctx.fillText(`hL = Df = ${system==='SI'?fmt(Df,2)+' m':fmt(Df/0.3048,1)+' ft'}`,0,0);ctx.restore();
+
+  // Vertical Df dimension.
+  const xDf=W-rightMargin+16;
+  ext(xc+padW/2,groundY,xDf);ext(xc+padW/2,padBottomY,xDf);
+  ctx.beginPath();ctx.moveTo(xDf,groundY);ctx.lineTo(xDf,padBottomY);ctx.stroke();
+  arrowHead(ctx,xDf,groundY,Math.PI/2,6);arrowHead(ctx,xDf,padBottomY,-Math.PI/2,6);
+  ctx.save();ctx.translate(xDf+11,(groundY+padBottomY)/2);ctx.rotate(-Math.PI/2);ctx.fillText(`Df = ${system==='SI'?fmt(Df,2)+' m':fmt(Df/0.3048,1)+' ft'}`,0,0);ctx.restore();
+
+  // Footing thickness h dimension.
+  const xH=Math.max(17,xc-padW/2-18);
+  ext(xc-padW/2,padTopY,xH);ext(xc-padW/2,padBottomY,xH);
+  ctx.beginPath();ctx.moveTo(xH,padTopY);ctx.lineTo(xH,padBottomY);ctx.stroke();
+  arrowHead(ctx,xH,padTopY,Math.PI/2,6);arrowHead(ctx,xH,padBottomY,-Math.PI/2,6);
+  ctx.save();ctx.translate(xH-9,(padTopY+padBottomY)/2);ctx.rotate(-Math.PI/2);ctx.fillText(`h = ${system==='SI'?fmt(h*1000,0)+' mm':fmt(h/0.0254,1)+' in'}`,0,0);ctx.restore();
+
+  // Column width cx dimension above footing.
+  const yC=Math.max(25,colTop-9);
+  ext(colCenterX-colW/2,colTop,yC);ext(colCenterX+colW/2,colTop,yC);
+  ctx.beginPath();ctx.moveTo(colCenterX-colW/2,yC);ctx.lineTo(colCenterX+colW/2,yC);ctx.stroke();
+  arrowHead(ctx,colCenterX-colW/2,yC,0,6);arrowHead(ctx,colCenterX+colW/2,yC,Math.PI,6);
+  ctx.fillText(`cx = ${system==='SI'?fmt(cx*1000,0)+' mm':fmt(cx/0.0254,1)+' in'}`,colCenterX,yC-6);
+
+  // Column offset ox dimension from footing centerline.
+  if(Math.abs(ox)>1e-9){
+    const yO=groundY+12;
+    ctx.strokeStyle='#6941c6';ctx.fillStyle='#6941c6';ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(xc,yO);ctx.lineTo(colCenterX,yO);ctx.stroke();ctx.setLineDash([]);
+    arrowHead(ctx,xc,yO,colCenterX>=xc?0:Math.PI,5);arrowHead(ctx,colCenterX,yO,colCenterX>=xc?Math.PI:0,5);
+    ctx.font=`bold ${Math.max(8,W/54)}px sans-serif`;ctx.textAlign='center';ctx.fillText(`ox = ${system==='SI'?fmt(ox,3)+' m':fmt(ox/0.3048,2)+' ft'}`,(xc+colCenterX)/2,yO-5);
+  }
+
+  // Vertical offset/effective location note is shown in text because elevation is a longitudinal section.
+  ctx.fillStyle='#101828';ctx.font=`bold ${Math.max(8,W/54)}px sans-serif`;ctx.textAlign='left';
+  ctx.fillText(`oy = ${system==='SI'?fmt(oy,3)+' m':fmt(oy/0.3048,2)+' ft'} | H = ${system==='SI'?fmt(Math.hypot(HX,HY),1)+' kN':fmt(Math.hypot(HX,HY)/4.4482216153,1)+' kips'}`,leftMargin,H-10);
+  ctx.textAlign='right';ctx.fillText(`B×L = ${system==='SI'?fmt(B,2)+'×'+fmt(L,2)+' m':fmt(B/0.3048,2)+'×'+fmt(L/0.3048,2)+' ft'}`,W-rightMargin,H-10);
+}
+function drawPressure({B,L,qmax,qmin,system,qSur}){
+  const v=prepareCanvas('pressureCanvas');if(!v)return;
+  const {c,ctx,W,H}=v;
+  const pad=42,baseY=H-62,graphW=W-pad*2;
+  ctx.strokeStyle='#344054';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad,baseY);ctx.lineTo(W-pad,baseY);ctx.stroke();
+  if(!Number.isFinite(qmax)){
+    ctx.fillStyle='#b42318';ctx.font=`bold ${Math.max(10,W/38)}px sans-serif`;ctx.textAlign='center';
+    ctx.fillText('Full-contact pressure plot unavailable',W/2,H/2-8);
+    ctx.font=`${Math.max(9,W/45)}px sans-serif`;ctx.fillText('because service contact is outside the adopted model.',W/2,H/2+12);return;
+  }
+  const maxD=Math.max(25,Math.min(H-95,qmax*(system==='SI'?0.20:0.0095)));
+  const minD=Math.max(0,Math.min(H-95,qmin*(system==='SI'?0.20:0.0095)));
+  ctx.fillStyle='rgba(37,99,235,.22)';ctx.strokeStyle='#155eef';ctx.beginPath();
+  ctx.moveTo(pad,baseY);ctx.lineTo(pad,baseY-maxD);ctx.lineTo(W-pad,baseY-minD);ctx.lineTo(W-pad,baseY);ctx.closePath();ctx.fill();ctx.stroke();
+  ctx.fillStyle='#101828';ctx.font=`bold ${Math.max(9,W/43)}px sans-serif`;ctx.textAlign='left';
+  ctx.fillText(`qmax = ${system==='SI'?fmt(qmax,1)+' kPa':fmt(qmax/0.04788025898,0)+' psf'}`,pad+4,baseY-maxD-8);
+  ctx.textAlign='right';ctx.fillText(`qmin = ${system==='SI'?fmt(qmin,1)+' kPa':fmt(qmin/0.04788025898,0)+' psf'}`,W-pad-4,baseY-minD-8);
+  ctx.textAlign='center';ctx.fillText(`Footing B × L = ${system==='SI'?fmt(B,2)+' m × '+fmt(L,2)+' m':fmt(B/0.3048,2)+' ft × '+fmt(L/0.3048,2)+' ft'}`,W/2,H-34);
+  if(qSur>0){ctx.textAlign='left';ctx.fillStyle='#b42318';ctx.fillText(`qsur = ${system==='SI'?fmt(qSur,1)+' kPa':fmt(qSur/0.04788025898,0)+' psf'}`,8,16);}
+}
+function drawRebar({B,L,cx,cy,ox,oy,system,nB,nL,db,cover}){
+  const v=prepareCanvas('rebarCanvas');if(!v)return;
+  const {c,ctx,W,H}=v;
+  const margin={l:34,r:42,t:36,b:34};
+  const aw=W-margin.l-margin.r,ah=H-margin.t-margin.b;
+  const s=Math.min(aw/Math.max(B,0.001),ah/Math.max(L,0.001));
+  const x0=margin.l+aw/2,y0=margin.t+ah/2,w=B*s,l=L*s,cw=cx*s,cl=cy*s;
+  ctx.fillStyle='#eef2f6';ctx.strokeStyle='#344054';ctx.lineWidth=2;ctx.fillRect(x0-w/2,y0-l/2,w,l);ctx.strokeRect(x0-w/2,y0-l/2,w,l);
+  ctx.strokeStyle='#d92d20';ctx.lineWidth=1.1;
+  const nx=Math.min(nB,16),ny=Math.min(nL,16),mx=Math.max(10,w*.06),my=Math.max(10,l*.06);
+  for(let i=0;i<nx;i++){const t=nx===1?.5:i/(nx-1),x=x0-w/2+mx+t*(w-2*mx);ctx.beginPath();ctx.moveTo(x,y0-l/2+my);ctx.lineTo(x,y0+l/2-my);ctx.stroke();}
+  for(let i=0;i<ny;i++){const t=ny===1?.5:i/(ny-1),y=y0-l/2+my+t*(l-2*my);ctx.beginPath();ctx.moveTo(x0-w/2+mx,y);ctx.lineTo(x0+w/2-mx,y);ctx.stroke();}
+  const ccx=x0+ox*s,ccy=y0-oy*s;ctx.fillStyle='#475467';ctx.strokeStyle='#101828';ctx.fillRect(ccx-cw/2,ccy-cl/2,cw,cl);ctx.strokeRect(ccx-cw/2,ccy-cl/2,cw,cl);
+  ctx.fillStyle='#101828';ctx.font=`bold ${Math.max(8,W/46)}px sans-serif`;ctx.textAlign='center';
+  ctx.fillText(`B-dir: ${nB}Ø${system==='SI'?fmt(db,0):fmt(db/25.4,2)} | L-dir: ${nL}Ø${system==='SI'?fmt(db,0):fmt(db/25.4,2)}`,W/2,18);
+  ctx.fillText(`Cover = ${system==='SI'?fmt(cover,0)+' mm':fmt(cover/25.4,2)+' in'}`,W/2,H-10);
+}
+
+function scheduleRedraw(){
+  clearTimeout(window.__drawTimer);window.__drawTimer=setTimeout(()=>runCalculations(),40);
+}
+
+window.addEventListener('resize',scheduleRedraw);
+window.addEventListener('DOMContentLoaded',()=>{
+  const unit=document.getElementById('unitSystem');
+  unit.dataset.prevSystem=unit.value;
+  displayUnitText(unit.value);
+  IDS.forEach(id=>{
+    const el=document.getElementById(id); if(!el)return;
+    el.classList.add('editable');
+    el.addEventListener('input',scheduleRedraw);
+    el.addEventListener('change',scheduleRedraw);
+  });
+  runCalculations();
+});
+</script>
+
+</body>
+</html>
