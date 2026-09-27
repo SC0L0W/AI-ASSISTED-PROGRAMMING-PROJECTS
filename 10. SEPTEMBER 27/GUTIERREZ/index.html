@@ -1,1099 +1,991 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>RC Beam Optimizer · NSCP 2015</title>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
-<style>
-:root{--bg:#f3f4f6;--panel:#ffffff;--ink:#1b2130;--mute:#5d6878;--line:#dce0e6;--acc:#0b5cad;--acc2:#e7f0fb;--ok:#1e8e3e;--ng:#c62828;--warn:#a86400;--code:#f7f8fa;--conc:#c9ced6;--barb:#d9480f;--bart:#1c7ed6;--stir:#2f9e44}
-@media (prefers-color-scheme:dark){:root{--bg:#11141a;--panel:#1a1f28;--ink:#e5e8ee;--mute:#97a1b1;--line:#2c3441;--acc:#5aa9ff;--acc2:#1b2839;--ok:#4cc36b;--ng:#ff6b6b;--warn:#f0b04a;--code:#151a22;--conc:#56606e}}
-*{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 "Segoe UI",system-ui,-apple-system,Roboto,sans-serif}
-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 20px;background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
-header h1{font-size:17px;margin:0;letter-spacing:.2px}
-header .sub{font-size:12px;color:var(--mute)}
-.btn{border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:7px 12px;border-radius:7px;cursor:pointer;font:inherit}
-.btn:hover{border-color:var(--acc)}
-.btn.primary{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
-.btn.sm{padding:3px 8px;font-size:12px}
-.app{display:grid;grid-template-columns:320px 1fr;gap:16px;padding:16px;max-width:1600px;margin:0 auto}
-aside{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;align-self:start;position:sticky;top:70px;max-height:calc(100vh - 86px);overflow:auto}
-fieldset{border:none;border-top:1px solid var(--line);margin:0;padding:10px 0 6px}
-fieldset:first-of-type{border-top:none;padding-top:2px}
-legend{font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--acc);padding:0}
-.row{display:grid;grid-template-columns:1fr 110px;align-items:center;gap:8px;margin:5px 0}
-.row label{font-size:13px;color:var(--ink)}
-.row small{color:var(--mute)}
-input[type=number],select{width:100%;padding:5px 7px;border:1px solid var(--line);border-radius:6px;background:var(--code);color:var(--ink);font:inherit}
-.chk{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 6px}
-.chk label{display:flex;align-items:center;gap:4px;border:1px solid var(--line);border-radius:6px;padding:2px 7px;font-size:12.5px;cursor:pointer}
-.tog{display:flex;align-items:center;gap:8px;margin:6px 0;font-size:13px}
-.hint{font-size:11.5px;color:var(--mute);margin:2px 0 6px}
-main{min-width:0}
-.kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-bottom:12px}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
-.card h3{margin:0 0 6px;font-size:11.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--mute)}
-.big{font-size:22px;font-weight:700}
-.gauge{display:flex;align-items:center;gap:10px}
-.grade{font-size:30px;font-weight:800}
-.chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
-.chip{font-size:11.5px;padding:2px 7px;border-radius:20px;border:1px solid var(--line)}
-.chip.ok{color:var(--ok);border-color:var(--ok)}
-.chip.ng{color:var(--ng);border-color:var(--ng)}
-.ok{color:var(--ok);font-weight:600}.ng{color:var(--ng);font-weight:600}.wr{color:var(--warn);font-weight:600}
-.tabs{display:flex;flex-wrap:wrap;gap:4px;border-bottom:1px solid var(--line);margin-bottom:0}
-.tabs button{border:1px solid transparent;border-bottom:none;background:none;color:var(--mute);padding:8px 13px;border-radius:8px 8px 0 0;cursor:pointer;font:inherit;font-weight:600}
-.tabs button.on{background:var(--panel);border-color:var(--line);color:var(--acc);margin-bottom:-1px}
-.panel{display:none;background:var(--panel);border:1px solid var(--line);border-top:none;border-radius:0 0 10px 10px;padding:16px}
-.panel.on{display:block}
-.panel h2{font-size:15px;margin:18px 0 8px}
-.panel h2:first-child{margin-top:0}
-table{border-collapse:collapse;width:100%;font-size:13px}
-th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
-th{font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--mute);font-weight:700;background:var(--code)}
-td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
-table.calc td:nth-child(2){font-family:Consolas,"Cascadia Mono",monospace;font-size:12.5px;color:var(--mute)}
-table.calc td:nth-child(3){font-weight:600;white-space:nowrap}
-table.calc td:nth-child(4){font-size:12px;color:var(--mute);white-space:nowrap}
-tr.sel td{background:var(--acc2)}
-.tablewrap{overflow-x:auto}
-.warnbox{border:1px solid var(--warn);background:color-mix(in srgb,var(--warn) 9%,transparent);border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:13px}
-.failbox{border:1px solid var(--ng);background:color-mix(in srgb,var(--ng) 9%,transparent);border-radius:8px;padding:10px 12px;margin-bottom:12px}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-svg.diag{width:100%;height:auto;display:block}
-#view3d{position:relative;height:500px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--code)}
-#view3d canvas{display:block;touch-action:none}
-.ctrl{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 10px;font-size:13px}
-.ctrl label{display:flex;gap:4px;align-items:center}
-.legend{position:absolute;left:10px;bottom:10px;background:color-mix(in srgb,var(--panel) 88%,transparent);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:12px}
-.legend i{display:inline-block;width:18px;height:5px;border-radius:3px;margin-right:6px;vertical-align:middle}
-.nothree{padding:40px;text-align:center;color:var(--mute)}
-.bars .b{display:grid;grid-template-columns:180px 1fr 44px;gap:8px;align-items:center;margin:6px 0;font-size:13px}
-.bars .t{height:10px;border-radius:6px;background:var(--line);overflow:hidden}
-.bars .t div{height:100%;border-radius:6px}
-.note{font-size:12px;color:var(--mute)}
-.pill{display:inline-block;padding:1px 7px;border-radius:5px;background:var(--acc2);color:var(--acc);font-size:12px;font-weight:600}
-@media (max-width:1150px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media (max-width:900px){.app{grid-template-columns:1fr}aside{position:static;max-height:none}.grid2{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}}
-@media (max-width:520px){.app{padding:10px}.kpis{grid-template-columns:1fr}header{flex-wrap:wrap}}
-@media print{header .btn,aside,.tabs,.ctrl,#view3d{display:none!important}.app{display:block;padding:0}.panel{display:block!important;border:none;page-break-inside:auto}.panel::before{content:attr(data-title);display:block;font-size:16px;font-weight:700;border-bottom:2px solid #000;margin:16px 0 8px}body{background:#fff;color:#000}.card{border-color:#999}}
-</style>
-</head>
-<body>
-<header>
-  <div>
-    <h1>RC Beam Designer &amp; Steel Optimizer</h1>
-    <div class="sub">NSCP 2015 Vol. 1 (Ch. 4, ACI 318-14 basis) · rectangular beams · flexure, shear, serviceability, curtailment, SMF detailing</div>
-  </div>
-  <div style="display:flex;gap:8px">
-    <button class="btn" onclick="window.print()">Print report</button>
-    <button class="btn primary" id="runTop">Design &amp; Optimize</button>
-  </div>
-</header>
+/* ============================================================
+   SIANG CONSTRUCTION ESTIMATOR — script.js
+   All data is stored in the browser's localStorage.
+   Nothing is sent to a server. Nothing here is official
+   Philippine pricing — everything is a user-editable default.
+   ============================================================ */
 
-<div class="app">
-<aside>
-  <fieldset><legend>Geometry</legend>
-    <div class="row"><label>Span, L <small>(m)</small></label><input type="number" id="L" value="6" step="0.1" min="1"></div>
-    <div class="row"><label>Support condition</label><select id="support">
-      <option value="ss">Simply supported</option>
-      <option value="ff">Fixed – Fixed</option>
-      <option value="pc">Fixed – Pinned</option>
-      <option value="cant">Cantilever</option></select></div>
-    <div class="row"><label>Width, b <small>(mm)</small></label><input type="number" id="b" value="300" step="25"></div>
-    <div class="row"><label>Depth, h <small>(mm)</small></label><input type="number" id="h" value="500" step="25"></div>
-    <div class="row"><label>Clear cover <small>(mm)</small></label><input type="number" id="cover" value="40" step="5"></div>
-  </fieldset>
-  <fieldset><legend>Materials</legend>
-    <div class="row"><label>f'c <small>(MPa)</small></label><input type="number" id="fc" value="28" step="1"></div>
-    <div class="row"><label>fy main bars <small>(MPa)</small></label><input type="number" id="fy" value="420" step="5"></div>
-    <div class="row"><label>fyt stirrups <small>(MPa)</small></label><input type="number" id="fyt" value="275" step="5"></div>
-    <div class="row"><label>Max aggregate <small>(mm)</small></label><input type="number" id="agg" value="20" step="1"></div>
-  </fieldset>
-  <fieldset><legend>Loads (unfactored)</legend>
-    <div class="row"><label>Superimposed dead, w<sub>SD</sub> <small>(kN/m)</small></label><input type="number" id="wSD" value="18" step="0.5"></div>
-    <div class="tog"><input type="checkbox" id="sw" checked><label for="sw">Add beam self-weight (24 kN/m³)</label></div>
-    <div class="row"><label>Live, w<sub>L</sub> <small>(kN/m)</small></label><input type="number" id="wL" value="12" step="0.5"></div>
-    <div class="row"><label>Point dead, P<sub>D</sub> <small>(kN)</small></label><input type="number" id="PD" value="0" step="1"></div>
-    <div class="row"><label>Point live, P<sub>L</sub> <small>(kN)</small></label><input type="number" id="PL" value="0" step="1"></div>
-    <div class="hint">Point load acts at mid-length. Combinations: 1.4D and 1.2D + 1.6L (Sec. 203.3.1 / 405.3).</div>
-  </fieldset>
-  <fieldset><legend>Reinforcement options</legend>
-    <div class="hint">Main bar sizes the optimizer may use (mm):</div>
-    <div class="chk" id="diaBox"></div>
-    <div class="hint">Stirrup sizes (mm):</div>
-    <div class="chk" id="sdiaBox"></div>
-    <div class="row"><label>Max bar layers</label><select id="layers"><option value="1">1</option><option value="2" selected>2</option></select></div>
-    <div class="row"><label>Hanger / nominal bar Ø</label><select id="hanger"><option>10</option><option selected>12</option><option>16</option></select></div>
-    <div class="tog"><input type="checkbox" id="curtail" checked><label for="curtail">Bar curtailment (Sec. 409.7.3)</label></div>
-    <div class="tog"><input type="checkbox" id="smf"><label for="smf">Special moment frame detailing (Sec. 418.6)</label></div>
-  </fieldset>
-  <fieldset><legend>Optimization</legend>
-    <div class="row"><label>Mode</label><select id="mode"><option value="bars">Optimize bars (fixed b × h)</option><option value="section">Optimize section + bars</option></select></div>
-    <div id="secOpts">
-      <div class="row"><label>b range <small>(mm)</small></label><div style="display:flex;gap:4px"><input type="number" id="bMin" value="250" step="25"><input type="number" id="bMax" value="400" step="25"></div></div>
-      <div class="row"><label>h range <small>(mm)</small></label><div style="display:flex;gap:4px"><input type="number" id="hMin" value="350" step="25"><input type="number" id="hMax" value="750" step="25"></div></div>
-      <div class="row"><label>Step <small>(mm)</small></label><input type="number" id="step" value="50" step="25"></div>
-      <div class="row"><label>Objective</label><select id="objective"><option value="steel">Minimum steel weight</option><option value="cost">Minimum total cost</option></select></div>
-    </div>
-    <div class="row"><label>Steel <small>(₱/kg)</small></label><input type="number" id="cSteel" value="72" step="1"></div>
-    <div class="row"><label>Concrete <small>(₱/m³)</small></label><input type="number" id="cConc" value="7200" step="100"></div>
-    <div class="row"><label>Formwork <small>(₱/m²)</small></label><input type="number" id="cForm" value="850" step="10"></div>
-  </fieldset>
-  <button class="btn primary" id="run" style="width:100%;margin-top:8px;padding:10px">Design &amp; Optimize</button>
-  <p class="hint" style="margin-top:10px">Normal-weight concrete (λ = 1.0), Es = 200 GPa. Results are a design aid; verify before use on a sealed design.</p>
-</aside>
+/* ---------- STATE: localStorage read/write helpers ---------- */
+const State = {
+  get(key, fallback) {
+    const raw = localStorage.getItem(key);
+    if (!raw) return fallback;
+    try { return JSON.parse(raw); } catch (e) { return fallback; }
+  },
+  set(key, value) {
+    localStorage.setItem(key, JSON.stringify(value));
+  }
+};
 
-<main>
-  <section class="kpis" id="kpis"></section>
-  <div id="msgs"></div>
-  <nav class="tabs" id="tabs">
-    <button data-t="model" class="on">3D Model</button>
-    <button data-t="analysis">Loads &amp; Analysis</button>
-    <button data-t="flexure">Flexure</button>
-    <button data-t="shear">Shear</button>
-    <button data-t="service">Serviceability</button>
-    <button data-t="detail">Detailing</button>
-    <button data-t="optim">Optimization</button>
-    <button data-t="schedule">Bar Schedule</button>
-  </nav>
-  <div class="panel on" id="p-model" data-title="3D Model">
-    <div class="ctrl">
-      <label><input type="checkbox" id="vConc" checked> Concrete</label>
-      <label><input type="checkbox" id="vBot" checked> Bottom bars</label>
-      <label><input type="checkbox" id="vTop" checked> Top bars</label>
-      <label><input type="checkbox" id="vStir" checked> Stirrups</label>
-      <label><input type="checkbox" id="vLoad" checked> Loads &amp; supports</label>
-      <label>Section cut <input type="range" id="vCut" min="0" max="100" value="100" style="width:120px"></label>
-      <span style="flex:1"></span>
-      <button class="btn sm" data-view="iso">Iso</button>
-      <button class="btn sm" data-view="front">Elevation</button>
-      <button class="btn sm" data-view="end">Section</button>
-      <button class="btn sm" data-view="top">Plan</button>
-    </div>
-    <div id="view3d"><div class="legend" id="legend3d"></div></div>
-    <p class="note">Drag to orbit · right-drag or Shift-drag to pan · scroll or pinch to zoom. Cut-off bars are drawn at their computed lengths.</p>
-  </div>
-  <div class="panel" id="p-analysis" data-title="Loads & Analysis"></div>
-  <div class="panel" id="p-flexure" data-title="Flexural Design"></div>
-  <div class="panel" id="p-shear" data-title="Shear Design"></div>
-  <div class="panel" id="p-service" data-title="Serviceability"></div>
-  <div class="panel" id="p-detail" data-title="Detailing"></div>
-  <div class="panel" id="p-optim" data-title="Optimization"></div>
-  <div class="panel" id="p-schedule" data-title="Bar Schedule"></div>
-</main>
-</div>
+/* ---------- DEFAULTS (seeded once, then fully editable) ---------- */
+const DEFAULT_MATERIALS = [
+  { name: "Portland Cement 40kg", category: "CONCRETE", unit: "bag", price: 285, supplier: "", location: "", updated: today() },
+  { name: "Washed Sand", category: "CONCRETE", unit: "m³", price: 1800, supplier: "", location: "", updated: today() },
+  { name: "3/4 Gravel", category: "CONCRETE", unit: "m³", price: 2000, supplier: "", location: "", updated: today() },
+  { name: "Water", category: "CONCRETE", unit: "m³", price: 250, supplier: "", location: "", updated: today() },
+  { name: "10mm Rebar", category: "REBAR", unit: "kg", price: 55, supplier: "", location: "", updated: today() },
+  { name: "12mm Rebar", category: "REBAR", unit: "kg", price: 55, supplier: "", location: "", updated: today() },
+  { name: "16mm Rebar", category: "REBAR", unit: "kg", price: 55, supplier: "", location: "", updated: today() },
+  { name: "20mm Rebar", category: "REBAR", unit: "kg", price: 55, supplier: "", location: "", updated: today() },
+  { name: "25mm Rebar", category: "REBAR", unit: "kg", price: 55, supplier: "", location: "", updated: today() },
+  { name: "28mm Rebar", category: "REBAR", unit: "kg", price: 58, supplier: "", location: "", updated: today() },
+  { name: "32mm Rebar", category: "REBAR", unit: "kg", price: 58, supplier: "", location: "", updated: today() },
+  { name: "Pre-painted GI", category: "ROOFING", unit: "m²", price: 380, supplier: "", location: "", updated: today() },
+  { name: "Corrugated GI", category: "ROOFING", unit: "m²", price: 320, supplier: "", location: "", updated: today() },
+  { name: "Longspan GI", category: "ROOFING", unit: "m²", price: 400, supplier: "", location: "", updated: today() },
+  { name: "Ridge Roll", category: "ROOFING", unit: "m", price: 250, supplier: "", location: "", updated: today() },
+  { name: "Flashing", category: "ROOFING", unit: "m", price: 180, supplier: "", location: "", updated: today() },
+  { name: "Gutter", category: "ROOFING", unit: "m", price: 220, supplier: "", location: "", updated: today() },
+  { name: "Downspout", category: "ROOFING", unit: "pc", price: 350, supplier: "", location: "", updated: today() },
+  { name: "Tek Screw", category: "ROOFING", unit: "pc", price: 3, supplier: "", location: "", updated: today() },
+  { name: "Sealant", category: "ROOFING", unit: "tube", price: 150, supplier: "", location: "", updated: today() },
+  { name: "C-Purlin", category: "STEEL", unit: "pc (6m)", price: 650, supplier: "", location: "", updated: today() },
+  { name: "Rafter 2x4", category: "STEEL", unit: "pc (6m)", price: 350, supplier: "", location: "", updated: today() },
+  { name: "Angle Bar", category: "STEEL", unit: "pc", price: 450, supplier: "", location: "", updated: today() },
+  { name: "Tubular", category: "STEEL", unit: "pc", price: 500, supplier: "", location: "", updated: today() },
+  { name: "I-Beam", category: "STEEL", unit: "pc", price: 3500, supplier: "", location: "", updated: today() },
+  { name: "H-Beam", category: "STEEL", unit: "pc", price: 4200, supplier: "", location: "", updated: today() },
+  { name: "Steel Plate", category: "STEEL", unit: "sheet", price: 2500, supplier: "", location: "", updated: today() },
+  { name: "Tie Wire", category: "OTHER", unit: "kg", price: 80, supplier: "", location: "", updated: today() },
+  { name: "Welding Rod", category: "OTHER", unit: "kg", price: 150, supplier: "", location: "", updated: today() },
+  { name: "Nails", category: "OTHER", unit: "kg", price: 70, supplier: "", location: "", updated: today() },
+  { name: "Form Oil", category: "OTHER", unit: "L", price: 90, supplier: "", location: "", updated: today() },
+  { name: "Formwork Materials (Plywood & Lumber)", category: "OTHER", unit: "m²", price: 180, supplier: "", location: "", updated: today() }
+];
 
-<script id="engine">
-// ENGINE START
-"use strict";
-const ES = 200000, RHO_ST = 7850, GAMMA_C = 24;
-const beta1 = fc => fc <= 28 ? 0.85 : Math.max(0.65, 0.85 - 0.05 * (fc - 28) / 7);
-const barA = db => Math.PI * db * db / 4;
-const barKgm = db => barA(db) * 1e-6 * RHO_ST;
-const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-const floorTo = (v, m) => Math.floor(v / m + 1e-9) * m;
-const avg = a => a.length ? a.reduce((s, v) => s + v, 0) / a.length : 0;
-function phiFlex(et, fy) { const ety = fy / ES; if (et >= 0.005) return 0.90; if (et <= ety) return 0.65; return 0.65 + 0.25 * (et - ety) / (0.005 - ety); }
-function interp(xs, ys, x) { const n = xs.length - 1; if (x <= xs[0]) return ys[0]; if (x >= xs[n]) return ys[n]; const dx = xs[1] - xs[0]; const i = Math.min(n - 1, Math.floor((x - xs[0]) / dx)); const t = (x - xs[i]) / dx; return ys[i] + (ys[i + 1] - ys[i]) * t; }
+const DEFAULT_MIX = {
+  "2000": { cement: 300, sand: 0.50, gravel: 0.90, water: 180 },
+  "2500": { cement: 320, sand: 0.48, gravel: 0.88, water: 185 },
+  "3000": { cement: 363, sand: 0.50, gravel: 1.00, water: 190 },
+  "3500": { cement: 400, sand: 0.45, gravel: 0.85, water: 195 },
+  "4000": { cement: 430, sand: 0.42, gravel: 0.80, water: 200 }
+};
 
-/* ---------- structural analysis (x in m, w in kN/m, P in kN at mid-length) ---------- */
-function actions(sup, L, w, P) {
-  const a = L / 2;
-  const ssM = x => w * L * x / 2 - w * x * x / 2 + P * (x <= a ? x / 2 : (L - x) / 2);
-  const ssV = x => w * L / 2 - w * x + (x < a ? P / 2 : -P / 2);
-  if (sup === 'ss') return { M: ssM, V: ssV };
-  if (sup === 'ff') { const Me = w * L * L / 12 + P * L / 8; return { M: x => ssM(x) - Me, V: ssV }; }
-  if (sup === 'pc') { const RB = 3 * w * L / 8 + 5 * P / 16; return { M: x => RB * (L - x) - w * (L - x) ** 2 / 2 - P * Math.max(0, a - x), V: x => -RB + w * (L - x) + (x < a ? P : 0) }; }
-  return { M: x => -w * (L - x) ** 2 / 2 - P * Math.max(0, a - x), V: x => w * (L - x) + (x < a ? P : 0) };
+const DEFAULT_WASTAGE = { concrete: 5, rebar: 5, roofing: 5, formwork: 5 };
+const DEFAULT_BARLENGTH = 6;
+const DEFAULT_LABOR = [
+  { type: "Carpenter", dailyRate: 650, productivity: 8, workers: 2 },
+  { type: "Mason", dailyRate: 650, productivity: 1, workers: 2 },
+  { type: "Steelman", dailyRate: 650, productivity: 80, workers: 2 },
+  { type: "Laborer", dailyRate: 550, productivity: 0, workers: 4 },
+  { type: "Roofer", dailyRate: 650, productivity: 20, workers: 2 },
+  { type: "Foreman", dailyRate: 800, productivity: 0, workers: 1 }
+];
+const DEFAULT_LABOR_RATES = { concrete: 450, rebar: 8, formwork: 120, roofing: 90 };
+const DEFAULT_MISC = { eqPct: 5, contPct: 10 };
+
+function today() { return new Date().toISOString().slice(0, 10); }
+
+/* Seed localStorage with defaults on first run only */
+function seedDefaults() {
+  if (!localStorage.getItem("siang_materials")) State.set("siang_materials", DEFAULT_MATERIALS);
+  if (!localStorage.getItem("siang_mix")) State.set("siang_mix", DEFAULT_MIX);
+  if (!localStorage.getItem("siang_wastage")) State.set("siang_wastage", DEFAULT_WASTAGE);
+  if (!localStorage.getItem("siang_barlength")) State.set("siang_barlength", DEFAULT_BARLENGTH);
+  if (!localStorage.getItem("siang_labor")) State.set("siang_labor", DEFAULT_LABOR);
+  if (!localStorage.getItem("siang_laborrates")) State.set("siang_laborrates", DEFAULT_LABOR_RATES);
+  if (!localStorage.getItem("siang_misc")) State.set("siang_misc", DEFAULT_MISC);
+  if (!localStorage.getItem("siang_current")) State.set("siang_current", {});
+  if (!localStorage.getItem("siang_projects")) State.set("siang_projects", []);
 }
-function analyze(p) {
-  const L = p.L, sw = p.selfWeight ? GAMMA_C * p.b * p.h / 1e6 : 0, wD = p.wSD + sw, wL = p.wL;
-  const N = 240, xs = Array.from({ length: N + 1 }, (_, i) => L * i / N);
-  const combos = [{ name: '1.4D', kD: 1.4, kL: 0 }, { name: '1.2D + 1.6L', kD: 1.2, kL: 1.6 }];
-  combos.forEach(c => {
-    c.w = c.kD * wD + c.kL * wL; c.P = c.kD * p.PD + c.kL * p.PL;
-    const f = actions(p.support, L, c.w, c.P);
-    c.M = xs.map(f.M); c.V = xs.map(f.V);
-    c.Mmax = Math.max(0, ...c.M); c.Mmin = Math.min(0, ...c.M); c.Vmax = Math.max(...c.V.map(Math.abs));
+
+/* ---------- FORMAT HELPERS ---------- */
+function peso(n) {
+  if (isNaN(n)) n = 0;
+  return "₱" + Number(n).toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function num(n, d = 2) {
+  if (isNaN(n)) n = 0;
+  return Number(n).toFixed(d);
+}
+// Rebar weight per meter, Philippine construction formula: kg/m = diameter(mm)^2 / 162
+function rebarKgPerM(d) { return (d * d) / 162; }
+
+function lookupPrice(name) {
+  const mats = State.get("siang_materials", []);
+  const hit = mats.find(m => m.name.toLowerCase() === String(name).toLowerCase());
+  if (hit) return hit.price;
+  const partial = mats.find(m => m.name.toLowerCase().includes(String(name).toLowerCase()));
+  return partial ? partial.price : 0;
+}
+
+function getMix(strengthLabel) {
+  const key = String(strengthLabel).replace(/\D/g, ""); // "3000 PSI" -> "3000"
+  const mix = State.get("siang_mix", DEFAULT_MIX);
+  return mix[key] || DEFAULT_MIX["3000"];
+}
+
+/* Builds a material breakdown table + returns the total cost */
+function renderBreakdownTable(rows) {
+  let total = 0;
+  let body = "";
+  rows.forEach(r => {
+    const lineTotal = r.qty * r.price;
+    total += lineTotal;
+    body += `<tr><td>${r.item}</td><td>${r.desc}</td><td>${num(r.qty, r.decimals ?? 2)}</td><td>${r.unit}</td><td>${peso(r.price)}</td><td>${peso(lineTotal)}</td></tr>`;
   });
-  const Mmax = xs.map((_, i) => Math.max(...combos.map(c => c.M[i])));
-  const Mmin = xs.map((_, i) => Math.min(...combos.map(c => c.M[i])));
-  const Vabs = xs.map((_, i) => Math.max(...combos.map(c => Math.abs(c.V[i]))));
-  let Mpos = 0, iPos = 0, Mneg = 0, iNeg = 0;
-  Mmax.forEach((v, i) => { if (v > Mpos) { Mpos = v; iPos = i; } });
-  Mmin.forEach((v, i) => { if (-v > Mneg) { Mneg = -v; iNeg = i; } });
-  const fS = actions(p.support, L, wD + wL, p.PD + p.PL), fD = actions(p.support, L, wD, p.PD);
-  return { L, sw, wD, wL, xs, combos, Mmax, Mmin, Vabs, Mpos, xPos: xs[iPos], Mneg, xNeg: xs[iNeg], Vmax: Math.max(...Vabs), MS: xs.map(fS.M), MD: xs.map(fD.M) };
+  const html = `<div class="table-wrap"><table>
+    <thead><tr><th>ITEM</th><th>DESCRIPTION</th><th>QTY</th><th>UNIT</th><th>UNIT PRICE</th><th>TOTAL</th></tr></thead>
+    <tbody>${body}</tbody>
+    <tfoot><tr><td colspan="5">MATERIAL SUBTOTAL</td><td>${peso(total)}</td></tr></tfoot>
+  </table></div>`;
+  return { html, total };
 }
 
-/* ---------- section analysis: strain compatibility, y measured from compression face ---------- */
-function sectionMn(b, h, fc, fy, layers) {
-  const b1 = beta1(fc);
-  const stress = (c, y, a) => { let fs = clamp(ES * 0.003 * (c - y) / c, -fy, fy); if (fs > 0 && y < a) fs -= 0.85 * fc; return fs; };
-  const net = c => { const a = Math.min(b1 * c, h); let F = 0.85 * fc * a * b; for (const L of layers) F += L.A * stress(c, L.y, a); return F; };
-  let lo = 1e-3, hi = 2 * h;
-  for (let i = 0; i < 70; i++) { const m = (lo + hi) / 2; if (net(m) > 0) hi = m; else lo = m; }
-  const c = (lo + hi) / 2, a = Math.min(b1 * c, h);
-  let S = 0.85 * fc * a * b * a / 2; const fsList = [];
-  for (const L of layers) { const fs = stress(c, L.y, a); fsList.push(fs); S += L.A * fs * L.y; }
-  const Mn = -S;
-  const dt = Math.max(...layers.filter(L => L.tension).map(L => L.y));
-  const et = 0.003 * (dt - c) / c, phi = phiFlex(et, fy);
-  return { c, a, Mn, et, phi, phiMn: phi * Mn, dt, fsList };
+function costSummaryBlock({ materialCost, laborCost, equipmentCost, subtotal, contingency, grandTotal, eqPct, contPct }) {
+  return `<div class="cost-summary">
+    <div class="cost-line"><span>MATERIAL COST</span><span>${peso(materialCost)}</span></div>
+    <div class="cost-line"><span>LABOR COST</span><span>${peso(laborCost)}</span></div>
+    <div class="cost-line"><span>EQUIPMENT COST (${num(eqPct,1)}% of Material+Labor)</span><span>${peso(equipmentCost)}</span></div>
+    <div class="cost-line sub"><span>SUBTOTAL</span><span>${peso(subtotal)}</span></div>
+    <div class="cost-line"><span>CONTINGENCY (${num(contPct,1)}%)</span><span>${peso(contingency)}</span></div>
+    <div class="cost-line total"><span>GRAND TOTAL</span><span>${peso(grandTotal)}</span></div>
+  </div>
+  <p class="hint">Wastage is already included in the material quantities above (see formulas). Verify against actual supplier quotations before ordering.</p>`;
 }
 
-/* ---------- bar layout on one face (y measured from that face) ---------- */
-function faceGeom(p, db, n) {
-  const ds = p.dsLayout, clr = Math.max(25, db, 4 / 3 * p.agg);
-  const avail = p.b - 2 * p.cover - 2 * ds;
-  const nmax = Math.floor((avail - db) / (db + clr) + 1e-9) + 1;
-  if (nmax < 2) return null;
-  let ls;
-  if (n <= nmax) ls = [n];
-  else {
-    if (p.maxLayers < 2) return null;
-    const n2 = Math.max(2, n - nmax), n1 = n - n2;
-    if (n1 > nmax || n1 < n2) return null;
-    ls = [n1, n2];
-  }
-  const y1 = p.cover + ds + db / 2, dy = db + Math.max(25, db);
-  const layers = ls.map((k, i) => ({ n: k, y: y1 + i * dy }));
-  const As = n * barA(db);
-  const ybar = layers.reduce((s, l) => s + l.n * l.y, 0) / n;
-  const sClear = ls[0] > 1 ? (avail - ls[0] * db) / (ls[0] - 1) : avail - db;
-  return { db, n, layers, As, ybar, y1, sClear, sCtr: sClear + db, clrMin: clr, nmax, avail };
-}
-function layerZ(p, db, n) { const avail = p.b - 2 * p.cover - 2 * p.dsLayout, z0 = p.cover + p.dsLayout + db / 2; if (n < 2) return [p.b / 2]; return Array.from({ length: n }, (_, j) => z0 + j * (avail - db) / (n - 1)); }
-function contIdx(n1, nc) { if (nc >= n1) return [...Array(n1).keys()]; const s = new Set(); for (let j = 0; j < nc; j++) s.add(Math.round(j * (n1 - 1) / (nc - 1))); return [...s]; }
-
-/* ---------- flexural candidates for one face ---------- */
-function faceCandidates(p, Mu, comp) {
-  const res = [], fsS = 2 / 3 * p.fy, cc = p.cover + p.dsLayout;
-  const sCrack = Math.min(380 * 280 / fsS - 2.5 * cc, 300 * 280 / fsS);
-  const kAsmin = Math.max(0.25 * Math.sqrt(p.fc) / p.fy, 1.4 / p.fy);
-  for (const db of p.dias) {
-    for (let n = 2; n <= 24; n++) {
-      const g = faceGeom(p, db, n); if (!g) continue;
-      const layers = g.layers.map(l => ({ A: l.n * barA(db), y: p.h - l.y, tension: true }));
-      if (comp && comp.A > 0) layers.push({ A: comp.A, y: comp.y, tension: false });
-      const s = sectionMn(p.b, p.h, p.fc, p.fy, layers);
-      const d = p.h - g.ybar, phiMn = s.phiMn / 1e6;
-      const Asmin = kAsmin * p.b * d;
-      const Rn = Mu * 1e6 / (0.9 * p.b * d * d), disc = 1 - 2 * Rn / (0.85 * p.fc);
-      const AsReq = disc > 0 ? 0.85 * p.fc / p.fy * (1 - Math.sqrt(disc)) * p.b * d : Infinity;
-      const AsMinGov = p.smf ? Asmin : Math.min(Asmin, 4 / 3 * AsReq);
-      const rho = g.As / (p.b * d);
-      const chk = { strength: phiMn >= Mu - 1e-9, ductility: s.et >= 0.004, minimum: g.As >= AsMinGov - 1e-6, crack: g.layers[0].n < 2 || g.sCtr <= sCrack + 1e-9, rhoMax: !p.smf || rho <= 0.025 };
-      const ok = Object.values(chk).every(Boolean);
-      const key = g.As * (g.layers.length > 1 ? 1.04 : 1) + 4 * n;
-      res.push(Object.assign({}, g, { d, dt: s.dt, c: s.c, a: s.a, et: s.et, phi: s.phi, Mn: s.Mn / 1e6, phiMn, Mu, Asmin, AsReq, AsMinGov, rho, sCrack, chk, ok, key, util: Mu / phiMn, comp }));
-    }
-  }
-  return res.sort((a, b) => a.key - b.key);
-}
-function capNc(p, f, nc) { const s = sectionMn(p.b, p.h, p.fc, p.fy, [{ A: nc * barA(f.db), y: p.h - f.layers[0].y, tension: true }]); return s.phiMn / 1e6; }
-function devLength(p, db, isTop) {
-  const below = p.h - p.cover - p.dsLayout - db;
-  const psiT = (isTop && below > 300) ? 1.3 : 1.0;
-  const k = db <= 20 ? 2.1 : 1.7;
-  return { ld: Math.max(300, p.fy * psiT * db / (k * Math.sqrt(p.fc))), psiT, k };
+/* Wraps material + labor into the shared cost math (equipment %, contingency %) */
+function computeCosts(materialCost, laborCost) {
+  const misc = State.get("siang_misc", DEFAULT_MISC);
+  const equipmentCost = (materialCost + laborCost) * (misc.eqPct / 100);
+  const subtotal = materialCost + laborCost + equipmentCost;
+  const contingency = subtotal * (misc.contPct / 100);
+  const grandTotal = subtotal + contingency;
+  return { materialCost, laborCost, equipmentCost, subtotal, contingency, grandTotal, eqPct: misc.eqPct, contPct: misc.contPct };
 }
 
-/* ---------- curtailment (Sec. 409.7.3) ---------- */
-function curtail(p, an, f, isTop, ncMin) {
-  f.nc = f.n; f.cut = [];
-  const dl = devLength(p, f.db, isTop); f.ld = dl.ld / 1000; f.psiT = dl.psiT; f.ldK = dl.k;
-  f.ext = Math.max(f.d, 12 * f.db) / 1000; f.capC = f.phiMn || 0;
-  if (f.type !== 'design' || !p.curtail) return;
-  let nc = Math.max(2, Math.ceil(f.n / 3), ncMin || 0);
-  nc = Math.min(nc, f.layers[0].n);
-  if (nc >= f.n) return;
-  const capC = capNc(p, f, nc), xs = an.xs, L = an.L;
-  const M = isTop ? an.Mmin.map(v => -v) : an.Mmax;
-  const segs = [];
-  if (!isTop) {
-    let i1 = -1, i2 = -1; M.forEach((v, i) => { if (v > capC) { if (i1 < 0) i1 = i; i2 = i; } });
-    if (i1 < 0) return;
-    const xm = an.xPos;
-    let s = Math.max(0, xs[i1] - f.ext), e = Math.min(L, xs[i2] + f.ext);
-    s = Math.max(0, Math.min(s, xm - f.ld)); e = Math.min(L, Math.max(e, xm + f.ld));
-    segs.push([s, e]);
-  } else {
-    const ends = p.support === 'ff' ? ['L', 'R'] : (p.support === 'ss' ? [] : ['L']);
-    const N = xs.length - 1;
-    for (const end of ends) {
-      if (end === 'L') { if (!(M[0] > capC)) continue; let i = 0; while (i < N && M[i + 1] > capC) i++; segs.push([0, Math.min(L, Math.max(xs[i] + f.ext, f.ld))]); }
-      else { if (!(M[N] > capC)) continue; let i = N; while (i > 0 && M[i - 1] > capC) i--; segs.push([Math.max(0, Math.min(xs[i] - f.ext, L - f.ld)), L]); }
-    }
-    if (!segs.length) return;
-    if (segs.length === 2 && segs[0][1] >= segs[1][0]) return;
+function validatePositive(fields) {
+  for (const [label, val] of Object.entries(fields)) {
+    if (val === "" || val === null || isNaN(val)) return `${label}: Please enter a valid dimension.`;
+    if (Number(val) < 0) return `${label}: Value cannot be negative.`;
   }
-  const tot = segs.reduce((s, g) => s + g[1] - g[0], 0);
-  if (tot >= 0.95 * L) return;
-  f.nc = nc; f.cut = segs; f.capC = capC;
+  return null;
 }
 
-/* ---------- SMF provisions (Sec. 418.6) ---------- */
-function smfProcess(p, an, r, bot, top) {
-  const s = { active: p.support === 'ff', items: [] };
-  if (!s.active) { r.warn.push('Special moment frame provisions (Sec. 418.6) are meant for frame beams restrained at both ends — select “Fixed – Fixed”. Only hinge-zone hoop detailing at the fixed end is applied.'); return s; }
-  const compH = { A: 2 * barA(p.hangerDia), y: p.cover + p.dsLayout + p.hangerDia / 2 };
-  const need = 0.5 * top.phiMn;
-  let done = false;
-  for (let nc = Math.max(2, bot.nc); nc <= bot.layers[0].n; nc++) { if (capNc(p, bot, nc) >= need) { curtail(p, an, bot, false, nc); done = true; break; } }
-  if (!done) {
-    const target = Math.max(an.Mpos, need);
-    const nb = faceCandidates(p, target, compH).find(c => c.ok && capNc(p, c, c.layers[0].n) >= need);
-    if (nb) {
-      Object.keys(bot).forEach(k => delete bot[k]);
-      Object.assign(bot, nb, { type: 'design', isTop: false, smfRaised: true });
-      let nc = 2; while (nc < bot.layers[0].n && capNc(p, bot, nc) < need) nc++;
-      curtail(p, an, bot, false, nc);
-    } else r.warn.push('SMF: could not satisfy φMn⁺ ≥ ½ φMn⁻ at the joint face with the allowed bars.');
+/* ============================================================
+   FOOTING ESTIMATOR
+   ============================================================ */
+const Footing = {
+  calculate() {
+    const errEl = document.getElementById("f_error");
+    errEl.textContent = "";
+    const type = document.getElementById("f_type").value;
+    const count = +document.getElementById("f_count").value;
+    const L = +document.getElementById("f_length").value;
+    const W = +document.getElementById("f_width").value;
+    const T = +document.getElementById("f_thick").value;
+    const strength = document.getElementById("f_strength").value;
+    const mainBar = +document.getElementById("f_mainbar").value;
+    const mainSpacing = +document.getElementById("f_mainspacing").value;
+    const distBar = +document.getElementById("f_distbar").value;
+    const distSpacing = +document.getElementById("f_distspacing").value;
+    const cover = +document.getElementById("f_cover").value;
+    const wastage = +document.getElementById("f_wastage").value;
+
+    const err = validatePositive({ "Number of Footings": count, "Length": L, "Width": W, "Thickness": T, "Main Bar Spacing": mainSpacing, "Distribution Bar Spacing": distSpacing });
+    if (err) { errEl.textContent = err; return; }
+
+    // ----- CONCRETE -----
+    const volumeEach = L * W * T;
+    const rawVolume = volumeEach * count;
+    const adjVolume = rawVolume * (1 + wastage / 100);
+    const mix = getMix(strength);
+    const cementKg = adjVolume * mix.cement;
+    const cementBags = cementKg / 40;
+    const sandM3 = adjVolume * mix.sand;
+    const gravelM3 = adjVolume * mix.gravel;
+    const waterM3 = (adjVolume * mix.water) / 1000;
+
+    // ----- REBAR (two-way mat, mirrors typical isolated/strip footing reinforcement) -----
+    const mainBarsPerFooting = Math.floor(W / mainSpacing) + 1;
+    const mainBarLen = Math.max(L - 2 * cover, 0);
+    const distBarsPerFooting = Math.floor(L / distSpacing) + 1;
+    const distBarLen = Math.max(W - 2 * cover, 0);
+
+    const totalMainLen = mainBarsPerFooting * mainBarLen * count * (1 + wastage / 100);
+    const totalDistLen = distBarsPerFooting * distBarLen * count * (1 + wastage / 100);
+    const mainKgPerM = rebarKgPerM(mainBar);
+    const distKgPerM = rebarKgPerM(distBar);
+    const mainWeight = totalMainLen * mainKgPerM;
+    const distWeight = totalDistLen * distKgPerM;
+    const totalRebarWeight = mainWeight + distWeight;
+    const barLength = State.get("siang_barlength", DEFAULT_BARLENGTH);
+    const mainBarsCommercial = Math.ceil(totalMainLen / barLength);
+    const distBarsCommercial = Math.ceil(totalDistLen / barLength);
+
+    // ----- FORMWORK -----
+    const formworkArea = 2 * (L + W) * T * count * (1 + wastage / 100);
+
+    // ----- MATERIAL BREAKDOWN -----
+    const rows = [
+      { item: "Cement", desc: "Portland Cement 40kg", qty: cementBags, unit: "bag", price: lookupPrice("Portland Cement 40kg") },
+      { item: "Sand", desc: "Washed Sand", qty: sandM3, unit: "m³", price: lookupPrice("Washed Sand") },
+      { item: "Gravel", desc: "3/4 Gravel", qty: gravelM3, unit: "m³", price: lookupPrice("3/4 Gravel") },
+      { item: "Water", desc: "Mixing Water", qty: waterM3, unit: "m³", price: lookupPrice("Water") },
+      { item: "Main Rebar", desc: `${mainBar}mm Deformed Bar`, qty: mainWeight, unit: "kg", price: lookupPrice(`${mainBar}mm Rebar`) },
+      { item: "Dist. Rebar", desc: `${distBar}mm Deformed Bar`, qty: distWeight, unit: "kg", price: lookupPrice(`${distBar}mm Rebar`) },
+      { item: "Tie Wire", desc: "Rebar Tie Wire (approx 2% of rebar wt.)", qty: totalRebarWeight * 0.02, unit: "kg", price: lookupPrice("Tie Wire") },
+      { item: "Formwork", desc: "Plywood & Lumber", qty: formworkArea, unit: "m²", price: lookupPrice("Formwork Materials") }
+    ];
+    const { html: tableHtml, total: materialCost } = renderBreakdownTable(rows);
+
+    const laborRates = State.get("siang_laborrates", DEFAULT_LABOR_RATES);
+    const laborCost = adjVolume * laborRates.concrete + totalRebarWeight * laborRates.rebar + formworkArea * laborRates.formwork;
+    const costs = computeCosts(materialCost, laborCost);
+
+    const html = `
+      <div class="card result-block">
+        <h2>Quantity Summary — ${type}</h2>
+        <div class="formula">Concrete Volume (per footing)
+${num(L)} m × ${num(W)} m × ${num(T)} m = ${num(volumeEach)} m³
+
+Total Volume = ${num(volumeEach)} m³ × ${count} footings = ${num(rawVolume)} m³
+Adjusted for ${num(wastage,1)}% wastage = ${num(adjVolume)} m³</div>
+
+        <div class="formula">Main Rebar (${mainBar}mm)
+Bars per footing = floor(${num(W)} / ${num(mainSpacing)}) + 1 = ${mainBarsPerFooting}
+Bar length = ${num(L)} − 2×${num(cover,3)} (cover) = ${num(mainBarLen)} m
+Total length = ${mainBarsPerFooting} × ${num(mainBarLen)} × ${count} footings ×(1+wastage) = ${num(totalMainLen)} m
+Weight/m = ${mainBar}² / 162 = ${num(mainKgPerM,4)} kg/m
+Total Weight = ${num(totalMainLen)} m × ${num(mainKgPerM,4)} kg/m = ${num(mainWeight)} kg
+Commercial bars (${barLength}m each) = ceil(${num(totalMainLen)} / ${barLength}) = ${mainBarsCommercial} pcs</div>
+
+        <div class="formula">Distribution Rebar (${distBar}mm)
+Bars per footing = floor(${num(L)} / ${num(distSpacing)}) + 1 = ${distBarsPerFooting}
+Bar length = ${num(W)} − 2×${num(cover,3)} (cover) = ${num(distBarLen)} m
+Total length = ${distBarsPerFooting} × ${num(distBarLen)} × ${count} footings ×(1+wastage) = ${num(totalDistLen)} m
+Weight/m = ${distBar}² / 162 = ${num(distKgPerM,4)} kg/m
+Total Weight = ${num(totalDistLen)} m × ${num(distKgPerM,4)} kg/m = ${num(distWeight)} kg
+Commercial bars (${barLength}m each) = ceil(${num(totalDistLen)} / ${barLength}) = ${distBarsCommercial} pcs
+
+TOTAL REBAR WEIGHT = ${num(mainWeight)} + ${num(distWeight)} = ${num(totalRebarWeight)} kg</div>
+
+        <div class="formula">Formwork Area
+2 × (${num(L)} + ${num(W)}) × ${num(T)} × ${count} footings ×(1+wastage) = ${num(formworkArea)} m²</div>
+      </div>
+
+      <div class="card result-block"><h2>Material Breakdown</h2>${tableHtml}</div>
+      <div class="card result-block"><h2>Cost Summary</h2>${costSummaryBlock(costs)}</div>
+    `;
+    document.getElementById("f_results").innerHTML = html;
+
+    saveModuleResult("footing", {
+      label: `Footing (${type})`,
+      concreteVolume: adjVolume,
+      rebarWeight: totalRebarWeight,
+      roofingArea: 0,
+      materialCost: costs.materialCost,
+      laborCost: costs.laborCost,
+      grandTotal: costs.grandTotal
+    });
   }
-  const need2 = 0.25 * Math.max(top.phiMn, bot.phiMn);
-  for (let nc = Math.max(2, top.nc); nc <= top.layers[0].n; nc++) { if (capNc(p, top, nc) >= need2) { if (nc > top.nc) curtail(p, an, top, true, nc); break; } }
-  s.need = need; s.need2 = need2;
-  return s;
-}
-function smfItems(p, an, r, bot, top) {
-  const s = r.smf, it = s.items = [], add = (t, ok, val, ref) => it.push({ t, ok, val, ref });
-  const dmin = Math.min(bot.d, top.d);
-  add('Clear span ℓn ≥ 4d', an.L * 1000 >= 4 * dmin, `${(an.L * 1000).toFixed(0)} ≥ ${(4 * dmin).toFixed(0)} mm`, '418.6.2.1(a)');
-  add('Width bw ≥ 250 mm', p.b >= 250, `${p.b} mm`, '418.6.2.1(b)');
-  add('Width bw ≥ 0.3h', p.b >= 0.3 * p.h, `${p.b} ≥ ${(0.3 * p.h).toFixed(0)} mm`, '418.6.2.1(b)');
-  add('ρ ≤ 0.025 (bottom)', bot.As / (p.b * bot.d) <= 0.025, (bot.As / (p.b * bot.d)).toFixed(4), '418.6.3.1');
-  add('ρ ≤ 0.025 (top)', top.As / (p.b * top.d) <= 0.025, (top.As / (p.b * top.d)).toFixed(4), '418.6.3.1');
-  add('≥ 2 continuous bars top & bottom', bot.nc >= 2 && top.nc >= 2, `${top.nc} top / ${bot.nc} bottom`, '418.6.3.1');
-  if (s.active) {
-    const cb = capNc(p, bot, bot.nc), ct = capNc(p, top, top.nc), mx = Math.max(top.phiMn, bot.phiMn);
-    add('φMn⁺ at joint face ≥ ½ φMn⁻', cb >= 0.5 * top.phiMn - 1e-6, `${cb.toFixed(1)} ≥ ${(0.5 * top.phiMn).toFixed(1)} kN·m`, '418.6.3.2');
-    add('φMn (any section) ≥ ¼ max φMn at joint', Math.min(cb, ct) >= 0.25 * mx - 1e-6, `${Math.min(cb, ct).toFixed(1)} ≥ ${(0.25 * mx).toFixed(1)} kN·m`, '418.6.3.2');
+};
+
+/* ============================================================
+   BEAM ESTIMATOR
+   ============================================================ */
+const Beam = {
+  calculate() {
+    const errEl = document.getElementById("b_error");
+    errEl.textContent = "";
+    const count = +document.getElementById("b_count").value;
+    const strength = document.getElementById("b_strength").value;
+    const L = +document.getElementById("b_length").value;
+    const W = +document.getElementById("b_width").value;
+    const H = +document.getElementById("b_height").value;
+    const topBar = +document.getElementById("b_topbar").value;
+    const topCount = +document.getElementById("b_topcount").value;
+    const bottomBar = +document.getElementById("b_bottombar").value;
+    const bottomCount = +document.getElementById("b_bottomcount").value;
+    const stirrupBar = +document.getElementById("b_stirrupbar").value;
+    const stirrupSpacing = +document.getElementById("b_stirrupspacing").value;
+    const cover = +document.getElementById("b_cover").value;
+    const wastage = +document.getElementById("b_wastage").value;
+
+    const err = validatePositive({ "Number of Beams": count, "Length": L, "Width": W, "Height": H, "Stirrup Spacing": stirrupSpacing });
+    if (err) { errEl.textContent = err; return; }
+
+    const volumeEach = L * W * H;
+    const rawVolume = volumeEach * count;
+    const adjVolume = rawVolume * (1 + wastage / 100);
+    const mix = getMix(strength);
+    const cementBags = (adjVolume * mix.cement) / 40;
+    const sandM3 = adjVolume * mix.sand;
+    const gravelM3 = adjVolume * mix.gravel;
+    const waterM3 = (adjVolume * mix.water) / 1000;
+
+    // Longitudinal rebar
+    const totalLongBars = topCount + bottomCount;
+    const longLength = totalLongBars * L * count * (1 + wastage / 100);
+    const topKgPerM = rebarKgPerM(topBar);
+    const bottomKgPerM = rebarKgPerM(bottomBar);
+    const topWeight = topCount * L * count * (1 + wastage / 100) * topKgPerM;
+    const bottomWeight = bottomCount * L * count * (1 + wastage / 100) * bottomKgPerM;
+    const longWeight = topWeight + bottomWeight;
+
+    // Stirrups: closed loop around the beam cross-section
+    const stirrupsPerBeam = Math.floor(L / stirrupSpacing) + 1;
+    const stirrupLenEach = 2 * ((W - 2 * cover) + (H - 2 * cover)) + 0.20; // +0.20m for hooks
+    const totalStirrupLen = stirrupsPerBeam * stirrupLenEach * count * (1 + wastage / 100);
+    const stirrupKgPerM = rebarKgPerM(stirrupBar);
+    const stirrupWeight = totalStirrupLen * stirrupKgPerM;
+
+    const totalRebarWeight = longWeight + stirrupWeight;
+    const barLength = State.get("siang_barlength", DEFAULT_BARLENGTH);
+
+    // Formwork: two sides + bottom (soffit), top is open to receive slab/topping
+    const formworkArea = (2 * H + W) * L * count * (1 + wastage / 100);
+
+    const rows = [
+      { item: "Cement", desc: "Portland Cement 40kg", qty: cementBags, unit: "bag", price: lookupPrice("Portland Cement 40kg") },
+      { item: "Sand", desc: "Washed Sand", qty: sandM3, unit: "m³", price: lookupPrice("Washed Sand") },
+      { item: "Gravel", desc: "3/4 Gravel", qty: gravelM3, unit: "m³", price: lookupPrice("3/4 Gravel") },
+      { item: "Water", desc: "Mixing Water", qty: waterM3, unit: "m³", price: lookupPrice("Water") },
+      { item: "Top Rebar", desc: `${topBar}mm Deformed Bar`, qty: topWeight, unit: "kg", price: lookupPrice(`${topBar}mm Rebar`) },
+      { item: "Bottom Rebar", desc: `${bottomBar}mm Deformed Bar`, qty: bottomWeight, unit: "kg", price: lookupPrice(`${bottomBar}mm Rebar`) },
+      { item: "Stirrups", desc: `${stirrupBar}mm Deformed Bar`, qty: stirrupWeight, unit: "kg", price: lookupPrice(`${stirrupBar}mm Rebar`) },
+      { item: "Tie Wire", desc: "Rebar Tie Wire (approx 2% of rebar wt.)", qty: totalRebarWeight * 0.02, unit: "kg", price: lookupPrice("Tie Wire") },
+      { item: "Formwork", desc: "Plywood & Lumber", qty: formworkArea, unit: "m²", price: lookupPrice("Formwork Materials") }
+    ];
+    const { html: tableHtml, total: materialCost } = renderBreakdownTable(rows);
+    const laborRates = State.get("siang_laborrates", DEFAULT_LABOR_RATES);
+    const laborCost = adjVolume * laborRates.concrete + totalRebarWeight * laborRates.rebar + formworkArea * laborRates.formwork;
+    const costs = computeCosts(materialCost, laborCost);
+
+    const html = `
+      <div class="card result-block">
+        <h2>Quantity Summary</h2>
+        <div class="formula">Concrete Volume (per beam)
+${num(L)} m × ${num(W)} m × ${num(H)} m = ${num(volumeEach)} m³
+Total = ${num(volumeEach)} × ${count} beams = ${num(rawVolume)} m³
+Adjusted for ${num(wastage,1)}% wastage = ${num(adjVolume)} m³</div>
+
+        <div class="formula">Longitudinal Rebar
+Top: ${topCount} bars × ${topBar}mm × ${num(L)} m × ${count} beams ×(1+wastage)
+Weight/m = ${topBar}²/162 = ${num(topKgPerM,4)} kg/m → Top Weight = ${num(topWeight)} kg
+
+Bottom: ${bottomCount} bars × ${bottomBar}mm × ${num(L)} m × ${count} beams ×(1+wastage)
+Weight/m = ${bottomBar}²/162 = ${num(bottomKgPerM,4)} kg/m → Bottom Weight = ${num(bottomWeight)} kg</div>
+
+        <div class="formula">Stirrups (${stirrupBar}mm @ ${num(stirrupSpacing)} m o.c.)
+Stirrups per beam = floor(${num(L)} / ${num(stirrupSpacing)}) + 1 = ${stirrupsPerBeam}
+Length each = 2×[(${num(W)}−2×${num(cover,3)}) + (${num(H)}−2×${num(cover,3)})] + 0.20m hooks = ${num(stirrupLenEach)} m
+Total length = ${stirrupsPerBeam} × ${num(stirrupLenEach)} × ${count} beams ×(1+wastage) = ${num(totalStirrupLen)} m
+Weight/m = ${stirrupBar}²/162 = ${num(stirrupKgPerM,4)} kg/m → Weight = ${num(stirrupWeight)} kg
+
+TOTAL REBAR = ${num(longWeight)} + ${num(stirrupWeight)} = ${num(totalRebarWeight)} kg</div>
+
+        <div class="formula">Formwork Area
+(2×${num(H)} + ${num(W)}) × ${num(L)} × ${count} beams ×(1+wastage) = ${num(formworkArea)} m²</div>
+      </div>
+      <div class="card result-block"><h2>Material Breakdown</h2>${tableHtml}</div>
+      <div class="card result-block"><h2>Cost Summary</h2>${costSummaryBlock(costs)}</div>
+    `;
+    document.getElementById("b_results").innerHTML = html;
+
+    saveModuleResult("beam", {
+      label: "Beam",
+      concreteVolume: adjVolume,
+      rebarWeight: totalRebarWeight,
+      roofingArea: 0,
+      materialCost: costs.materialCost,
+      laborCost: costs.laborCost,
+      grandTotal: costs.grandTotal
+    });
   }
-  const sh = r.shear && r.shear.best;
-  if (sh && sh.sh) {
-    add('Hoops over 2h from support face', true, `${(2 * p.h).toFixed(0)} mm zone`, '418.6.4.1');
-    add('First hoop ≤ 50 mm from face', true, '50 mm', '418.6.4.4');
-    add('Hoop spacing ≤ d/4, 6db, 150 mm', sh.sh <= Math.min(dmin / 4, 6 * Math.min(bot.db, top.db), 150) + 1e-6, `${sh.sh} mm`, '418.6.4.4');
+};
+
+/* ============================================================
+   SLAB ESTIMATOR
+   ============================================================ */
+const Slab = {
+  calculate() {
+    const errEl = document.getElementById("s_error");
+    errEl.textContent = "";
+    const L = +document.getElementById("s_length").value;
+    const W = +document.getElementById("s_width").value;
+    const Tmm = +document.getElementById("s_thick").value;
+    const strength = document.getElementById("s_strength").value;
+    const mainBar = +document.getElementById("s_mainbar").value;
+    const mainSpacing = +document.getElementById("s_mainspacing").value;
+    const distBar = +document.getElementById("s_distbar").value;
+    const distSpacing = +document.getElementById("s_distspacing").value;
+    const cover = +document.getElementById("s_cover").value;
+    const wastage = +document.getElementById("s_wastage").value;
+
+    const err = validatePositive({ "Length": L, "Width": W, "Thickness": Tmm, "Main Bar Spacing": mainSpacing, "Distribution Bar Spacing": distSpacing });
+    if (err) { errEl.textContent = err; return; }
+
+    const area = L * W;
+    const T = Tmm / 1000;
+    const rawVolume = area * T;
+    const adjVolume = rawVolume * (1 + wastage / 100);
+    const mix = getMix(strength);
+    const cementBags = (adjVolume * mix.cement) / 40;
+    const sandM3 = adjVolume * mix.sand;
+    const gravelM3 = adjVolume * mix.gravel;
+    const waterM3 = (adjVolume * mix.water) / 1000;
+
+    const mainBars = Math.floor(W / mainSpacing) + 1;
+    const mainLen = Math.max(L - 2 * cover, 0);
+    const totalMainLen = mainBars * mainLen * (1 + wastage / 100);
+    const distBars = Math.floor(L / distSpacing) + 1;
+    const distLen = Math.max(W - 2 * cover, 0);
+    const totalDistLen = distBars * distLen * (1 + wastage / 100);
+    const mainKgPerM = rebarKgPerM(mainBar);
+    const distKgPerM = rebarKgPerM(distBar);
+    const mainWeight = totalMainLen * mainKgPerM;
+    const distWeight = totalDistLen * distKgPerM;
+    const totalRebarWeight = mainWeight + distWeight;
+    const barLength = State.get("siang_barlength", DEFAULT_BARLENGTH);
+
+    const formworkArea = area * (1 + wastage / 100); // soffit + edge forms (simplified)
+
+    const rows = [
+      { item: "Cement", desc: "Portland Cement 40kg", qty: cementBags, unit: "bag", price: lookupPrice("Portland Cement 40kg") },
+      { item: "Sand", desc: "Washed Sand", qty: sandM3, unit: "m³", price: lookupPrice("Washed Sand") },
+      { item: "Gravel", desc: "3/4 Gravel", qty: gravelM3, unit: "m³", price: lookupPrice("3/4 Gravel") },
+      { item: "Water", desc: "Mixing Water", qty: waterM3, unit: "m³", price: lookupPrice("Water") },
+      { item: "Main Rebar", desc: `${mainBar}mm Deformed Bar`, qty: mainWeight, unit: "kg", price: lookupPrice(`${mainBar}mm Rebar`) },
+      { item: "Dist. Rebar", desc: `${distBar}mm Deformed Bar`, qty: distWeight, unit: "kg", price: lookupPrice(`${distBar}mm Rebar`) },
+      { item: "Tie Wire", desc: "Rebar Tie Wire (approx 2% of rebar wt.)", qty: totalRebarWeight * 0.02, unit: "kg", price: lookupPrice("Tie Wire") },
+      { item: "Formwork", desc: "Plywood & Lumber", qty: formworkArea, unit: "m²", price: lookupPrice("Formwork Materials") }
+    ];
+    const { html: tableHtml, total: materialCost } = renderBreakdownTable(rows);
+    const laborRates = State.get("siang_laborrates", DEFAULT_LABOR_RATES);
+    const laborCost = adjVolume * laborRates.concrete + totalRebarWeight * laborRates.rebar + formworkArea * laborRates.formwork;
+    const costs = computeCosts(materialCost, laborCost);
+
+    const html = `
+      <div class="card result-block">
+        <h2>Quantity Summary</h2>
+        <div class="formula">Slab Area
+${num(L)} m × ${num(W)} m = ${num(area)} m²</div>
+        <div class="formula">Concrete Volume
+${num(area)} m² × ${num(T,3)} m = ${num(rawVolume)} m³
+Adjusted for ${num(wastage,1)}% wastage = ${num(adjVolume)} m³</div>
+        <div class="formula">Main Reinforcement (${mainBar}mm @ ${num(mainSpacing)} m)
+Bars = floor(${num(W)} / ${num(mainSpacing)}) + 1 = ${mainBars}
+Length each = ${num(L)} − 2×${num(cover,3)} = ${num(mainLen)} m
+Total length ×(1+wastage) = ${num(totalMainLen)} m
+Weight/m = ${mainBar}²/162 = ${num(mainKgPerM,4)} kg/m → Weight = ${num(mainWeight)} kg</div>
+        <div class="formula">Distribution Reinforcement (${distBar}mm @ ${num(distSpacing)} m)
+Bars = floor(${num(L)} / ${num(distSpacing)}) + 1 = ${distBars}
+Length each = ${num(W)} − 2×${num(cover,3)} = ${num(distLen)} m
+Total length ×(1+wastage) = ${num(totalDistLen)} m
+Weight/m = ${distBar}²/162 = ${num(distKgPerM,4)} kg/m → Weight = ${num(distWeight)} kg
+
+TOTAL REINFORCEMENT = ${num(mainWeight)} + ${num(distWeight)} = ${num(totalRebarWeight)} kg</div>
+        <div class="formula">Formwork Area
+${num(area)} m² ×(1+wastage) = ${num(formworkArea)} m²</div>
+      </div>
+      <div class="card result-block"><h2>Material Breakdown</h2>${tableHtml}</div>
+      <div class="card result-block"><h2>Cost Summary</h2>${costSummaryBlock(costs)}</div>
+    `;
+    document.getElementById("s_results").innerHTML = html;
+
+    saveModuleResult("slab", {
+      label: "Slab",
+      concreteVolume: adjVolume,
+      rebarWeight: totalRebarWeight,
+      roofingArea: 0,
+      materialCost: costs.materialCost,
+      laborCost: costs.laborCost,
+      grandTotal: costs.grandTotal
+    });
   }
+};
+
+/* ============================================================
+   ROOFING ESTIMATOR
+   ============================================================ */
+const Roofing = {
+  calculate() {
+    const errEl = document.getElementById("r_error");
+    errEl.textContent = "";
+    const L = +document.getElementById("r_length").value;
+    const W = +document.getElementById("r_width").value;
+    const type = document.getElementById("r_type").value;
+    const pitchDeg = +document.getElementById("r_pitch").value;
+    const material = document.getElementById("r_material").value;
+    const sheetLen = +document.getElementById("r_sheetlen").value;
+    const sheetWid = +document.getElementById("r_sheetwid").value;
+    const purlinSpacing = +document.getElementById("r_purlinspacing").value;
+    const rafterSpacing = +document.getElementById("r_rafterspacing").value;
+    const wastage = +document.getElementById("r_wastage").value;
+
+    const err = validatePositive({ "Roof Length": L, "Roof Width": W, "Pitch": pitchDeg, "Sheet Length": sheetLen, "Sheet Width": sheetWid, "Purlin Spacing": purlinSpacing, "Rafter Spacing": rafterSpacing });
+    if (err) { errEl.textContent = err; return; }
+
+    const pitchRad = (pitchDeg * Math.PI) / 180;
+    let roofArea = (L * W) / Math.cos(pitchRad);
+    if (type === "Hip") roofArea *= 1.10; // extra area for hip ends
+    const adjRoofArea = roofArea * (1 + wastage / 100);
+
+    const sheetArea = sheetLen * sheetWid;
+    const sheetQty = Math.ceil(adjRoofArea / sheetArea);
+
+    const sides = type === "Shed" ? 1 : 2;
+    const slopeRun = (type === "Shed" ? W : W / 2) / Math.cos(pitchRad);
+    const purlinRows = Math.ceil(slopeRun / purlinSpacing) + 1;
+    const totalPurlinLen = purlinRows * L * sides;
+    const rafterCount = Math.floor(L / rafterSpacing) + 1;
+    const totalRafterLen = rafterCount * slopeRun * sides;
+    const barLength = 6;
+    const purlinPcs = Math.ceil(totalPurlinLen / barLength);
+    const rafterPcs = Math.ceil(totalRafterLen / barLength);
+
+    const tekQty = sheetQty * 8;
+    const ridgeLen = type === "Shed" ? 0 : L;
+    const flashingLen = 2 * (L + W);
+    const gutterLen = type === "Shed" ? L : 2 * L;
+    const downspoutQty = Math.ceil(gutterLen / 6);
+    const sealantTubes = Math.ceil(adjRoofArea / 30);
+    const weldingRodKg = (totalPurlinLen + totalRafterLen) * 0.05;
+
+    const rows = [
+      { item: "Roof Sheets", desc: material, qty: sheetQty, unit: "sheet", price: lookupPrice(material), decimals: 0 },
+      { item: "Purlin", desc: "C-Purlin (6m pcs)", qty: purlinPcs, unit: "pc", price: lookupPrice("C-Purlin"), decimals: 0 },
+      { item: "Rafter", desc: "Rafter 2x4 (6m pcs)", qty: rafterPcs, unit: "pc", price: lookupPrice("Rafter 2x4"), decimals: 0 },
+      { item: "Ridge Roll", desc: "Ridge Roll", qty: ridgeLen, unit: "m", price: lookupPrice("Ridge Roll") },
+      { item: "Flashing", desc: "Flashing", qty: flashingLen, unit: "m", price: lookupPrice("Flashing") },
+      { item: "Gutter", desc: "Gutter", qty: gutterLen, unit: "m", price: lookupPrice("Gutter") },
+      { item: "Downspout", desc: "Downspout", qty: downspoutQty, unit: "pc", price: lookupPrice("Downspout"), decimals: 0 },
+      { item: "Tek Screws", desc: "Tek Screws", qty: tekQty, unit: "pc", price: lookupPrice("Tek Screw"), decimals: 0 },
+      { item: "Roof Sealant", desc: "Sealant", qty: sealantTubes, unit: "tube", price: lookupPrice("Sealant"), decimals: 0 },
+      { item: "Welding Rod", desc: "Welding Rod", qty: weldingRodKg, unit: "kg", price: lookupPrice("Welding Rod") }
+    ];
+    const { html: tableHtml, total: materialCost } = renderBreakdownTable(rows);
+    const laborRates = State.get("siang_laborrates", DEFAULT_LABOR_RATES);
+    const laborCost = adjRoofArea * laborRates.roofing;
+    const costs = computeCosts(materialCost, laborCost);
+
+    const html = `
+      <div class="card result-block">
+        <h2>Quantity Summary — ${type} Roof</h2>
+        <div class="formula">Roof Area
+(${num(L)} m × ${num(W)} m) / cos(${num(pitchDeg,1)}°) ${type === "Hip" ? "× 1.10 (hip allowance)" : ""} = ${num(roofArea)} m²
+Adjusted for ${num(wastage,1)}% wastage = ${num(adjRoofArea)} m²</div>
+        <div class="formula">Roof Sheet Quantity
+Sheet area = ${num(sheetLen)} × ${num(sheetWid)} = ${num(sheetArea)} m²
+Qty = ceil(${num(adjRoofArea)} / ${num(sheetArea)}) = ${sheetQty} sheets</div>
+        <div class="formula">Purlin Length
+Rows = ceil(slope run ${num(slopeRun)} m / spacing ${num(purlinSpacing)} m) + 1 = ${purlinRows}
+Total length = ${purlinRows} × ${num(L)} m × ${sides} side(s) = ${num(totalPurlinLen)} m → ${purlinPcs} pcs @ 6m</div>
+        <div class="formula">Rafter Length
+Count = floor(${num(L)} / ${num(rafterSpacing)}) + 1 = ${rafterCount}
+Total length = ${rafterCount} × ${num(slopeRun)} m × ${sides} side(s) = ${num(totalRafterLen)} m → ${rafterPcs} pcs @ 6m</div>
+        <div class="formula">Tek Screws &amp; Accessories
+Tek screws = ${sheetQty} sheets × 8 = ${tekQty} pcs
+Ridge Roll = ${num(ridgeLen)} m | Flashing = ${num(flashingLen)} m | Gutter = ${num(gutterLen)} m
+Downspout = ceil(${num(gutterLen)} / 6) = ${downspoutQty} pcs | Sealant = ${sealantTubes} tubes</div>
+      </div>
+      <div class="card result-block"><h2>Material Breakdown</h2>${tableHtml}</div>
+      <div class="card result-block"><h2>Cost Summary</h2>${costSummaryBlock(costs)}</div>
+    `;
+    document.getElementById("r_results").innerHTML = html;
+
+    saveModuleResult("roofing", {
+      label: "Roofing",
+      concreteVolume: 0,
+      rebarWeight: 0,
+      roofingArea: adjRoofArea,
+      materialCost: costs.materialCost,
+      laborCost: costs.laborCost,
+      grandTotal: costs.grandTotal
+    });
+  }
+};
+
+/* Save each module's latest calculation so Dashboard / Summary can aggregate */
+function saveModuleResult(key, data) {
+  const current = State.get("siang_current", {});
+  current[key] = data;
+  State.set("siang_current", current);
+  Dashboard.render();
 }
 
-/* ---------- final verification using actual compression steel ---------- */
-function verifyFaces(p, bot, top) {
-  for (const [f, o] of [[bot, top], [top, bot]]) {
-    if (f.type !== 'design') continue;
-    const layers = f.layers.map(l => ({ A: l.n * barA(f.db), y: p.h - l.y, tension: true }));
-    layers.push({ A: o.nc * barA(o.db), y: o.layers[0].y, tension: false });
-    const s = sectionMn(p.b, p.h, p.fc, p.fy, layers);
-    f.vf = { phiMn: s.phiMn / 1e6, Mn: s.Mn / 1e6, et: s.et, phi: s.phi, c: s.c, As2: o.nc * barA(o.db), d2: o.layers[0].y, fs2: s.fsList[s.fsList.length - 1] };
-    f.vf.ok = f.vf.phiMn >= f.Mu - 1e-9 && f.vf.et >= 0.004;
-  }
-}
-function Mpr(p, tf, nT, cf, nC) {
-  const layers = [{ A: nT * barA(tf.db), y: p.h - tf.layers[0].y, tension: true }];
-  if (nT > tf.layers[0].n) { layers[0].A = tf.layers[0].n * barA(tf.db); tf.layers.slice(1).forEach(l => layers.push({ A: l.n * barA(tf.db), y: p.h - l.y, tension: true })); }
-  layers.push({ A: nC * barA(cf.db), y: cf.layers[0].y, tension: false });
-  return sectionMn(p.b, p.h, p.fc, 1.25 * p.fy, layers).Mn / 1e6;
-}
+/* ============================================================
+   DASHBOARD
+   ============================================================ */
+const Dashboard = {
+  render() {
+    const current = State.get("siang_current", {});
+    let totalCost = 0, totalMaterial = 0, totalLabor = 0, totalConcrete = 0, totalRebar = 0, totalRoofing = 0;
+    let rows = "";
+    ["footing", "beam", "slab", "roofing"].forEach(key => {
+      const d = current[key];
+      if (!d) return;
+      totalCost += d.grandTotal;
+      totalMaterial += d.materialCost;
+      totalLabor += d.laborCost;
+      totalConcrete += d.concreteVolume;
+      totalRebar += d.rebarWeight;
+      totalRoofing += d.roofingArea;
+      rows += `<tr><td>${d.label}</td><td>Done</td><td>${peso(d.materialCost)}</td><td>${peso(d.laborCost)}</td><td>${peso(d.grandTotal)}</td></tr>`;
+    });
+    if (!rows) rows = `<tr><td colspan="5" style="color:var(--text-dim)">No modules calculated yet. Go to Footing, Beam, Slab, or Roofing and click CALCULATE.</td></tr>`;
 
-/* ---------- shear design (Sec. 422.5, 409.6.3, 409.7.6) ---------- */
-function localSpacing(pos, x) { if (pos.length < 2) return 1e9; for (let i = 0; i < pos.length - 1; i++) if (x < pos[i + 1]) return pos[i + 1] - pos[i]; return pos[pos.length - 1] - pos[pos.length - 2]; }
-function designShear(p, an, bot, top) {
-  const sq = Math.sqrt(p.fc), L = an.L, xs = an.xs;
-  const d = Math.min(bot.d, top.d);
-  const Vc = 0.17 * sq * p.b * d / 1000;
-  const VuL = interp(xs, an.Vabs, d / 1000), VuR = p.support === 'cant' ? 0 : interp(xs, an.Vabs, L - d / 1000);
-  const Vu = Math.max(VuL, VuR);
-  const smfAct = p.smf && p.support === 'ff';
-  let Ve = 0, MprN = 0, MprP = 0, wuE = 0, PuE = 0;
-  if (smfAct) {
-    MprN = Mpr(p, top, top.n, bot, bot.nc); MprP = Mpr(p, bot, bot.nc, top, top.n);
-    wuE = 1.2 * an.wD + 1.0 * an.wL; PuE = 1.2 * p.PD + 1.0 * p.PL;
-    Ve = (MprN + MprP) / L + wuE * L / 2 + PuE / 2;
+    document.getElementById("dashTotalCost").textContent = peso(totalCost);
+    document.getElementById("dashMaterialCost").textContent = peso(totalMaterial);
+    document.getElementById("dashLaborCost").textContent = peso(totalLabor);
+    document.getElementById("dashConcrete").textContent = num(totalConcrete) + " m³";
+    document.getElementById("dashRebar").textContent = num(totalRebar) + " kg";
+    document.getElementById("dashRoofing").textContent = num(totalRoofing) + " m²";
+    document.querySelector("#dashSummaryTable tbody").innerHTML = rows;
+
+    Summary.render();
   }
-  const VeAt = x => smfAct ? (MprN + MprP) / L + Math.abs(wuE * (L / 2 - x)) + PuE / 2 : 0;
-  const hingeEnds = p.smf ? (p.support === 'ff' ? [0, L] : (p.support === 'ss' ? [] : [0])) : [];
-  const dbMin = Math.min(bot.db, top.db);
-  const VsLim = 0.66 * sq * p.b * d / 1000;
-  const VuD = Math.max(Vu, smfAct ? Ve : 0);
-  const VsReq = Math.max(0, VuD / 0.75 - Vc);
-  const opts = [];
-  for (const ds of p.stirDias) for (const legs of (p.b >= 350 ? [2, 4] : [2])) {
-    const Av = legs * barA(ds);
-    const sectionOK = VsReq <= VsLim;
-    const smaxA = VsReq <= 0.33 * sq * p.b * d / 1000 ? Math.min(d / 2, 600) : Math.min(d / 4, 300);
-    const sAvmin = Av * p.fyt / (Math.max(0.062 * sq, 0.35) * p.b);
-    const sStr = VsReq > 0 ? Av * p.fyt * d / (VsReq * 1000) : Infinity;
-    const sRaw = Math.min(sStr, smaxA, sAvmin);
-    const govern = sRaw === sStr ? 'strength' : (sRaw === smaxA ? 's,max' : 'Av,min');
-    const s1 = floorTo(sRaw, 25);
-    const smid = floorTo(Math.min(d / 2, 600, sAvmin), 25);
-    let sh = null, VsH = 0;
-    if (hingeEnds.length) { VsH = VuD / 0.75; sh = floorTo(Math.min(d / 4, 6 * dbMin, 150, Av * p.fyt * d / (VsH * 1000)), 25); }
-    const feasible = sectionOK && s1 >= 75 && smid >= 75 && (!sh || (sh >= 75 && VsH <= VsLim));
-    const phiVn1 = 0.75 * (Vc + Av * p.fyt * d / Math.max(s1, 1) / 1000), phiVnMid = 0.75 * (Vc + Av * p.fyt * d / Math.max(smid, 1) / 1000);
-    const pos = [];
-    if (feasible) {
-      const Lmm = L * 1000;
-      const need = x => {
-        if (sh && hingeEnds.some(e => Math.abs(x - e * 1000) <= 2 * p.h)) return Math.min(sh, s1);
-        const xa = x / 1000, xb = Math.min(L, (x + smid) / 1000), xm = (xa + xb) / 2;
-        const v = Math.max(interp(xs, an.Vabs, xa), interp(xs, an.Vabs, xm), interp(xs, an.Vabs, xb), VeAt(xa), VeAt(xb));
-        return v > phiVnMid ? s1 : smid;
+};
+
+const Summary = {
+  render() {
+    const current = State.get("siang_current", {});
+    const info = Project.getInfo();
+    let rows = "";
+    ["footing", "beam", "slab", "roofing"].forEach(key => {
+      const d = current[key];
+      if (!d) return;
+      rows += `<tr><td>${d.label}</td><td>${peso(d.materialCost)}</td><td>${peso(d.laborCost)}</td><td>${peso(d.grandTotal)}</td></tr>`;
+    });
+    const grand = Object.values(current).reduce((a, d) => a + d.grandTotal, 0);
+    const el = document.getElementById("summaryContent");
+    if (!el) return;
+    el.innerHTML = `
+      <div class="card">
+        <h2>Project Information</h2>
+        <p>Project: ${info.name || "—"} | Location: ${info.location || "—"} | Client: ${info.client || "—"} | Estimator: ${info.estimator || "—"} | Date: ${info.date || "—"}</p>
+      </div>
+      <div class="card">
+        <h2>Cost Summary by Module</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Module</th><th>Material Cost</th><th>Labor Cost</th><th>Grand Total</th></tr></thead>
+          <tbody>${rows || '<tr><td colspan="4">No data yet.</td></tr>'}</tbody>
+          <tfoot><tr><td colspan="3">PROJECT GRAND TOTAL</td><td>${peso(grand)}</td></tr></tfoot>
+        </table></div>
+      </div>
+      <div class="disclaimer">ESTIMATING PURPOSE ONLY. Verify structural design, project specifications, actual supplier quotations, labor rates, and applicable Philippine codes before construction.</div>
+    `;
+  }
+};
+
+/* ============================================================
+   MATERIALS PAGE
+   ============================================================ */
+const Materials = {
+  render() {
+    const search = (document.getElementById("matSearch")?.value || "").toLowerCase();
+    const mats = State.get("siang_materials", []);
+    const tbody = document.querySelector("#matTable tbody");
+    if (!tbody) return;
+    tbody.innerHTML = mats
+      .filter(m => m.name.toLowerCase().includes(search))
+      .map((m, i) => {
+        const realIndex = mats.indexOf(m);
+        return `<tr>
+          <td>${m.name}</td><td>${m.category}</td><td>${m.unit}</td><td>${peso(m.price)}</td>
+          <td>${m.supplier || "—"}</td><td>${m.location || "—"}</td><td>${m.updated}</td>
+          <td>
+            <button class="btn btn-sm" onclick="Materials.edit(${realIndex})">Edit</button>
+            <button class="btn btn-sm btn-outline" onclick="Materials.remove(${realIndex})">Delete</button>
+          </td>
+        </tr>`;
+      }).join("");
+  },
+  openForm() {
+    document.getElementById("matFormCard").style.display = "block";
+    document.getElementById("matFormTitle").textContent = "Add Material";
+    document.getElementById("matEditId").value = "";
+    ["matName","matUnit","matPrice","matSupplier","matLocation"].forEach(id => document.getElementById(id).value = "");
+  },
+  closeForm() { document.getElementById("matFormCard").style.display = "none"; },
+  edit(index) {
+    const mats = State.get("siang_materials", []);
+    const m = mats[index];
+    document.getElementById("matFormCard").style.display = "block";
+    document.getElementById("matFormTitle").textContent = "Edit Material";
+    document.getElementById("matEditId").value = index;
+    document.getElementById("matName").value = m.name;
+    document.getElementById("matCategory").value = m.category;
+    document.getElementById("matUnit").value = m.unit;
+    document.getElementById("matPrice").value = m.price;
+    document.getElementById("matSupplier").value = m.supplier || "";
+    document.getElementById("matLocation").value = m.location || "";
+  },
+  save() {
+    const name = document.getElementById("matName").value.trim();
+    const price = +document.getElementById("matPrice").value;
+    if (!name) { alert("Please enter a valid material name."); return; }
+    if (isNaN(price) || price < 0) { alert("Value cannot be negative."); return; }
+    const mats = State.get("siang_materials", []);
+    const editId = document.getElementById("matEditId").value;
+    const entry = {
+      name, category: document.getElementById("matCategory").value,
+      unit: document.getElementById("matUnit").value.trim(), price,
+      supplier: document.getElementById("matSupplier").value.trim(),
+      location: document.getElementById("matLocation").value.trim(),
+      updated: today()
+    };
+    if (editId !== "") mats[+editId] = entry; else mats.push(entry);
+    State.set("siang_materials", mats);
+    Materials.closeForm();
+    Materials.render();
+  },
+  remove(index) {
+    if (!confirm("Delete this material?")) return;
+    const mats = State.get("siang_materials", []);
+    mats.splice(index, 1);
+    State.set("siang_materials", mats);
+    Materials.render();
+  }
+};
+
+/* ============================================================
+   SETTINGS PAGE
+   ============================================================ */
+const Settings = {
+  renderAll() {
+    // Mix table
+    const mix = State.get("siang_mix", DEFAULT_MIX);
+    document.querySelector("#mixTable tbody").innerHTML = Object.keys(mix).map(k => `
+      <tr>
+        <td>${k} PSI</td>
+        <td><input type="number" step="0.1" id="mix_${k}_cement" value="${mix[k].cement}"></td>
+        <td><input type="number" step="0.01" id="mix_${k}_sand" value="${mix[k].sand}"></td>
+        <td><input type="number" step="0.01" id="mix_${k}_gravel" value="${mix[k].gravel}"></td>
+        <td><input type="number" step="1" id="mix_${k}_water" value="${mix[k].water}"></td>
+      </tr>`).join("");
+
+    // Wastage
+    const w = State.get("siang_wastage", DEFAULT_WASTAGE);
+    document.getElementById("wConcrete").value = w.concrete;
+    document.getElementById("wRebar").value = w.rebar;
+    document.getElementById("wRoofing").value = w.roofing;
+    document.getElementById("wFormwork").value = w.formwork;
+
+    // Bar length
+    document.getElementById("barLength").value = State.get("siang_barlength", DEFAULT_BARLENGTH);
+
+    // Labor
+    const labor = State.get("siang_labor", DEFAULT_LABOR);
+    document.querySelector("#laborTable tbody").innerHTML = labor.map((l, i) => `
+      <tr>
+        <td>${l.type}</td>
+        <td><input type="number" id="labor_${i}_rate" value="${l.dailyRate}"></td>
+        <td><input type="number" id="labor_${i}_prod" value="${l.productivity}"></td>
+        <td><input type="number" id="labor_${i}_workers" value="${l.workers}"></td>
+      </tr>`).join("");
+
+    // Labor cost rates
+    const lr = State.get("siang_laborrates", DEFAULT_LABOR_RATES);
+    document.getElementById("lr_concrete").value = lr.concrete;
+    document.getElementById("lr_rebar").value = lr.rebar;
+    document.getElementById("lr_formwork").value = lr.formwork;
+    document.getElementById("lr_roofing").value = lr.roofing;
+
+    // Misc
+    const misc = State.get("siang_misc", DEFAULT_MISC);
+    document.getElementById("eqPct").value = misc.eqPct;
+    document.getElementById("contPct").value = misc.contPct;
+  },
+  saveMix() {
+    const mix = State.get("siang_mix", DEFAULT_MIX);
+    Object.keys(mix).forEach(k => {
+      mix[k] = {
+        cement: +document.getElementById(`mix_${k}_cement`).value,
+        sand: +document.getElementById(`mix_${k}_sand`).value,
+        gravel: +document.getElementById(`mix_${k}_gravel`).value,
+        water: +document.getElementById(`mix_${k}_water`).value
       };
-      let x = 50; while (x <= Lmm - 50 + 1e-6) { pos.push(x); x += need(x); }
-      if (Lmm - 50 - pos[pos.length - 1] > 1) pos.push(Lmm - 50);
-    }
-    const bi = p.b - 2 * p.cover - ds, hi = p.h - 2 * p.cover - ds, hook = Math.max(6 * ds, 75);
-    const len1 = (2 * (bi + hi) + 2 * hook) / 1000, len2 = legs === 4 ? (2 * (bi / 3 + hi) + 2 * hook) / 1000 : 0;
-    const kg = pos.length * (len1 + len2) * barKgm(ds);
-    const nEnd = pos.filter((x, i) => i > 0 && pos[i] - pos[i - 1] < smid - 1).length;
-    opts.push({ ds, legs, Av, sectionOK, smaxA, sAvmin, sStr, s1, smid, sh, govern, phiVn1, phiVnMid, pos, count: pos.length, nEnd, len1, len2, kg, feasible, bi, hi, hook });
+    });
+    State.set("siang_mix", mix);
+    alert("Concrete mix settings saved.");
+  },
+  saveWastage() {
+    State.set("siang_wastage", {
+      concrete: +document.getElementById("wConcrete").value,
+      rebar: +document.getElementById("wRebar").value,
+      roofing: +document.getElementById("wRoofing").value,
+      formwork: +document.getElementById("wFormwork").value
+    });
+    alert("Wastage defaults saved.");
+  },
+  saveBarLength() {
+    State.set("siang_barlength", +document.getElementById("barLength").value);
+    alert("Commercial bar length saved.");
+  },
+  saveLabor() {
+    const labor = State.get("siang_labor", DEFAULT_LABOR);
+    labor.forEach((l, i) => {
+      l.dailyRate = +document.getElementById(`labor_${i}_rate`).value;
+      l.productivity = +document.getElementById(`labor_${i}_prod`).value;
+      l.workers = +document.getElementById(`labor_${i}_workers`).value;
+    });
+    State.set("siang_labor", labor);
+    alert("Labor rates saved.");
+  },
+  saveLaborRates() {
+    State.set("siang_laborrates", {
+      concrete: +document.getElementById("lr_concrete").value,
+      rebar: +document.getElementById("lr_rebar").value,
+      formwork: +document.getElementById("lr_formwork").value,
+      roofing: +document.getElementById("lr_roofing").value
+    });
+    alert("Labor cost rates saved.");
+  },
+  saveMisc() {
+    State.set("siang_misc", {
+      eqPct: +document.getElementById("eqPct").value,
+      contPct: +document.getElementById("contPct").value
+    });
+    alert("Equipment & contingency settings saved.");
   }
-  const feas = opts.filter(o => o.feasible).sort((a, b) => a.kg - b.kg || a.ds - b.ds);
-  return { d, Vc, VuL, VuR, Vu, VuD, VsReq, VsLim, smfAct, Ve, MprN, MprP, wuE, PuE, hingeEnds, dbMin, opts, best: feas[0] || null, half: 0.5 * 0.75 * Vc };
-}
-function cutoffShearCheck(p, an, r, bot, top) {
-  const sh = r.shear, o = sh.best, L = an.L; r.cutChecks = [];
-  const phiVnAt = x => 0.75 * (sh.Vc + o.Av * p.fyt * sh.d / localSpacing(o.pos, x * 1000) / 1000);
-  const test = x => { const Vu = interp(an.xs, an.Vabs, x), cap = phiVnAt(x); return { x, Vu, lim: 2 / 3 * cap, ok: Vu <= 2 / 3 * cap + 1e-9 }; };
-  if (bot.type === 'design' && bot.cut.length) {
-    const g = bot.cut[0], res = [];
-    if (g[0] > 1e-3) res.push(test(g[0])); if (g[1] < L - 1e-3) res.push(test(g[1]));
-    if (res.some(t => !t.ok)) { r.warn.push('Bottom bar cut-off fails Sec. 409.7.3.5 (Vu > ⅔φVn at cut-off) — bottom bars made continuous.'); bot.nc = bot.n; bot.cut = []; }
-    res.forEach(t => r.cutChecks.push(Object.assign({ face: 'Bottom' }, t)));
+};
+
+/* ============================================================
+   PROJECT MANAGEMENT
+   ============================================================ */
+const Project = {
+  getInfo() {
+    return {
+      name: document.getElementById("projName").value,
+      location: document.getElementById("projLocation").value,
+      client: document.getElementById("projClient").value,
+      estimator: document.getElementById("projEstimator").value,
+      date: document.getElementById("projDate").value
+    };
+  },
+  newProject() {
+    if (!confirm("Start a new project? Unsaved changes will be lost.")) return;
+    ["projName","projLocation","projClient","projEstimator","projDate"].forEach(id => document.getElementById(id).value = "");
+    State.set("siang_current", {});
+    Dashboard.render();
+  },
+  saveProject() {
+    const info = Project.getInfo();
+    if (!info.name) { alert("Please enter a Project Name before saving."); return; }
+    const projects = State.get("siang_projects", []);
+    const record = {
+      ...info,
+      current: State.get("siang_current", {}),
+      savedAt: new Date().toISOString()
+    };
+    const existingIdx = projects.findIndex(p => p.name === info.name);
+    if (existingIdx >= 0) projects[existingIdx] = record; else projects.push(record);
+    State.set("siang_projects", projects);
+    Project.refreshList();
+    alert("Project saved.");
+  },
+  refreshList() {
+    const projects = State.get("siang_projects", []);
+    const sel = document.getElementById("loadProjectSelect");
+    if (!sel) return;
+    sel.innerHTML = `<option value="">-- Select a saved project --</option>` +
+      projects.map((p, i) => `<option value="${i}">${p.name}</option>`).join("");
+  },
+  loadSelected() {
+    const sel = document.getElementById("loadProjectSelect");
+    if (sel.value === "") { alert("Select a saved project first."); return; }
+    const projects = State.get("siang_projects", []);
+    const p = projects[+sel.value];
+    document.getElementById("projName").value = p.name || "";
+    document.getElementById("projLocation").value = p.location || "";
+    document.getElementById("projClient").value = p.client || "";
+    document.getElementById("projEstimator").value = p.estimator || "";
+    document.getElementById("projDate").value = p.date || "";
+    State.set("siang_current", p.current || {});
+    Dashboard.render();
+    alert("Project loaded.");
+  },
+  deleteSelected() {
+    const sel = document.getElementById("loadProjectSelect");
+    if (sel.value === "") { alert("Select a saved project first."); return; }
+    if (!confirm("Delete this saved project? This cannot be undone.")) return;
+    const projects = State.get("siang_projects", []);
+    projects.splice(+sel.value, 1);
+    State.set("siang_projects", projects);
+    Project.refreshList();
   }
-  if (top.type === 'design' && top.cut.length) {
-    for (const g of top.cut) {
-      const leftSeg = g[0] < 1e-3;
-      let x = leftSeg ? g[1] : g[0], t = test(x), it = 0;
-      while (!t.ok && it < 400) { x += leftSeg ? 0.025 : -0.025; t = test(x); it++; if (x <= 0 || x >= L) break; }
-      if (leftSeg) g[1] = Math.min(L, x); else g[0] = Math.max(0, x);
-      r.cutChecks.push(Object.assign({ face: 'Top', extended: it > 0 }, t));
-    }
-    if (top.cut.length === 2 && top.cut[0][1] >= top.cut[1][0]) { top.nc = top.n; top.cut = []; }
+};
+
+/* ============================================================
+   EXPORT (Excel via SheetJS, PDF via jsPDF)
+   ============================================================ */
+const Exporter = {
+  buildRows() {
+    const current = State.get("siang_current", {});
+    const info = Project.getInfo();
+    const rows = [
+      ["SIANG CONSTRUCTION ESTIMATOR"], [],
+      ["Project Name", info.name], ["Location", info.location], ["Client", info.client],
+      ["Estimator", info.estimator], ["Date", info.date], [],
+      ["Module", "Material Cost", "Labor Cost", "Grand Total"]
+    ];
+    let grand = 0;
+    ["footing","beam","slab","roofing"].forEach(k => {
+      const d = current[k];
+      if (!d) return;
+      rows.push([d.label, d.materialCost.toFixed(2), d.laborCost.toFixed(2), d.grandTotal.toFixed(2)]);
+      grand += d.grandTotal;
+    });
+    rows.push([]); rows.push(["PROJECT GRAND TOTAL", "", "", grand.toFixed(2)]);
+    return rows;
+  },
+  exportExcel() {
+    if (typeof XLSX === "undefined") { alert("Excel library failed to load (check your internet connection)."); return; }
+    const rows = Exporter.buildRows();
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Estimate");
+    XLSX.writeFile(wb, "SIANG_Estimate.xlsx");
+  },
+  exportPDF() {
+    if (typeof window.jspdf === "undefined") { alert("PDF library failed to load (check your internet connection)."); return; }
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    let y = 15;
+    doc.setFontSize(14); doc.text("SIANG CONSTRUCTION ESTIMATOR", 14, y); y += 10;
+    doc.setFontSize(10);
+    Exporter.buildRows().forEach(row => {
+      doc.text(row.join("   "), 14, y);
+      y += 6;
+      if (y > 280) { doc.addPage(); y = 15; }
+    });
+    doc.save("SIANG_Estimate.pdf");
   }
-}
+};
 
-/* ---------- deflection (Sec. 424.2) ---------- */
-function deflection(p, an, bot, top) {
-  const cant = p.support === 'cant', tf = cant ? top : bot, cf = cant ? bot : top;
-  const Ec = 4700 * Math.sqrt(p.fc), n = ES / Ec, fr = 0.62 * Math.sqrt(p.fc), Ig = p.b * p.h ** 3 / 12, Mcr = fr * Ig / (p.h / 2) / 1e6;
-  const As = tf.As, d = tf.d, Asp = cf.nc * barA(cf.db), dp = cf.layers[0].y;
-  const A = p.b / 2, B = (n - 1) * Asp + n * As, C = (n - 1) * Asp * dp + n * As * d;
-  const kd = (-B + Math.sqrt(B * B + 4 * A * C)) / (2 * A);
-  const Icr = p.b * kd ** 3 / 3 + n * As * (d - kd) ** 2 + (n - 1) * Asp * (kd - dp) ** 2;
-  const pick = arr => cant ? Math.max(...arr.map(v => -v)) : Math.max(...arr);
-  const Ms = pick(an.MS), Md = pick(an.MD);
-  const Ie = Ma => Ma <= Mcr ? Ig : Math.min(Ig, (Mcr / Ma) ** 3 * Ig + (1 - (Mcr / Ma) ** 3) * Icr);
-  const K = { ss: [5 / 384, 1 / 48], ff: [1 / 384, 1 / 192], pc: [1 / 185, 0.009317], cant: [1 / 8, 5 / 48] }[p.support];
-  const Lm = an.L * 1000;
-  const D = (w, P, I) => K[0] * w * Lm ** 4 / (Ec * I) + K[1] * P * 1000 * Lm ** 3 / (Ec * I);
-  const IeS = Ie(Ms), IeD = Ie(Md);
-  const dDL = D(an.wD + an.wL, p.PD + p.PL, IeS), dD = D(an.wD, p.PD, IeD), dL = Math.max(0, dDL - dD);
-  const rhoP = Asp / (p.b * d), lam = 2 / (1 + 50 * rhoP), dLT = lam * dD + dL;
-  const Ls = cant ? 2 * Lm : Lm, limL = Ls / 360, limT = Ls / 240;
-  const hminDen = { ss: 16, ff: 21, pc: 18.5, cant: 8 }[p.support], hmin = Lm / hminDen * (0.4 + p.fy / 700);
-  return { Ec, n, fr, Ig, Mcr, As, d, Asp, dp, kd, Icr, Ms, Md, IeS, IeD, K, dDL, dD, dL, rhoP, lam, dLT, Ls, limL, limT, okL: dL <= limL, okT: dLT <= limT, ok: dL <= limL && dLT <= limT, hmin, hminDen, hOK: p.h >= hmin };
-}
-
-/* ---------- takeoff, cost ---------- */
-function takeoff(p, an, bot, top, sh) {
-  const L = an.L, rows = [];
-  const addFace = (f, pre, label) => {
-    const m = barKgm(f.db);
-    rows.push({ mark: pre + '1', desc: `${label} ${f.type === 'hanger' ? 'hanger bars' : 'continuous bars'}`, db: f.db, n: f.nc, len: L, kg: f.nc * L * m });
-    f.cut.forEach((g, i) => rows.push({ mark: pre + (2 + i), desc: `${label} cut-off bars, x = ${g[0].toFixed(2)} → ${g[1].toFixed(2)} m`, db: f.db, n: f.n - f.nc, len: g[1] - g[0], kg: (f.n - f.nc) * (g[1] - g[0]) * m }));
-  };
-  addFace(bot, 'B', 'Bottom'); addFace(top, 'T', 'Top');
-  if (sh) {
-    rows.push({ mark: 'S1', desc: `Closed stirrups ${sh.legs === 4 ? '(outer)' : ''} ${(sh.bi + sh.ds).toFixed(0)}×${(sh.hi + sh.ds).toFixed(0)} out-to-out, 135° hooks`, db: sh.ds, n: sh.count, len: sh.len1, kg: sh.count * sh.len1 * barKgm(sh.ds) });
-    if (sh.legs === 4) rows.push({ mark: 'S2', desc: 'Inner closed ties (4-leg stirrup sets)', db: sh.ds, n: sh.count, len: sh.len2, kg: sh.count * sh.len2 * barKgm(sh.ds) });
-  }
-  return rows;
-}
-
-/* ---------- optimization rating ---------- */
-function rate(p, r) {
-  const faces = [r.bot, r.top].filter(f => f && f.type === 'design');
-  const comp = [];
-  const s1 = faces.length ? avg(faces.map(f => { const need = Math.max(f.AsReq, f.AsMinGov); const ratio = isFinite(need) && need > 0 ? f.As / need : 1; return clamp(100 - (ratio - 1.03) / 0.6 * 100, 0, 100); })) : 100;
-  comp.push({ k: 'Steel over-provision (As,prov / As,req)', w: 0.30, s: s1 });
-  const s2 = faces.length ? avg(faces.map(f => clamp(((f.vf ? f.Mu / f.vf.phiMn : f.util) - 0.5) / 0.45 * 100, 0, 100))) : 100;
-  comp.push({ k: 'Flexural utilization (Mu / φMn)', w: 0.15, s: s2 });
-  const b1 = beta1(p.fc), rhoTC = 0.85 * b1 * p.fc / p.fy * 0.375;
-  const s3 = faces.length ? avg(faces.map(f => { const et = f.vf ? f.vf.et : f.et; const es = et >= 0.005 ? 100 : clamp(40 + 60 * (et - 0.004) / 0.001, 0, 100); const q = f.rho / rhoTC; const rs = q < 0.25 ? 60 + 40 * q / 0.25 : (q <= 0.75 ? 100 : clamp(100 - (q - 0.75) / 0.25 * 50, 0, 100)); return 0.5 * es + 0.5 * rs; })) : 100;
-  comp.push({ k: 'Ductility & steel-ratio economy', w: 0.15, s: s3 });
-  const o = r.shear && r.shear.best;
-  let s4 = 0;
-  if (o) { s4 = o.govern === 'strength' ? clamp((r.shear.VuD / o.phiVn1 - 0.5) / 0.45 * 100, 0, 100) : 100; }
-  comp.push({ k: 'Stirrup efficiency', w: 0.10, s: s4 });
-  let s5 = 100; const why = [];
-  faces.forEach(f => { if (f.layers.length > 1) { s5 -= 15; why.push('2 bar layers'); } if (f.layers[0].n > 6) { s5 -= 10; why.push('>6 bars per layer'); } if (f.sClear < 1.5 * f.clrMin) { s5 -= 8; why.push('tight bar spacing'); } });
-  if (faces.length === 2 && faces[0].db !== faces[1].db) { s5 -= 5; why.push('mixed bar sizes'); }
-  if (o && Math.min(o.s1, o.sh || 1e9) < 100) { s5 -= 10; why.push('stirrups < 100 mm'); }
-  if (o && o.legs === 4) { s5 -= 5; why.push('4-leg stirrups'); }
-  comp.push({ k: 'Constructability', w: 0.15, s: clamp(s5, 0, 100), why });
-  const s6 = clamp(100 - (r.kgm3 - 100) / 200 * 100, 0, 100);
-  comp.push({ k: 'Steel intensity (kg/m³)', w: 0.15, s: s6 });
-  let total = comp.reduce((s, c) => s + c.w * c.s, 0);
-  let cap = '';
-  if (!r.checks.flexure || !r.checks.shear) { total = 0; cap = 'Strength checks not satisfied'; }
-  else if (!r.checks.service) { total *= 0.6; cap = 'Serviceability not satisfied (×0.6)'; }
-  else if (!r.checks.detailing) { total *= 0.8; cap = 'Detailing issue (×0.8)'; }
-  const grade = total >= 90 ? 'A+' : total >= 80 ? 'A' : total >= 70 ? 'B' : total >= 60 ? 'C' : total > 0 ? 'D' : 'F';
-  return { total, grade, comp, cap };
-}
-
-/* ---------- full beam design ---------- */
-function designBeam(pIn) {
-  const p = Object.assign({}, pIn);
-  p.dias = [...p.dias].sort((a, b) => a - b); p.stirDias = [...p.stirDias].sort((a, b) => a - b);
-  p.dsLayout = Math.max(...p.stirDias);
-  const an = analyze(p);
-  const r = { p, an, warn: [], ok: false, checks: { flexure: false, shear: false, service: false, detailing: true } };
-  const hd = p.hangerDia, TINY = 0.5;
-  const mkHanger = isTop => { const g = faceGeom(p, hd, 2); if (!g) return null; return Object.assign({}, g, { type: 'hanger', isTop, d: p.h - g.ybar, Mu: 0, nc: 2, cut: [] }); };
-  const compH = { A: 2 * barA(hd), y: p.cover + p.dsLayout + hd / 2 };
-  r.botCands = an.Mpos > TINY ? faceCandidates(p, an.Mpos, compH) : [];
-  r.topCands = an.Mneg > TINY ? faceCandidates(p, an.Mneg, compH) : [];
-  let bot = an.Mpos > TINY ? r.botCands.filter(c => c.ok)[p._bi || 0] : mkHanger(false);
-  let top = an.Mneg > TINY ? r.topCands.filter(c => c.ok)[p._ti || 0] : mkHanger(true);
-  if (bot && bot.type !== 'hanger') bot = Object.assign({}, bot, { type: 'design', isTop: false });
-  if (top && top.type !== 'hanger') top = Object.assign({}, top, { type: 'design', isTop: true });
-  if (!bot || !top) {
-    r.fail = `No bar arrangement satisfies flexure and detailing on the ${!bot ? 'bottom (positive moment)' : 'top (negative moment)'} face. Increase b or h, allow larger bars, or allow 2 layers.`;
-    r.rating = { total: 0, grade: 'F', comp: [], cap: 'Flexure not satisfied' }; r.steelKg = Infinity; r.cost = Infinity; r.kgm3 = 0;
-    return r;
-  }
-  curtail(p, an, bot, false); curtail(p, an, top, true);
-  r.smf = p.smf ? smfProcess(p, an, r, bot, top) : null;
-  verifyFaces(p, bot, top);
-  r.bot = bot; r.top = top;
-  r.shear = designShear(p, an, bot, top);
-  if (r.shear.best) cutoffShearCheck(p, an, r, bot, top);
-  else r.fail = r.shear.VsReq > r.shear.VsLim ? `Shear exceeds the section limit: Vs,req = ${r.shear.VsReq.toFixed(1)} kN > 0.66√f'c·bw·d = ${r.shear.VsLim.toFixed(1)} kN (Sec. 422.5.1.2). Increase the section.` : 'No stirrup size/spacing satisfies the shear requirements (spacing below 75 mm). Allow 12 mm stirrups or increase b.';
-  if (p.smf) smfItems(p, an, r, bot, top);
-  r.defl = deflection(p, an, bot, top);
-  r.rows = takeoff(p, an, bot, top, r.shear.best);
-  r.steelKg = r.rows.reduce((s, x) => s + x.kg, 0);
-  r.longKg = r.rows.filter(x => x.mark[0] !== 'S').reduce((s, x) => s + x.kg, 0);
-  r.concM3 = p.b * p.h / 1e6 * an.L;
-  r.formM2 = (2 * p.h + p.b) / 1000 * an.L;
-  r.kgm3 = r.steelKg / r.concM3;
-  r.costSteel = r.steelKg * p.cSteel; r.costConc = r.concM3 * p.cConc; r.costForm = r.formM2 * p.cForm;
-  r.cost = r.costSteel + r.costConc + r.costForm;
-  r.checks.flexure = [bot, top].every(f => f.type !== 'design' || (f.vf ? f.vf.ok : true));
-  r.checks.shear = !!r.shear.best;
-  r.checks.service = r.defl.ok;
-  r.checks.detailing = !r.smf || !r.smf.items.length || r.smf.items.every(i => i.ok);
-  r.ok = r.checks.flexure && r.checks.shear && r.checks.service && r.checks.detailing;
-  r.rating = rate(p, r);
-  return r;
-}
-function designBeamDefl(p) {
-  let r = designBeam(p);
-  if (!r.bot || r.defl.ok || !r.checks.flexure || !r.checks.shear) return r;
-  const key = p.support === 'cant' ? '_ti' : '_bi';
-  let best = null;
-  for (let i = 1; i <= 14; i++) {
-    const q = designBeam(Object.assign({}, p, { [key]: i }));
-    if (!q.bot) break;
-    if (q.defl.ok && q.checks.flexure && q.checks.shear && (!best || q.steelKg < best.steelKg - 1e-6)) best = q;
-  }
-  if (best) { best.warn.push('Tension steel increased beyond the strength requirement to satisfy the deflection limits (larger I_cr); lightest passing arrangement kept.'); return best; }
-  return r;
-}
-function optimize(p) {
-  if (p.mode !== 'section') { const r = designBeamDefl(p); return { best: r, list: [] }; }
-  const list = [];
-  for (let b = p.bMin; b <= p.bMax + 1e-6; b += p.step) for (let h = p.hMin; h <= p.hMax + 1e-6; h += p.step) {
-    if (h < b) continue;
-    if (p.smf && (b < 250 || b < 0.3 * h)) continue;
-    const r = designBeamDefl(Object.assign({}, p, { b, h }));
-    if (r.ok) list.push(r);
-  }
-  const key = p.objective === 'cost' ? (r => r.cost) : (r => r.steelKg + r.cost * 1e-6);
-  list.sort((a, b) => key(a) - key(b));
-  return { best: list[0] || designBeamDefl(p), list, noFeasible: !list.length };
-}
-// ENGINE END
-</script>
-
-<script>
-"use strict";
-const $ = id => document.getElementById(id);
-const fmt = (v, d = 1) => (v === Infinity || v === -Infinity) ? '∞' : (Number.isFinite(v) ? v.toFixed(d) : '—');
-const peso = v => '₱' + Math.round(v).toLocaleString();
-const okT = (b, t) => b ? `<span class="ok">✓ ${t || 'OK'}</span>` : `<span class="ng">✗ ${t || 'NG'}</span>`;
-const bar = (n, db) => `${n}–Ø${db}`;
-const SUP = { ss: 'Simply supported', ff: 'Fixed – Fixed', pc: 'Fixed – Pinned', cant: 'Cantilever' };
-const row = (a, b, c, d = '') => `<tr><td>${a}</td><td>${b}</td><td>${c}</td><td>${d}</td></tr>`;
-const calcTable = rows => `<div class="tablewrap"><table class="calc"><tr><th>Item</th><th>Expression</th><th>Result</th><th>NSCP 2015</th></tr>${rows.join('')}</table></div>`;
-
-/* input widgets */
-[10, 12, 16, 20, 25, 28, 32, 36].forEach(d => { if (d === 10) return; $('diaBox').insertAdjacentHTML('beforeend', `<label><input type="checkbox" class="dia" value="${d}" ${[16, 20, 25].includes(d) ? 'checked' : ''}>${d}</label>`); });
-[10, 12].forEach(d => $('sdiaBox').insertAdjacentHTML('beforeend', `<label><input type="checkbox" class="sdia" value="${d}" checked>${d}</label>`));
-const syncMode = () => { $('secOpts').style.display = $('mode').value === 'section' ? '' : 'none'; };
-$('mode').addEventListener('change', syncMode); syncMode();
-
-function readInputs() {
-  const v = id => parseFloat($(id).value);
-  return {
-    L: v('L'), support: $('support').value, b: v('b'), h: v('h'), cover: v('cover'), fc: v('fc'), fy: v('fy'), fyt: v('fyt'), agg: v('agg'),
-    wSD: v('wSD'), selfWeight: $('sw').checked, wL: v('wL'), PD: v('PD'), PL: v('PL'),
-    dias: [...document.querySelectorAll('.dia:checked')].map(e => +e.value), stirDias: [...document.querySelectorAll('.sdia:checked')].map(e => +e.value),
-    maxLayers: +$('layers').value, hangerDia: +$('hanger').value, curtail: $('curtail').checked, smf: $('smf').checked,
-    mode: $('mode').value, bMin: v('bMin'), bMax: v('bMax'), hMin: v('hMin'), hMax: v('hMax'), step: Math.max(25, v('step')), objective: $('objective').value,
-    cSteel: v('cSteel'), cConc: v('cConc'), cForm: v('cForm')
-  };
-}
-function validate(p) {
-  const e = [];
-  if (!p.dias.length) e.push('Select at least one main bar size.');
-  if (!p.stirDias.length) e.push('Select at least one stirrup size.');
-  ['L', 'b', 'h', 'cover', 'fc', 'fy', 'fyt', 'agg'].forEach(k => { if (!(p[k] > 0)) e.push(`${k} must be positive.`); });
-  ['wSD', 'wL', 'PD', 'PL'].forEach(k => { if (!(p[k] >= 0)) e.push(`${k} must be zero or positive.`); });
-  if (p.fc < 17) e.push("f'c below 17 MPa is not permitted for structural concrete (Sec. 419.2.1).");
-  if (p.fy > 550) e.push('fy above 550 MPa is outside the scope of this tool.');
-  if (p.mode === 'section' && (p.bMin > p.bMax || p.hMin > p.hMax)) e.push('Check the b/h search ranges.');
-  return e;
-}
-
-/* ---------- SVG helpers ---------- */
-function diagramSVG(xs, series, o = {}) {
-  const W = 760, H = o.h || 230, pl = 56, pr = 18, pt = 26, pb = 34, L = xs[xs.length - 1];
-  let ymin = 0, ymax = 0; series.forEach(s => s.y.forEach(v => { if (v < ymin) ymin = v; if (v > ymax) ymax = v; }));
-  if (ymax - ymin < 1e-9) { ymax = 1; ymin = -1; }
-  const pad = (ymax - ymin) * 0.14; ymax += pad; ymin -= pad;
-  const X = x => pl + (W - pl - pr) * x / L, Y = v => pt + (H - pt - pb) * (ymax - v) / (ymax - ymin);
-  let s = `<svg viewBox="0 0 ${W} ${H}" class="diag" role="img"><text x="${pl}" y="16" font-size="13" font-weight="700" fill="var(--ink)">${o.title || ''}</text>`;
-  const step = L <= 3 ? 0.5 : L <= 8 ? 1 : 2;
-  for (let x = 0; x <= L + 1e-9; x += step) s += `<line x1="${X(x)}" x2="${X(x)}" y1="${pt}" y2="${H - pb}" stroke="var(--line)"/><text x="${X(x)}" y="${H - pb + 15}" font-size="11" text-anchor="middle" fill="var(--mute)">${fmt(x, step < 1 ? 1 : 0)}</text>`;
-  s += `<text x="${W - pr}" y="${H - 4}" font-size="11" text-anchor="end" fill="var(--mute)">x (m)</text>`;
-  s += `<line x1="${pl}" x2="${W - pr}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--mute)" stroke-width="1.2"/>`;
-  s += `<text x="${pl - 6}" y="${pt + 4}" font-size="11" text-anchor="end" fill="var(--mute)">${o.unit || ''}</text>`;
-  series.forEach(se => {
-    const pts = se.y.map((v, i) => `${X(xs[i]).toFixed(1)},${Y(v).toFixed(1)}`);
-    if (se.fill) s += `<polygon points="${X(0)},${Y(0)} ${pts.join(' ')} ${X(L)},${Y(0)}" fill="${se.color}" fill-opacity="0.13"/>`;
-    s += `<polyline points="${pts.join(' ')}" fill="none" stroke="${se.color}" stroke-width="${se.w || 1.8}" ${se.dash ? `stroke-dasharray="${se.dash}"` : ''}/>`;
-    if (se.mark) {
-      let iM = 0, im = 0; se.y.forEach((v, i) => { if (v > se.y[iM]) iM = i; if (v < se.y[im]) im = i; });
-      [[iM, -6], [im, 15]].forEach(([i, dy]) => { const v = se.y[i]; if (Math.abs(v) < 1e-6) return; s += `<circle cx="${X(xs[i])}" cy="${Y(v)}" r="3" fill="${se.color}"/><text x="${clamp(X(xs[i]), pl + 30, W - pr - 30)}" y="${Y(v) + dy}" font-size="11.5" font-weight="600" text-anchor="middle" fill="${se.color}">${fmt(v, 1)}</text>`; });
-    }
-  });
-  let lx = W - pr; series.slice().reverse().forEach(se => { if (!se.label) return; const tw = se.label.length * 6.4 + 22; lx -= tw; s += `<line x1="${lx}" x2="${lx + 14}" y1="12" y2="12" stroke="${se.color}" stroke-width="2.5" ${se.dash ? `stroke-dasharray="${se.dash}"` : ''}/><text x="${lx + 18}" y="16" font-size="11" fill="var(--mute)">${se.label}</text>`; });
-  return s + '</svg>';
-}
-function sectionSVG(p, sets, title, ds) {
-  const S = Math.min(200 / p.b, 250 / p.h), W = p.b * S + 110, H = p.h * S + 70, ox = 50, oy = 34;
-  const X = z => ox + z * S, Y = y => oy + (p.h - y) * S;
-  let s = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:${W * 1.25}px;height:auto" role="img"><text x="${W / 2}" y="16" font-size="13" font-weight="700" text-anchor="middle" fill="var(--ink)">${title}</text>`;
-  s += `<rect x="${X(0)}" y="${Y(p.h)}" width="${p.b * S}" height="${p.h * S}" fill="var(--conc)" fill-opacity="0.45" stroke="var(--ink)" stroke-width="1.2"/>`;
-  const c = p.cover + ds / 2;
-  s += `<rect x="${X(c)}" y="${Y(p.h - c)}" width="${(p.b - 2 * c) * S}" height="${(p.h - 2 * c) * S}" rx="${2.5 * ds * S}" fill="none" stroke="var(--stir)" stroke-width="${Math.max(1.2, ds * S)}"/>`;
-  sets.forEach(st => st.bars.forEach(b => { s += `<circle cx="${X(b.z)}" cy="${Y(b.y)}" r="${Math.max(2, b.db / 2 * S)}" fill="${b.cont ? st.color : 'none'}" stroke="${st.color}" stroke-width="${b.cont ? 0 : 1.8}"/>`; }));
-  s += `<text x="${X(p.b / 2)}" y="${H - 8}" font-size="11" text-anchor="middle" fill="var(--mute)">b = ${p.b}</text>`;
-  s += `<text x="${ox - 10}" y="${Y(p.h / 2)}" font-size="11" text-anchor="middle" fill="var(--mute)" transform="rotate(-90 ${ox - 10} ${Y(p.h / 2)})">h = ${p.h}</text>`;
-  sets.forEach((st, i) => { s += `<text x="${X(p.b) + 8}" y="${st.top ? Y(p.h) + 12 : Y(0) - 4}" font-size="11" fill="${st.color}" font-weight="600">${st.label}</text>`; });
-  return s + '</svg>';
-}
-function faceBars(p, f, isTop, where) {
-  const out = [];
-  f.layers.forEach((l, li) => {
-    const zs = layerZ(p, f.db, l.n), y = isTop ? p.h - l.y : l.y;
-    const cont = li === 0 ? new Set(contIdx(l.n, f.nc)) : new Set();
-    zs.forEach((z, j) => {
-      const isC = f.nc >= f.n || cont.has(j);
-      const segs = isC ? [[0, 1e9]] : f.cut;
-      const present = where === null ? true : segs.some(g => where >= g[0] - 1e-9 && where <= g[1] + 1e-9);
-      if (present) out.push({ z, y, db: f.db, cont: isC, segs });
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+function initNav() {
+  document.querySelectorAll(".nav-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+      document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+      btn.classList.add("active");
+      document.getElementById("page-" + btn.dataset.page).classList.add("active");
+      document.getElementById("sidebar").classList.remove("open");
+      if (btn.dataset.page === "settings") Settings.renderAll();
+      if (btn.dataset.page === "materials") Materials.render();
+      if (btn.dataset.page === "summary") Summary.render();
+      if (btn.dataset.page === "dashboard") Dashboard.render();
     });
   });
-  return out;
-}
-function gaugeSVG(score, size = 118) {
-  const r = 46, c = 2 * Math.PI * r, frac = clamp(score / 100, 0, 1), col = score >= 80 ? 'var(--ok)' : score >= 60 ? 'var(--warn)' : 'var(--ng)';
-  return `<svg viewBox="0 0 120 120" width="${size}" height="${size}"><circle cx="60" cy="60" r="${r}" fill="none" stroke="var(--line)" stroke-width="10"/><circle cx="60" cy="60" r="${r}" fill="none" stroke="${col}" stroke-width="10" stroke-linecap="round" stroke-dasharray="${(c * frac).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 60 60)"/><text x="60" y="66" text-anchor="middle" font-size="30" font-weight="800" fill="var(--ink)">${Math.round(score)}</text><text x="60" y="84" text-anchor="middle" font-size="11" fill="var(--mute)">/ 100</text></svg>`;
-}
-function reinfText(r) {
-  if (!r.bot) return '—';
-  const f = (x, lab) => x.type === 'hanger' ? `${lab}: ${bar(x.n, x.db)} hangers` : `${lab}: ${bar(x.n, x.db)}${x.layers.length > 1 ? ` (${x.layers.map(l => l.n).join('+')})` : ''}${x.nc < x.n ? ` · ${x.nc} cont.` : ''}`;
-  const o = r.shear && r.shear.best;
-  return `${f(r.bot, 'Bottom')}<br>${f(r.top, 'Top')}<br>${o ? `Stirrups: Ø${o.ds}${o.legs === 4 ? ' 4-leg' : ''} @ ${o.sh ? o.sh + ' / ' : ''}${o.s1}${o.smid !== o.s1 ? ' / ' + o.smid : ''} mm` : 'Stirrups: —'}`;
-}
-
-/* ---------- KPI strip ---------- */
-function renderKPI(r, opt) {
-  const R = r.rating, p = r.p;
-  const chips = Object.entries({ Flexure: r.checks.flexure, Shear: r.checks.shear, Deflection: r.checks.service, Detailing: r.checks.detailing }).map(([k, v]) => `<span class="chip ${v ? 'ok' : 'ng'}">${v ? '✓' : '✗'} ${k}</span>`).join('');
-  $('kpis').innerHTML = `
-  <div class="card"><h3>Optimization rating</h3><div class="gauge">${gaugeSVG(R.total, 92)}<div><div class="grade">${R.grade}</div><div class="note">${R.cap || (R.total >= 80 ? 'Efficient design' : R.total >= 60 ? 'Acceptable, some slack' : 'Room to optimize')}</div></div></div></div>
-  <div class="card"><h3>Design status</h3><div class="big ${r.ok ? 'ok' : 'ng'}">${r.ok ? 'ADEQUATE' : 'NOT ADEQUATE'}</div><div class="chips">${chips}</div></div>
-  <div class="card"><h3>Reinforcement · ${p.b} × ${p.h}</h3><div style="font-size:13px;line-height:1.6">${reinfText(r)}</div></div>
-  <div class="card"><h3>Steel quantity</h3><div class="big">${fmt(r.steelKg, 1)} kg</div><div class="note">${fmt(r.steelKg / r.an.L, 1)} kg/m · ${fmt(r.kgm3, 0)} kg/m³ concrete</div></div>
-  <div class="card"><h3>Material cost</h3><div class="big">${Number.isFinite(r.cost) ? peso(r.cost) : '—'}</div><div class="note">${Number.isFinite(r.cost) ? `Steel ${peso(r.costSteel)} · Conc. ${peso(r.costConc)} · Form ${peso(r.costForm)}` : ''}</div></div>`;
-  let m = '';
-  if (opt && opt.noFeasible) m += `<div class="failbox">No section in the search range satisfies all checks. Showing the fixed-section design (b = ${p.b}, h = ${p.h}). Widen the b/h range.</div>`;
-  if (r.fail) m += `<div class="failbox"><b>Design fails.</b> ${r.fail}</div>`;
-  if (r.warn.length) m += `<div class="warnbox">${r.warn.map(w => '⚠ ' + w).join('<br>')}</div>`;
-  $('msgs').innerHTML = m;
-}
-
-/* ---------- tab: analysis ---------- */
-function htmlAnalysis(r) {
-  const p = r.p, an = r.an;
-  let h = `<h2>Design loads</h2>` + calcTable([
-    row('Self-weight', `γc·b·h = 24 × ${fmt(p.b / 1000, 3)} × ${fmt(p.h / 1000, 3)}`, `${fmt(an.sw, 2)} kN/m`, '204 (Table 204-1)'),
-    row('Total dead load', `w_D = w_SD + w_sw = ${fmt(p.wSD, 2)} + ${fmt(an.sw, 2)}`, `${fmt(an.wD, 2)} kN/m`, ''),
-    row('Live load', 'w_L', `${fmt(an.wL, 2)} kN/m`, '205'),
-    row('Point loads at mid-length', 'P_D / P_L', `${fmt(p.PD, 1)} / ${fmt(p.PL, 1)} kN`, ''),
-    row('Support condition', SUP[p.support], `L = ${fmt(an.L, 2)} m`, '')
-  ]);
-  h += `<h2>Load combinations</h2><div class="tablewrap"><table><tr><th>Combination</th><th class="num">w_u (kN/m)</th><th class="num">P_u (kN)</th><th class="num">M_u⁺ (kN·m)</th><th class="num">M_u⁻ (kN·m)</th><th class="num">V_u,max (kN)</th></tr>`;
-  const gM = Math.max(...an.combos.map(c => Math.max(c.Mmax, -c.Mmin)));
-  an.combos.forEach(c => { const gov = Math.max(c.Mmax, -c.Mmin) === gM; h += `<tr class="${gov ? 'sel' : ''}"><td>${c.name}${gov ? ' <span class="pill">governs</span>' : ''}</td><td class="num">${fmt(c.w, 2)}</td><td class="num">${fmt(c.P, 1)}</td><td class="num">${fmt(c.Mmax, 1)}</td><td class="num">${fmt(-c.Mmin, 1)}</td><td class="num">${fmt(c.Vmax, 1)}</td></tr>`; });
-  h += `</table></div><p class="note">Combinations per Sec. 203.3.1 (Eq. 203-1, 203-2). Live-load pattern (skip) loading is not considered for single spans. Point load at L/2.</p>`;
-  h += `<h2>Factored moment envelope</h2>` + diagramSVG(an.xs, [{ y: an.Mmax, color: 'var(--barb)', fill: true, mark: true, label: 'M_u max' }, { y: an.Mmin, color: 'var(--bart)', fill: true, mark: true, label: 'M_u min' }], { title: 'Bending moment M_u (kN·m) — positive = sagging', unit: 'kN·m' });
-  h += `<h2>Factored shear</h2>` + diagramSVG(an.xs, an.combos.map((c, i) => ({ y: c.V, color: i ? 'var(--acc)' : 'var(--mute)', dash: i ? '' : '5 4', mark: i === 1, label: c.name })), { title: 'Shear V_u (kN)', unit: 'kN' });
-  h += `<h2>Design actions</h2>` + calcTable([
-    row('Max positive moment', `M_u⁺ at x = ${fmt(an.xPos, 2)} m`, `${fmt(an.Mpos, 2)} kN·m`, ''),
-    row('Max negative moment', `M_u⁻ at x = ${fmt(an.xNeg, 2)} m`, `${fmt(an.Mneg, 2)} kN·m`, ''),
-    row('Max shear (at support face)', 'V_u,max', `${fmt(an.Vmax, 2)} kN`, ''),
-    row('Service moment (D + L)', 'M_a', `${fmt(Math.max(...an.MS.map(Math.abs)), 2)} kN·m`, '424.2')
-  ]);
-  return h;
-}
-
-/* ---------- tab: flexure ---------- */
-function faceBlock(r, f, isTop) {
-  const p = r.p, an = r.an;
-  const title = isTop ? 'Top reinforcement — negative moment' : 'Bottom reinforcement — positive moment';
-  if (f.type === 'hanger') return `<h2>${title}</h2><p>No design ${isTop ? 'negative' : 'positive'} moment on this face (M_u ≈ 0). Provide ${bar(2, f.db)} hanger / nominal bars to hold the stirrup cage${p.smf ? ' (≥ 2 continuous bars, Sec. 418.6.3.1)' : ''}.</p>`;
-  const b1 = beta1(p.fc), ety = p.fy / ES;
-  const layerTxt = f.layers.map((l, i) => `layer ${i + 1}: ${l.n} bars @ ${fmt(l.y, 0)} mm from face`).join('; ');
-  const rows = [
-    row('Design moment', isTop ? `M_u⁻ at x = ${fmt(an.xNeg, 2)} m` : `M_u⁺ at x = ${fmt(an.xPos, 2)} m`, `${fmt(f.Mu, 2)} kN·m`, ''),
-    row('Stress block factor', f.Mu && p.fc <= 28 ? "β₁ = 0.85 (f'c ≤ 28 MPa)" : `β₁ = 0.85 − 0.05(f'c − 28)/7 ≥ 0.65`, fmt(b1, 3), '422.2.2.4.3'),
-    row('Selected bars', `${bar(f.n, f.db)} — ${layerTxt}`, `As = ${fmt(f.As, 0)} mm²`, ''),
-    row('Effective depth', `d = h − ȳ = ${p.h} − ${fmt(f.ybar, 1)}`, `${fmt(f.d, 1)} mm`, ''),
-    row('Extreme tension depth', 'd_t (layer nearest face)', `${fmt(f.dt, 1)} mm`, ''),
-    row('Required steel (φ = 0.90)', `R_n = M_u/(φbd²) = ${fmt(f.Mu * 1e6 / (0.9 * p.b * f.d * f.d), 3)} MPa; ρ = 0.85f'c/fy[1 − √(1 − 2R_n/0.85f'c)]`, `As,req = ${fmt(f.AsReq, 0)} mm²`, '422.2'),
-    row('Minimum steel', `max(0.25√f'c/fy, 1.4/fy)·b·d`, `${fmt(f.Asmin, 0)} mm²`, '409.6.1.2'),
-    row('Governing minimum', p.smf ? 'SMF: 409.6.1.2 applies fully' : `min(As,min, 4/3·As,req = ${fmt(4 / 3 * f.AsReq, 0)})`, `${fmt(f.AsMinGov, 0)} mm² ${okT(f.As >= f.AsMinGov - 1e-6)}`, '409.6.1.3'),
-    row('Neutral axis (strain compatibility)', `ΣF = 0: 0.85f'c·a·b + ΣAs'·fs' = ΣAs·fs, a = β₁c`, `c = ${fmt(f.c, 1)} mm, a = ${fmt(f.a, 1)} mm`, '422.2.1'),
-    row('Net tensile strain', `ε_t = 0.003(d_t − c)/c`, `${fmt(f.et, 5)} ${okT(f.et >= 0.004, '≥ 0.004')}`, '409.3.3.1'),
-    row('Strength reduction', `ε_ty = ${fmt(ety, 5)}; ${f.et >= 0.005 ? 'tension-controlled' : 'transition'}`, `φ = ${fmt(f.phi, 3)}`, 'Table 421.2.2'),
-    row('Nominal / design strength', `M_n; φM_n (compression = ${bar(2, r.p.hangerDia)} assumed)`, `${fmt(f.Mn, 2)} / ${fmt(f.phiMn, 2)} kN·m`, ''),
-    row('Strength check', `φM_n ≥ M_u`, `${fmt(f.util * 100, 1)} % ${okT(f.phiMn >= f.Mu)}`, '409.5.1'),
-    row('Clear bar spacing', `s_clear = ${fmt(f.sClear, 1)} ≥ max(25, d_b, 4/3·d_agg) = ${fmt(f.clrMin, 1)}`, `max ${f.nmax}/layer ${okT(f.sClear >= f.clrMin - 1e-6)}`, '425.2.1'),
-    row('Crack control spacing', `f_s = ⅔fy = ${fmt(2 / 3 * p.fy, 0)} MPa; s ≤ 380(280/f_s) − 2.5c_c ≤ 300(280/f_s)`, `${fmt(f.sCtr, 0)} ≤ ${fmt(f.sCrack, 0)} mm ${okT(f.chk.crack)}`, '424.3.2'),
-  ];
-  if (f.vf) rows.push(row('Verification with actual compression steel', `A's = ${fmt(f.vf.As2, 0)} mm² at d' = ${fmt(f.vf.d2, 1)} mm, f's = ${fmt(f.vf.fs2, 0)} MPa`, `φM_n = ${fmt(f.vf.phiMn, 2)} kN·m, ε_t = ${fmt(f.vf.et, 4)} ${okT(f.vf.ok)}`, '422.2'));
-  if (f.smfRaised) rows.push(row('SMF capacity requirement', 'Bottom raised so φMn⁺ ≥ ½ φMn⁻ at the joint face', 'applied', '418.6.3.2'));
-  let h = `<h2>${title}</h2>` + calcTable(rows);
-  const cands = (isTop ? r.topCands : r.botCands).slice(0, 12);
-  h += `<details style="margin-top:8px"><summary class="note" style="cursor:pointer">Arrangements checked (lightest first)</summary><div class="tablewrap"><table><tr><th>Bars</th><th class="num">As (mm²)</th><th class="num">d (mm)</th><th class="num">φMn (kN·m)</th><th class="num">Util.</th><th class="num">ε_t</th><th>Result</th></tr>${cands.map(c => { const fails = Object.entries(c.chk).filter(([, v]) => !v).map(([k]) => k); const sel = c.db === f.db && c.n === f.n; return `<tr class="${sel ? 'sel' : ''}"><td>${bar(c.n, c.db)}${c.layers.length > 1 ? ' (2 layers)' : ''}</td><td class="num">${fmt(c.As, 0)}</td><td class="num">${fmt(c.d, 0)}</td><td class="num">${fmt(c.phiMn, 1)}</td><td class="num">${fmt(c.util * 100, 0)}%</td><td class="num">${fmt(c.et, 4)}</td><td>${c.ok ? (sel ? '<span class="ok">selected</span>' : '<span class="ok">passes</span>') : `<span class="ng">${fails.join(', ')}</span>`}</td></tr>`; }).join('')}</table></div></details>`;
-  return h;
-}
-function htmlFlexure(r) {
-  if (!r.bot && r.fail) {
-    const c = (r.botCands.length ? r.botCands : r.topCands).slice().sort((a, b) => b.phiMn - a.phiMn).slice(0, 8);
-    return `<div class="failbox">${r.fail}</div><h2>Strongest arrangements tried</h2><div class="tablewrap"><table><tr><th>Bars</th><th class="num">φMn</th><th class="num">M_u</th><th class="num">ε_t</th><th>Failed checks</th></tr>${c.map(x => `<tr><td>${bar(x.n, x.db)}</td><td class="num">${fmt(x.phiMn, 1)}</td><td class="num">${fmt(x.Mu, 1)}</td><td class="num">${fmt(x.et, 4)}</td><td class="ng">${Object.entries(x.chk).filter(([, v]) => !v).map(([k]) => k).join(', ')}</td></tr>`).join('')}</table></div>`;
-  }
-  return faceBlock(r, r.bot, false) + faceBlock(r, r.top, true) + `<p class="note">Rectangular stress block with 0.85f'c; steel elastic–perfectly plastic (Es = 200 GPa); compression steel stress from strain compatibility with displaced concrete deducted. Maximum usable concrete strain 0.003 (Sec. 422.2.2.1).</p>`;
-}
-
-/* ---------- tab: shear ---------- */
-function htmlShear(r) {
-  if (!r.shear) return '<p>—</p>';
-  const p = r.p, S = r.shear, o = S.best, sq = Math.sqrt(p.fc);
-  let rows = [
-    row('Effective depth (smaller face)', 'd', `${fmt(S.d, 1)} mm`, ''),
-    row('Critical section', `at d from support face (x = ${fmt(S.d / 1000, 3)} m)`, `V_u = ${fmt(S.Vu, 2)} kN`, '409.4.3.2'),
-    row('Concrete shear strength', `V_c = 0.17λ√f'c·b_w·d = 0.17 × 1.0 × ${fmt(sq, 3)} × ${p.b} × ${fmt(S.d, 1)}`, `${fmt(S.Vc, 2)} kN`, '422.5.5.1'),
-    row('Strength reduction', 'shear', 'φ = 0.75', 'Table 421.2.1'),
-    row('Stirrups required when', `V_u > ½φV_c = ${fmt(S.half, 2)} kN`, S.Vu > S.half ? '<span class="wr">required</span>' : 'nominal only', '409.6.3.1'),
-  ];
-  if (S.smfAct) rows.push(
-    row('Probable moments (1.25fy, φ = 1)', `M_pr⁻ = ${fmt(S.MprN, 1)}, M_pr⁺ = ${fmt(S.MprP, 1)} kN·m`, '', '418.6.5.1'),
-    row('Seismic design shear', `V_e = (M_pr⁻ + M_pr⁺)/ℓ_n + w_u·ℓ_n/2 (w_u = 1.2D + 1.0L = ${fmt(S.wuE, 2)} kN/m)`, `${fmt(S.Ve, 2)} kN`, '418.6.5.1'),
-    row('V_c in plastic hinge zone', 'taken as 0 (conservative)', 'V_c = 0', '418.6.5.2'));
-  rows.push(
-    row('Required steel shear', `V_s = V_u/φ − V_c${S.smfAct ? ' (V_u = max(V_u, V_e))' : ''}`, `${fmt(S.VsReq, 2)} kN`, '422.5.1.1'),
-    row('Section limit', `V_s ≤ 0.66√f'c·b_w·d`, `${fmt(S.VsLim, 1)} kN ${okT(S.VsReq <= S.VsLim)}`, '422.5.1.2'));
-  let h = `<h2>Shear design</h2>`;
-  if (o) {
-    rows.push(
-      row('Selected stirrups', `Ø${o.ds}, ${o.legs} legs: A_v = ${fmt(o.Av, 1)} mm²`, `fyt = ${p.fyt} MPa`, ''),
-      row('Spacing by strength', `s = A_v·fyt·d / V_s`, `${fmt(o.sStr, 0)} mm`, '422.5.10.5.3'),
-      row('Maximum spacing', S.VsReq <= 0.33 * sq * p.b * S.d / 1000 ? 'V_s ≤ 0.33√f\'c·b_w·d → min(d/2, 600)' : 'V_s > 0.33√f\'c·b_w·d → min(d/4, 300)', `${fmt(o.smaxA, 0)} mm`, 'Table 409.7.6.2.2'),
-      row('Minimum A_v', `A_v,min/s = max(0.062√f'c, 0.35)·b_w/fyt → s ≤`, `${fmt(o.sAvmin, 0)} mm`, '409.6.3.3'),
-      row('End-zone spacing (governed by ' + o.govern + ')', 'rounded down to 25 mm', `s₁ = ${o.s1} mm`, ''),
-      row('Mid-zone spacing', 'min(d/2, 600, A_v,min)', `s₂ = ${o.smid} mm`, ''),
-      row('Design strengths', `φV_n = φ(V_c + A_v·fyt·d/s)`, `${fmt(o.phiVn1, 1)} / ${fmt(o.phiVnMid, 1)} kN`, '422.5.1.1'));
-    if (o.sh) rows.push(row('Hinge-zone hoops', `s ≤ min(d/4, 6d_b,min = ${6 * S.dbMin}, 150, strength)`, `s_h = ${o.sh} mm over 2h = ${2 * p.h} mm`, '418.6.4.4'));
-    rows.push(row('Stirrup count', `first at 50 mm from each face`, `${o.count} sets`, '418.6.4.4 / practice'));
-    h += calcTable(rows);
-    const cap = r.an.xs.map(x => 0.75 * (S.Vc + o.Av * p.fyt * S.d / localSpacing(o.pos, x * 1000) / 1000));
-    const demand = S.smfAct ? r.an.xs.map((x, i) => Math.max(r.an.Vabs[i], (S.MprN + S.MprP) / r.an.L + Math.abs(S.wuE * (r.an.L / 2 - x)) + S.PuE / 2)) : r.an.Vabs;
-    h += `<h2>Shear demand vs. capacity</h2>` + diagramSVG(r.an.xs, [{ y: demand, color: 'var(--ng)', fill: true, mark: true, label: S.smfAct ? '|V_u|, V_e' : '|V_u|' }, { y: cap, color: 'var(--stir)', label: 'φV_n provided', w: 2 }], { title: 'Shear (kN)', unit: 'kN' });
-  } else h += calcTable(rows) + `<div class="failbox">${r.fail || 'No feasible stirrup arrangement.'}</div>`;
-  h += `<h2>Stirrup options evaluated</h2><div class="tablewrap"><table><tr><th>Stirrup</th><th class="num">s₁ / s₂ (mm)</th><th class="num">Hinge s (mm)</th><th>Governs</th><th class="num">Sets</th><th class="num">Weight (kg)</th><th>Status</th></tr>${S.opts.map(x => `<tr class="${o && x === o ? 'sel' : ''}"><td>Ø${x.ds} × ${x.legs} legs</td><td class="num">${x.s1} / ${x.smid}</td><td class="num">${x.sh || '—'}</td><td>${x.govern}</td><td class="num">${x.count || '—'}</td><td class="num">${x.feasible ? fmt(x.kg, 1) : '—'}</td><td>${x.feasible ? (o && x === o ? '<span class="ok">selected (lightest)</span>' : '<span class="ok">feasible</span>') : '<span class="ng">spacing &lt; 75 mm or V_s limit</span>'}</td></tr>`).join('')}</table></div>`;
-  return h;
-}
-
-/* ---------- tab: serviceability ---------- */
-function htmlService(r) {
-  if (!r.defl) return '<p>—</p>';
-  const p = r.p, D = r.defl;
-  let h = `<h2>Minimum depth (deflections need not be computed if satisfied)</h2>` + calcTable([
-    row('Minimum h', `ℓ/${D.hminDen} × (0.4 + fy/700)`, `${fmt(D.hmin, 0)} mm`, 'Table 409.3.1.1'),
-    row('Provided h', `${p.h} mm`, okT(D.hOK, D.hOK ? 'satisfied' : 'compute deflection'), '')
-  ]);
-  h += `<h2>Immediate and long-term deflection</h2>` + calcTable([
-    row('Concrete modulus', `E_c = 4700√f'c`, `${fmt(D.Ec, 0)} MPa`, '419.2.2.1'),
-    row('Modular ratio', `n = E_s/E_c`, fmt(D.n, 2), ''),
-    row('Modulus of rupture', `f_r = 0.62λ√f'c`, `${fmt(D.fr, 2)} MPa`, '419.2.3.1'),
-    row('Gross moment of inertia', `I_g = bh³/12`, `${fmt(D.Ig / 1e6, 1)} × 10⁶ mm⁴`, ''),
-    row('Cracking moment', `M_cr = f_r·I_g/y_t`, `${fmt(D.Mcr, 2)} kN·m`, '424.2.3.5'),
-    row('Cracked transformed section', `A_s = ${fmt(D.As, 0)}, A's = ${fmt(D.Asp, 0)} mm² → kd = ${fmt(D.kd, 1)} mm`, `I_cr = ${fmt(D.Icr / 1e6, 1)} × 10⁶ mm⁴`, ''),
-    row('Service moments', `M_a(D + L) = ${fmt(D.Ms, 2)}, M_a(D) = ${fmt(D.Md, 2)} kN·m`, '', ''),
-    row('Effective I', `I_e = (M_cr/M_a)³I_g + [1 − (M_cr/M_a)³]I_cr ≤ I_g`, `${fmt(D.IeS / 1e6, 1)} / ${fmt(D.IeD / 1e6, 1)} × 10⁶`, 'Eq. 424.2.3.5a'),
-    row('Immediate deflection', `Δ = k_w·wL⁴/(E_cI_e) + k_p·PL³/(E_cI_e), k_w = ${fmt(D.K[0], 5)}, k_p = ${fmt(D.K[1], 5)}`, `Δ_D+L = ${fmt(D.dDL, 2)}, Δ_D = ${fmt(D.dD, 2)} mm`, '424.2.3'),
-    row('Live-load deflection', `Δ_L = Δ_D+L − Δ_D ≤ ℓ/360 = ${fmt(D.limL, 1)}`, `${fmt(D.dL, 2)} mm ${okT(D.okL)}`, 'Table 424.2.2'),
-    row('Long-term multiplier', `λ_Δ = ξ/(1 + 50ρ'), ξ = 2.0, ρ' = ${fmt(D.rhoP, 4)}`, fmt(D.lam, 3), '424.2.4.1'),
-    row('Deflection after attachment', `λ_Δ·Δ_D + Δ_L ≤ ℓ/240 = ${fmt(D.limT, 1)}`, `${fmt(D.dLT, 2)} mm ${okT(D.okT)}`, 'Table 424.2.2'),
-  ]) + `<p class="note">I_e is evaluated at the critical positive-moment section (fixed end for cantilevers) and applied over the span. ${p.support === 'cant' ? 'Cantilever limits use ℓ = 2L. ' : ''}All sustained load is taken as dead load.</p>`;
-  const faces = [r.bot, r.top].filter(f => f.type === 'design');
-  if (faces.length) h += `<h2>Crack control (Sec. 424.3.2)</h2><div class="tablewrap"><table><tr><th>Face</th><th class="num">Bar c/c (mm)</th><th class="num">Limit (mm)</th><th>Result</th></tr>${faces.map(f => `<tr><td>${f.isTop ? 'Top' : 'Bottom'} (${bar(f.n, f.db)})</td><td class="num">${fmt(f.sCtr, 0)}</td><td class="num">${fmt(f.sCrack, 0)}</td><td>${okT(f.chk.crack)}</td></tr>`).join('')}</table></div>`;
-  return h;
-}
-
-/* ---------- tab: detailing ---------- */
-function elevationSVG(r) {
-  const p = r.p, L = r.an.L, W = 760, H = 210, pl = 44, pr = 44, X = x => pl + (W - pl - pr) * x / L, yT = 50, yB = 130;
-  let s = `<svg viewBox="0 0 ${W} ${H}" class="diag" role="img"><text x="${pl}" y="18" font-size="13" font-weight="700" fill="var(--ink)">Elevation (vertical scale exaggerated)</text>`;
-  s += `<rect x="${X(0)}" y="${yT}" width="${X(L) - X(0)}" height="${yB - yT}" fill="var(--conc)" fill-opacity="0.4" stroke="var(--ink)"/>`;
-  const o = r.shear && r.shear.best;
-  if (o) o.pos.forEach(x => { s += `<line x1="${X(x / 1000)}" x2="${X(x / 1000)}" y1="${yT + 5}" y2="${yB - 5}" stroke="var(--stir)" stroke-width="1"/>`; });
-  const line = (x0, x1, y, col, w) => `<line x1="${X(x0)}" x2="${X(x1)}" y1="${y}" y2="${y}" stroke="${col}" stroke-width="${w}" stroke-linecap="round"/>`;
-  const B = r.bot, T = r.top;
-  s += line(0.02, L - 0.02, yB - 9, 'var(--barb)', 3.2);
-  B.cut.forEach(g => { s += line(g[0], g[1], yB - 17, 'var(--barb)', 2.2); s += `<text x="${X(g[0])}" y="${yB + 16}" font-size="10.5" text-anchor="middle" fill="var(--barb)">${fmt(g[0], 2)}</text><text x="${X(g[1])}" y="${yB + 16}" font-size="10.5" text-anchor="middle" fill="var(--barb)">${fmt(g[1], 2)}</text>`; });
-  s += line(0.02, L - 0.02, yT + 9, 'var(--bart)', 3.2);
-  T.cut.forEach(g => { s += line(g[0], g[1], yT + 17, 'var(--bart)', 2.2); [g[0], g[1]].forEach(x => { if (x > 0.01 && x < L - 0.01) s += `<text x="${X(x)}" y="${yT - 6}" font-size="10.5" text-anchor="middle" fill="var(--bart)">${fmt(x, 2)}</text>`; }); });
-  const sup = (x, type) => {
-    if (type === 'fix') return `<rect x="${x < W / 2 ? X(0) - 16 : X(L)}" y="${yT - 18}" width="16" height="${yB - yT + 36}" fill="var(--mute)" fill-opacity="0.35" stroke="var(--mute)"/>`;
-    const cx = X(x); return `<polygon points="${cx},${yB} ${cx - 11},${yB + 18} ${cx + 11},${yB + 18}" fill="none" stroke="var(--mute)" stroke-width="1.5"/>` + (type === 'roll' ? `<line x1="${cx - 13}" x2="${cx + 13}" y1="${yB + 23}" y2="${yB + 23}" stroke="var(--mute)"/>` : '');
-  };
-  const st = { ss: [['pin', 0], ['roll', L]], ff: [['fix', 0], ['fix', L]], pc: [['fix', 0], ['roll', L]], cant: [['fix', 0]] }[p.support];
-  st.forEach(([t, x]) => { s += sup(x, t); });
-  s += `<text x="${X(L / 2)}" y="${H - 22}" font-size="11.5" text-anchor="middle" fill="var(--ink)">Bottom: ${B.nc} cont.${B.cut.length ? ` + ${B.n - B.nc} cut` : ''} Ø${B.db} · Top: ${T.nc} cont.${T.cut.length ? ` + ${T.n - T.nc} cut` : ''} Ø${T.db}${o ? ` · Stirrups Ø${o.ds}: ${o.count} sets` : ''}</text>`;
-  s += `<text x="${X(L / 2)}" y="${H - 6}" font-size="10.5" text-anchor="middle" fill="var(--mute)">cut-off coordinates in m from left support</text>`;
-  return s + '</svg>';
-}
-function htmlDetail(r) {
-  if (!r.bot) return '<p>—</p>';
-  const p = r.p, B = r.bot, T = r.top, o = r.shear && r.shear.best, ds = o ? o.ds : p.dsLayout;
-  const cant = p.support === 'cant';
-  const xSup = 0.001, xMid = cant ? r.an.L * 0.98 : r.an.L / 2;
-  const secA = sectionSVG(p, [{ bars: faceBars(p, T, true, xSup), color: 'var(--bart)', label: `${faceBars(p, T, true, xSup).length}–Ø${T.db}`, top: true }, { bars: faceBars(p, B, false, xSup), color: 'var(--barb)', label: `${faceBars(p, B, false, xSup).length}–Ø${B.db}` }], cant ? 'Section at fixed end' : 'Section at support', ds);
-  const secB = sectionSVG(p, [{ bars: faceBars(p, T, true, xMid), color: 'var(--bart)', label: `${faceBars(p, T, true, xMid).length}–Ø${T.db}`, top: true }, { bars: faceBars(p, B, false, xMid), color: 'var(--barb)', label: `${faceBars(p, B, false, xMid).length}–Ø${B.db}` }], cant ? 'Section near free end' : 'Section at midspan', ds);
-  let h = `<h2>Cross-sections</h2><div class="grid2"><div>${secA}</div><div>${secB}</div></div><p class="note">Filled circles = continuous bars; open circles = cut-off bars present at that section.</p>`;
-  h += `<h2>Elevation</h2>` + elevationSVG(r);
-  const rowsC = [];
-  [[B, 'Bottom', false], [T, 'Top', true]].forEach(([f, lab, isTop]) => {
-    if (f.type !== 'design') { rowsC.push(row(`${lab} bars`, 'hanger bars run full length', bar(f.n, f.db), '')); return; }
-    rowsC.push(row(`${lab} development length`, `ℓ_d = fy·ψ_t·ψ_e·d_b/(${f.ldK}λ√f'c), ψ_t = ${f.psiT}`, `${fmt(f.ld * 1000, 0)} mm`, '425.4.2.3'));
-    if (f.nc < f.n) {
-      rowsC.push(row(`${lab} continuous bars`, `max(2, n/3) run full length${isTop ? ', extend past inflection point' : ', into supports'}`, `${f.nc}–Ø${f.db}, φM_n = ${fmt(f.capC, 1)} kN·m`, isTop ? '409.7.3.8.4' : '409.7.3.8.1'));
-      rowsC.push(row(`${lab} cut-off bars`, `extend max(d, 12d_b) = ${fmt(f.ext * 1000, 0)} mm past theoretical cut-off; ≥ ℓ_d from critical section`, f.cut.map(g => `${fmt(g[0], 2)}–${fmt(g[1], 2)} m`).join(', '), '409.7.3.3'));
-    } else rowsC.push(row(`${lab} bars`, p.curtail ? 'curtailment gives no saving or is not permitted' : 'curtailment disabled', `all ${f.n} continuous`, ''));
+  document.getElementById("menuToggle").addEventListener("click", () => {
+    document.getElementById("sidebar").classList.toggle("open");
   });
-  (r.cutChecks || []).forEach(t => rowsC.push(row(`${t.face} cut-off at x = ${fmt(t.x, 2)} m`, `V_u ≤ ⅔φV_n${t.extended ? ' (bars extended to satisfy)' : ''}`, `${fmt(t.Vu, 1)} ≤ ${fmt(t.lim, 1)} kN ${okT(t.ok)}`, '409.7.3.5(a)')));
-  h += `<h2>Curtailment &amp; anchorage</h2>` + calcTable(rowsC) + `<p class="note">Bars must still be anchored into supports/columns per Sec. 425 (hooks, laps and embedment are not included in quantities).</p>`;
-  if (r.smf) {
-    h += `<h2>Special moment frame checks (Sec. 418.6)</h2>`;
-    h += r.smf.items.length ? `<div class="tablewrap"><table><tr><th>Requirement</th><th>Value</th><th>Result</th><th>Ref.</th></tr>${r.smf.items.map(i => `<tr><td>${i.t}</td><td>${i.val}</td><td>${okT(i.ok)}</td><td class="note">${i.ref}</td></tr>`).join('')}</table></div>` : '<p class="note">—</p>';
-  }
-  return h;
 }
 
-/* ---------- tab: optimization ---------- */
-function htmlOptim(r, opt) {
-  const R = r.rating, p = r.p;
-  let h = `<div class="grid2"><div><h2>Optimization rating</h2><div class="gauge">${gaugeSVG(R.total, 140)}<div><div class="grade" style="font-size:44px">${R.grade}</div><div class="note">${R.cap || ''}</div></div></div></div>
-  <div><h2>Score breakdown</h2><div class="bars">${R.comp.map(c => `<div class="b"><span>${c.k} <span class="note">(${Math.round(c.w * 100)}%)</span></span><div class="t"><div style="width:${c.s}%;background:${c.s >= 80 ? 'var(--ok)' : c.s >= 60 ? 'var(--warn)' : 'var(--ng)'}"></div></div><b>${Math.round(c.s)}</b></div>`).join('')}</div>
-  ${R.comp.find(c => c.why && c.why.length) ? `<p class="note">Constructability deductions: ${R.comp.find(c => c.why).why.join(', ')}.</p>` : ''}</div></div>`;
-  h += `<h2>How the optimizer works</h2><p class="note" style="font-size:13px">For each face it enumerates every allowed bar size and count (1–${p.maxLayers} layers), runs a strain-compatibility check, and rejects any arrangement failing strength, ε_t ≥ 0.004, minimum steel (with the 4/3·As,req allowance of Sec. 409.6.1.3${p.smf ? ', disabled for SMF' : ''}), bar spacing or crack control. The lightest passing arrangement is kept. ${p.curtail ? 'Bars not needed away from peak moments are then cut off per Sec. 409.7.3. ' : ''}Stirrup size, legs and zoned spacing are chosen for minimum weight.${p.mode === 'section' ? ` Section mode repeats this for every b × h in the search range and ranks the adequate results by ${p.objective === 'cost' ? 'total material cost' : 'steel weight'}.` : ''}</p>`;
-  if (r.bot) {
-    const saved = [r.bot, r.top].filter(f => f.type === 'design' && f.cut.length).reduce((s, f) => s + (f.n - f.nc) * (r.an.L - f.cut.reduce((a, g) => a + g[1] - g[0], 0)) * barKgm(f.db), 0);
-    const tb = r.botCands.filter(c => c.ok).slice(0, 6), tt = r.topCands.filter(c => c.ok).slice(0, 6);
-    h += `<h2>Steel summary</h2>` + calcTable([
-      row('Longitudinal steel', 'after curtailment', `${fmt(r.longKg, 1)} kg`, ''),
-      row('Saved by curtailment', 'vs. all bars full length', `${fmt(saved, 1)} kg`, ''),
-      row('Transverse steel', r.shear.best ? `${r.shear.best.count} sets Ø${r.shear.best.ds}` : '—', `${fmt(r.steelKg - r.longKg, 1)} kg`, ''),
-      row('Steel intensity', 'total steel / concrete volume', `${fmt(r.kgm3, 0)} kg/m³`, ''),
-    ]);
-    const altT = (list, f) => `<div class="tablewrap"><table><tr><th>Bars</th><th class="num">As (mm²)</th><th class="num">As/As,req</th><th class="num">Util.</th><th class="num">kg/m</th></tr>${list.map(c => `<tr class="${c.db === f.db && c.n === f.n ? 'sel' : ''}"><td>${bar(c.n, c.db)}${c.layers.length > 1 ? ' (2L)' : ''}</td><td class="num">${fmt(c.As, 0)}</td><td class="num">${fmt(c.As / Math.max(c.AsReq, c.AsMinGov), 2)}</td><td class="num">${fmt(c.util * 100, 0)}%</td><td class="num">${fmt(c.n * barKgm(c.db), 2)}</td></tr>`).join('')}</table></div>`;
-    h += `<div class="grid2">${tb.length ? `<div><h2>Bottom alternatives (lightest first)</h2>${altT(tb, r.bot)}</div>` : ''}${tt.length ? `<div><h2>Top alternatives (lightest first)</h2>${altT(tt, r.top)}</div>` : ''}</div>`;
-  }
-  if (opt && opt.list.length) {
-    h += `<h2>Section search results (${opt.list.length} adequate sections)</h2><div class="tablewrap"><table><tr><th>#</th><th>b × h</th><th>Bottom</th><th>Top</th><th>Stirrups</th><th class="num">Steel (kg)</th><th class="num">kg/m³</th><th class="num">Cost</th><th class="num">Rating</th><th></th></tr>${opt.list.slice(0, 15).map((x, i) => `<tr class="${x === r ? 'sel' : ''}"><td>${i + 1}</td><td>${x.p.b} × ${x.p.h}</td><td>${bar(x.bot.n, x.bot.db)}</td><td>${bar(x.top.n, x.top.db)}</td><td>Ø${x.shear.best.ds}@${x.shear.best.s1}/${x.shear.best.smid}</td><td class="num">${fmt(x.steelKg, 1)}</td><td class="num">${fmt(x.kgm3, 0)}</td><td class="num">${peso(x.cost)}</td><td class="num">${Math.round(x.rating.total)} ${x.rating.grade}</td><td><button class="btn sm" data-apply="${x.p.b},${x.p.h}">Use</button></td></tr>`).join('')}</table></div><p class="note">“Use” sets b and h and re-runs in fixed-section mode.</p>`;
-  }
-  return h;
-}
-
-/* ---------- tab: schedule ---------- */
-function htmlSchedule(r) {
-  if (!r.rows) return '<p>—</p>';
-  const byDia = {}; r.rows.forEach(x => { byDia[x.db] = (byDia[x.db] || 0) + x.kg; });
-  let h = `<h2>Bar schedule (one beam)</h2><div class="tablewrap"><table><tr><th>Mark</th><th>Description</th><th class="num">Ø (mm)</th><th class="num">No.</th><th class="num">Length (m)</th><th class="num">Total (m)</th><th class="num">Mass (kg)</th></tr>${r.rows.map(x => `<tr><td><b>${x.mark}</b></td><td>${x.desc}</td><td class="num">${x.db}</td><td class="num">${x.n}</td><td class="num">${fmt(x.len, 2)}</td><td class="num">${fmt(x.n * x.len, 2)}</td><td class="num">${fmt(x.kg, 2)}</td></tr>`).join('')}<tr><td colspan="6"><b>Total</b></td><td class="num"><b>${fmt(r.steelKg, 2)}</b></td></tr></table></div>`;
-  h += `<h2>Mass by diameter</h2><div class="tablewrap"><table><tr><th>Ø (mm)</th><th class="num">kg/m</th><th class="num">Mass (kg)</th></tr>${Object.keys(byDia).sort((a, b) => a - b).map(d => `<tr><td>${d}</td><td class="num">${fmt(barKgm(+d), 3)}</td><td class="num">${fmt(byDia[d], 2)}</td></tr>`).join('')}</table></div>`;
-  h += `<h2>Quantities &amp; cost</h2>` + calcTable([
-    row('Concrete', `b·h·L`, `${fmt(r.concM3, 3)} m³`, ''), row('Formwork', '(2h + b)·L', `${fmt(r.formM2, 2)} m²`, ''),
-    row('Cost', `steel ${peso(r.costSteel)} + concrete ${peso(r.costConc)} + formwork ${peso(r.costForm)}`, peso(r.cost), '')]);
-  h += `<p class="note">Lengths are measured on the member length L; add hooks, embedment into supports and laps per Sec. 425 for ordering. Stirrup length = perimeter along centreline + 2 × max(6d_b, 75 mm) hook extensions (135° hooks).</p>`;
-  return h;
-}
-
-/* ---------- 3D model ---------- */
-const V = {};
-function init3D() {
-  const host = $('view3d');
-  if (!window.THREE) { host.insertAdjacentHTML('afterbegin', '<div class="nothree">3D library could not load (offline?). All calculations still work.</div>'); return false; }
-  V.renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
-  V.renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
-  V.renderer.localClippingEnabled = true;
-  host.insertBefore(V.renderer.domElement, host.firstChild);
-  V.scene = new THREE.Scene();
-  V.camera = new THREE.PerspectiveCamera(38, 1, 0.01, 500);
-  V.scene.add(new THREE.HemisphereLight(0xffffff, 0x445566, 0.75));
-  const dl = new THREE.DirectionalLight(0xffffff, 0.75); dl.position.set(4, 8, 6); V.scene.add(dl);
-  const dl2 = new THREE.DirectionalLight(0xffffff, 0.3); dl2.position.set(-6, -3, -4); V.scene.add(dl2);
-  V.root = new THREE.Group(); V.scene.add(V.root);
-  V.clip = new THREE.Plane(new THREE.Vector3(-1, 0, 0), 1e3);
-  V.orb = { r: 8, th: -0.75, ph: 1.15, t: new THREE.Vector3() };
-  const upd = () => { const o = V.orb; V.camera.position.set(o.t.x + o.r * Math.sin(o.ph) * Math.sin(o.th), o.t.y + o.r * Math.cos(o.ph), o.t.z + o.r * Math.sin(o.ph) * Math.cos(o.th)); V.camera.lookAt(o.t); };
-  V.upd = upd;
-  const el = V.renderer.domElement, ptrs = new Map(); let mode = null, last = null, pinch = 0;
-  el.addEventListener('contextmenu', e => e.preventDefault());
-  el.addEventListener('pointerdown', e => { el.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY }); mode = (e.button === 2 || e.shiftKey) ? 'pan' : 'rot'; last = { x: e.clientX, y: e.clientY }; if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; pinch = Math.hypot(a.x - b.x, a.y - b.y); } });
-  el.addEventListener('pointermove', e => {
-    if (!ptrs.has(e.pointerId)) return; ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; const d = Math.hypot(a.x - b.x, a.y - b.y); if (pinch) V.orb.r = clamp(V.orb.r * pinch / d, 0.3, 200); pinch = d; upd(); return; }
-    const dx = e.clientX - last.x, dy = e.clientY - last.y; last = { x: e.clientX, y: e.clientY };
-    if (mode === 'rot') { V.orb.th -= dx * 0.006; V.orb.ph = clamp(V.orb.ph - dy * 0.006, 0.05, Math.PI - 0.05); }
-    else { const k = V.orb.r * 0.0014; const right = new THREE.Vector3().setFromMatrixColumn(V.camera.matrix, 0), up = new THREE.Vector3().setFromMatrixColumn(V.camera.matrix, 1); V.orb.t.addScaledVector(right, -dx * k).addScaledVector(up, dy * k); }
-    upd();
-  });
-  const end = e => { ptrs.delete(e.pointerId); if (ptrs.size < 2) pinch = 0; };
-  el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
-  el.addEventListener('wheel', e => { e.preventDefault(); V.orb.r = clamp(V.orb.r * (1 + Math.sign(e.deltaY) * 0.1), 0.3, 200); upd(); }, { passive: false });
-  const resize = () => { const w = host.clientWidth, h = host.clientHeight; if (!w || !h) return; V.renderer.setSize(w, h); V.camera.aspect = w / h; V.camera.updateProjectionMatrix(); };
-  new ResizeObserver(resize).observe(host); resize();
-  const loop = () => { requestAnimationFrame(loop); if (host.offsetParent !== null) V.renderer.render(V.scene, V.camera); };
-  loop();
-  document.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => setView(b.dataset.view)));
-  ['vConc', 'vBot', 'vTop', 'vStir', 'vLoad'].forEach(id => $(id).addEventListener('change', applyVis));
-  $('vCut').addEventListener('input', applyVis);
-  return true;
-}
-function setView(v) {
-  const L = V.L || 6, o = V.orb; o.t.set(0, 0, 0);
-  if (v === 'iso') { o.th = -0.75; o.ph = 1.15; o.r = L * 1.15 + 1; }
-  if (v === 'front') { o.th = 0; o.ph = Math.PI / 2; o.r = L * 1.35 + 1; }
-  if (v === 'end') { o.th = Math.PI / 2; o.ph = Math.PI / 2; o.r = Math.max(V.H || 0.5, 0.5) * 4.2; }
-  if (v === 'top') { o.th = 0; o.ph = 0.06; o.r = L * 1.35 + 1; }
-  V.upd();
-}
-function cssColor(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || '#888'; }
-function build3D(r) {
-  if (!V.renderer) return;
-  const bg = cssColor('--code'); V.scene.background = new THREE.Color(bg);
-  while (V.root.children.length) { const c = V.root.children[0]; V.root.remove(c); c.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose && o.material.dispose(); }); }
-  const p = r.p, L = r.an.L, b = p.b / 1000, h = p.h / 1000, x0 = -L / 2;
-  V.L = L; V.H = h;
-  const G = V.groups = { conc: new THREE.Group(), bot: new THREE.Group(), top: new THREE.Group(), stir: new THREE.Group(), load: new THREE.Group() };
-  Object.values(G).forEach(g => V.root.add(g));
-  const concMat = new THREE.MeshStandardMaterial({ color: 0xb8bec7, transparent: true, opacity: 0.22, depthWrite: false, roughness: 0.9, clippingPlanes: [V.clip], side: THREE.DoubleSide });
-  const cm = new THREE.Mesh(new THREE.BoxGeometry(L, h, b), concMat); cm.renderOrder = 2; G.conc.add(cm);
-  G.conc.add(new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(L, h, b)), new THREE.LineBasicMaterial({ color: 0x7a828e, clippingPlanes: [V.clip] })));
-  if (r.bot) {
-    const mk = (f, isTop, grp, cCol, xCol) => {
-      faceBars(p, f, isTop, null).forEach(bb => {
-        const segs = bb.cont ? [[0, L]] : bb.segs;
-        segs.forEach(g => {
-          const len = Math.max(0.01, g[1] - g[0] - (bb.cont ? 0.06 : 0));
-          const geo = new THREE.CylinderGeometry(bb.db / 2000, bb.db / 2000, len, 14); geo.rotateZ(Math.PI / 2);
-          const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: bb.cont ? cCol : xCol, metalness: 0.35, roughness: 0.45 }));
-          m.position.set(x0 + (g[0] + g[1]) / 2, -h / 2 + bb.y / 1000, -b / 2 + bb.z / 1000); grp.add(m);
-        });
-      });
-    };
-    mk(r.bot, false, G.bot, 0xd9480f, 0xf59f00);
-    mk(r.top, true, G.top, 0x1c7ed6, 0x74c0fc);
-    const o = r.shear && r.shear.best;
-    if (o && o.pos.length) {
-      const ringGeo = (w, hh, rad, tr) => { const pts = []; const cx = [w / 2 - rad, -w / 2 + rad, -w / 2 + rad, w / 2 - rad], cy = [hh / 2 - rad, hh / 2 - rad, -hh / 2 + rad, -hh / 2 + rad], a0 = [0, Math.PI / 2, Math.PI, 1.5 * Math.PI]; for (let k = 0; k < 4; k++) for (let i = 0; i <= 5; i++) { const a = a0[k] + i / 5 * Math.PI / 2; pts.push(new THREE.Vector3(0, cy[k] + rad * Math.sin(a), cx[k] + rad * Math.cos(a))); } const path = new THREE.CurvePath(); for (let i = 0; i < pts.length; i++) path.add(new THREE.LineCurve3(pts[i], pts[(i + 1) % pts.length])); return new THREE.TubeGeometry(path, pts.length * 2, tr, 6, true); };
-      const ds = o.ds / 1000, w = (p.b - 2 * p.cover - o.ds) / 1000, hh = (p.h - 2 * p.cover - o.ds) / 1000, rad = Math.min(2 * ds + ds / 2, w / 3);
-      const addRing = geo => { const im = new THREE.InstancedMesh(geo, new THREE.MeshStandardMaterial({ color: 0x2f9e44, metalness: 0.3, roughness: 0.5 }), o.pos.length); const M = new THREE.Matrix4(); o.pos.forEach((x, i) => { M.makeTranslation(x0 + x / 1000, 0, 0); im.setMatrixAt(i, M); }); im.instanceMatrix.needsUpdate = true; G.stir.add(im); };
-      addRing(ringGeo(w, hh, rad, ds / 2));
-      if (o.legs === 4) addRing(ringGeo(w / 3, hh, Math.min(rad, w / 8), ds / 2));
-    }
-  }
-  const sMat = new THREE.MeshStandardMaterial({ color: 0x868e96, roughness: 0.8 });
-  const wall = xe => { const m = new THREE.Mesh(new THREE.BoxGeometry(0.3, h * 2.2, b * 1.8), new THREE.MeshStandardMaterial({ color: 0x868e96, transparent: true, opacity: 0.55 })); m.position.set(xe < 0 ? xe - 0.15 : xe + 0.15, 0, 0); G.load.add(m); };
-  const pin = (xe, roll) => { const g = new THREE.ConeGeometry(0.12, 0.2, 3); const m = new THREE.Mesh(g, sMat); m.position.set(xe, -h / 2 - 0.1, 0); m.rotation.y = Math.PI / 2; G.load.add(m); if (roll) { const c = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, b * 1.4, 12), sMat); c.rotation.x = Math.PI / 2; c.position.set(xe, -h / 2 - 0.24, 0); G.load.add(c); } };
-  ({ ss: () => { pin(x0, false); pin(-x0, true); }, ff: () => { wall(x0); wall(-x0); }, pc: () => { wall(x0); pin(-x0, true); }, cant: () => wall(x0) })[p.support]();
-  const nA = Math.max(6, Math.round(L * 2.2)), col = 0x9c36b5;
-  for (let i = 0; i <= nA; i++) { const x = x0 + L * i / nA; G.load.add(new THREE.ArrowHelper(new THREE.Vector3(0, -1, 0), new THREE.Vector3(x, h / 2 + 0.36, 0), 0.34, col, 0.08, 0.05)); }
-  const lg = new THREE.Mesh(new THREE.BoxGeometry(L, 0.012, 0.012), new THREE.MeshBasicMaterial({ color: col })); lg.position.set(0, h / 2 + 0.36, 0); G.load.add(lg);
-  if (p.PD + p.PL > 0) G.load.add(new THREE.ArrowHelper(new THREE.Vector3(0, -1, 0), new THREE.Vector3(0, h / 2 + 0.95, 0), 0.9, 0xe03131, 0.14, 0.08));
-  $('legend3d').innerHTML = `<div><i style="background:#d9480f"></i>Bottom continuous</div><div><i style="background:#f59f00"></i>Bottom cut-off</div><div><i style="background:#1c7ed6"></i>Top continuous</div><div><i style="background:#74c0fc"></i>Top cut-off</div><div><i style="background:#2f9e44"></i>Stirrups</div>`;
-  applyVis();
-  if (!V.viewed) { setView('iso'); V.viewed = true; } else V.upd();
-}
-function applyVis() {
-  if (!V.groups) return;
-  V.groups.conc.visible = $('vConc').checked; V.groups.bot.visible = $('vBot').checked; V.groups.top.visible = $('vTop').checked; V.groups.stir.visible = $('vStir').checked; V.groups.load.visible = $('vLoad').checked;
-  const f = +$('vCut').value / 100; V.clip.constant = f >= 0.999 ? 1e3 : -V.L / 2 + V.L * f;
-}
-
-/* ---------- run ---------- */
-let LAST = null;
-function run() {
-  const p = readInputs(), e = validate(p);
-  if (e.length) { $('msgs').innerHTML = `<div class="failbox">${e.join('<br>')}</div>`; return; }
-  $('run').textContent = 'Optimizing…'; $('runTop').disabled = $('run').disabled = true;
-  setTimeout(() => {
-    try {
-      const opt = optimize(p), r = opt.best; LAST = { r, opt };
-      renderKPI(r, opt);
-      $('p-analysis').innerHTML = htmlAnalysis(r);
-      $('p-flexure').innerHTML = htmlFlexure(r);
-      $('p-shear').innerHTML = htmlShear(r);
-      $('p-service').innerHTML = htmlService(r);
-      $('p-detail').innerHTML = htmlDetail(r);
-      $('p-optim').innerHTML = htmlOptim(r, opt);
-      $('p-schedule').innerHTML = htmlSchedule(r);
-      document.querySelectorAll('[data-apply]').forEach(btn => btn.addEventListener('click', () => { const [b, h] = btn.dataset.apply.split(','); $('b').value = b; $('h').value = h; $('mode').value = 'bars'; syncMode(); run(); }));
-      build3D(r);
-    } catch (err) { console.error(err); $('msgs').innerHTML = `<div class="failbox">Unexpected error: ${err.message}</div>`; }
-    $('run').innerHTML = 'Design &amp; Optimize'; $('runTop').disabled = $('run').disabled = false;
-  }, 20);
-}
-document.querySelectorAll('#tabs button').forEach(b => b.addEventListener('click', () => {
-  document.querySelectorAll('#tabs button').forEach(x => x.classList.toggle('on', x === b));
-  document.querySelectorAll('.panel').forEach(x => x.classList.toggle('on', x.id === 'p-' + b.dataset.t));
-}));
-$('run').addEventListener('click', run); $('runTop').addEventListener('click', run);
-document.querySelectorAll('aside input, aside select').forEach(el => el.addEventListener('keydown', e => { if (e.key === 'Enter') run(); }));
-init3D();
-run();
-</script>
-</body>
-</html>
+/* ============================================================
+   INIT
+   ============================================================ */
+window.addEventListener("DOMContentLoaded", () => {
+  seedDefaults();
+  document.getElementById("projDate").value = today();
+  initNav();
+  Materials.render();
+  Settings.renderAll();
+  Project.refreshList();
+  Dashboard.render();
+});
