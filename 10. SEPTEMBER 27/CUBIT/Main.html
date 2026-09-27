@@ -1,0 +1,2696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Infrastructure Project Status Monitoring</title>
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f1f5f9;
+    color: #1e293b;
+}
+
+/* =========================
+   SIDEBAR
+========================= */
+
+.sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 240px;
+    background: #0f172a;
+    color: white;
+    padding: 24px 16px;
+}
+
+.brand {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 28px;
+}
+
+.brand small {
+    display: block;
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: 5px;
+    font-weight: 400;
+}
+
+.nav {
+    padding: 12px 14px;
+    border-radius: 8px;
+    margin: 6px 0;
+    color: #cbd5e1;
+    cursor: pointer;
+}
+
+.nav.active,
+.nav:hover {
+    background: #1e3a8a;
+    color: white;
+}
+
+/* =========================
+   MAIN
+========================= */
+
+.main {
+    margin-left: 240px;
+    padding: 25px;
+}
+
+.top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 22px;
+}
+
+h1 {
+    margin: 0;
+    font-size: 27px;
+}
+
+.subtitle {
+    color: #64748b;
+    margin-top: 5px;
+}
+
+.datebox {
+    background: white;
+    padding: 10px 14px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px #0000000d;
+    font-size: 13px;
+}
+
+/* =========================
+   DASHBOARD CARDS
+========================= */
+
+.cards {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.card {
+    background: white;
+    padding: 17px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px #0000000d;
+}
+
+.card-title {
+    font-size: 12px;
+    color: #64748b;
+    margin-bottom: 8px;
+}
+
+.card-value {
+    font-size: 25px;
+    font-weight: 700;
+}
+
+.blue {
+    color: #2563eb;
+}
+
+.green {
+    color: #16a34a;
+}
+
+.orange {
+    color: #ea580c;
+}
+
+.red {
+    color: #dc2626;
+}
+
+.purple {
+    color: #7c3aed;
+}
+
+.yellow {
+    color: #ca8a04;
+}
+
+/* =========================
+   SECTION
+========================= */
+
+.section {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px #0000000d;
+}
+
+.section-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 16px;
+}
+
+/* =========================
+   FORM
+========================= */
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+}
+
+.full {
+    grid-column: 1 / -1;
+}
+
+label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: #475569;
+    margin-bottom: 6px;
+}
+
+input,
+select,
+textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 13px;
+    background: white;
+}
+
+textarea {
+    min-height: 75px;
+    resize: vertical;
+}
+
+.actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 15px;
+}
+
+button {
+    border: 0;
+    border-radius: 6px;
+    padding: 9px 15px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.primary {
+    background: #2563eb;
+    color: white;
+}
+
+.primary:hover {
+    background: #1d4ed8;
+}
+
+.secondary {
+    background: #e2e8f0;
+    color: #334155;
+}
+
+.danger {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+/* =========================
+   COMPARISON
+========================= */
+
+.grid2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+}
+
+.compare {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 16px;
+}
+
+.compare strong {
+    font-size: 12px;
+    color: #64748b;
+}
+
+.compare .big {
+    font-size: 27px;
+    font-weight: 700;
+    margin: 7px 0;
+}
+
+.muted {
+    color: #64748b;
+    font-size: 13px;
+}
+
+/* =========================
+   CHART
+========================= */
+
+.chart {
+    height: 310px;
+    border-left: 1px solid #cbd5e1;
+    border-bottom: 1px solid #cbd5e1;
+    padding: 15px 10px 30px;
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    overflow-x: auto;
+}
+
+.bar-group {
+    height: 100%;
+    min-width: 82px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 5px;
+    position: relative;
+}
+
+.bar {
+    width: 25px;
+    min-height: 3px;
+    border-radius: 4px 4px 0 0;
+}
+
+.planned {
+    background: #94a3b8;
+}
+
+.actual {
+    background: #2563eb;
+}
+
+.bar-label {
+    position: absolute;
+    bottom: -25px;
+    font-size: 10px;
+    text-align: center;
+    width: 90px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.legend {
+    font-size: 12px;
+    margin-top: 12px;
+    display: flex;
+    gap: 20px;
+}
+
+.legend span {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    display: inline-block;
+}
+
+/* =========================
+   RECENT / STALE
+========================= */
+
+.recent-list,
+.stale-list {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+.activity {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 7px;
+}
+
+.activity small {
+    color: #64748b;
+}
+
+.stale {
+    border-left: 4px solid #dc2626;
+}
+
+.recent {
+    border-left: 4px solid #16a34a;
+}
+
+/* =========================
+   TABLE
+========================= */
+
+.table-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.search {
+    width: 260px;
+}
+
+.table-wrap {
+    overflow-x: auto;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 1250px;
+}
+
+th {
+    background: #f8fafc;
+    color: #475569;
+    text-align: left;
+    font-size: 11px;
+    padding: 10px;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+td {
+    font-size: 12px;
+    padding: 10px;
+    border-bottom: 1px solid #e2e8f0;
+    vertical-align: top;
+}
+
+tr:hover {
+    background: #f8fafc;
+}
+
+/* =========================
+   STATUS
+========================= */
+
+.status {
+    display: inline-block;
+    padding: 5px 8px;
+    border-radius: 15px;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.s-ongoing {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.s-completed {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.s-delayed {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.s-notstarted {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.s-suspended {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+/* =========================
+   PROGRESS BAR
+========================= */
+
+.progress {
+    width: 110px;
+    height: 7px;
+    background: #e2e8f0;
+    border-radius: 20px;
+    overflow: hidden;
+    margin-top: 4px;
+}
+
+.progress > div {
+    height: 100%;
+    background: #2563eb;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media(max-width:1200px) {
+
+    .cards {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+}
+
+@media(max-width:900px) {
+
+    .sidebar {
+        position: relative;
+        width: 100%;
+        height: auto;
+    }
+
+    .main {
+        margin-left: 0;
+    }
+
+    .cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .form-grid,
+    .grid2 {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- =========================
+     SIDEBAR
+========================= -->
+
+<aside class="sidebar">
+
+    <div class="brand">
+
+        INFRA MONITOR
+
+        <small>
+            Infrastructure Project Status Monitoring
+        </small>
+
+    </div>
+
+    <div class="nav active">
+        Dashboard
+    </div>
+
+    <div class="nav">
+        Projects
+    </div>
+
+    <div class="nav">
+        Accomplishment
+    </div>
+
+    <div class="nav">
+        Issues and Remarks
+    </div>
+
+    <div class="nav">
+        Reports
+    </div>
+
+</aside>
+
+
+<!-- =========================
+     MAIN
+========================= -->
+
+<main class="main">
+
+
+    <!-- HEADER -->
+
+    <div class="top">
+
+        <div>
+
+            <h1>
+                Infrastructure Project Status Monitoring
+            </h1>
+
+            <div class="subtitle">
+                Physical, financial, schedule and field monitoring
+            </div>
+
+        </div>
+
+        <div
+            class="datebox"
+            id="today">
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         DASHBOARD CARDS
+    ========================= -->
+
+    <div class="cards">
+
+        <div class="card">
+
+            <div class="card-title">
+                Total Projects
+            </div>
+
+            <div
+                class="card-value blue"
+                id="total">
+                0
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-title">
+                Ongoing
+            </div>
+
+            <div
+                class="card-value orange"
+                id="ongoing">
+                0
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-title">
+                Completed
+            </div>
+
+            <div
+                class="card-value green"
+                id="completed">
+                0
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-title">
+                Delayed
+            </div>
+
+            <div
+                class="card-value red"
+                id="delayed">
+                0
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-title">
+                Average Progress
+            </div>
+
+            <div
+                class="card-value purple"
+                id="average">
+                0%
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-title">
+                Recently Updated
+            </div>
+
+            <div
+                class="card-value green"
+                id="recent">
+                0
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-title">
+                Stale Projects
+            </div>
+
+            <div
+                class="card-value red"
+                id="stale">
+                0
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         PROJECT INFORMATION
+    ========================= -->
+
+    <section class="section">
+
+        <div class="section-title">
+            Project Information
+        </div>
+
+
+        <form id="projectForm">
+
+            <input
+                type="hidden"
+                id="editIndex">
+
+
+            <div class="form-grid">
+
+
+                <div>
+
+                    <label>
+                        Project Name
+                    </label>
+
+                    <input
+                        id="name"
+                        required
+                        placeholder="Construction of 1STY-2CL School Building">
+
+                </div>
+
+
+                <div>
+
+                    <label>
+                        School / Location
+                    </label>
+
+                    <input
+                        id="location"
+                        required
+                        placeholder="School name and municipality">
+
+                </div>
+
+
+                <div>
+
+                    <label>
+                        Implementing Agency
+                    </label>
+
+                    <select id="agency">
+
+                        <option>
+                            DPWH
+                        </option>
+
+                        <option>
+                            DepEd
+                        </option>
+
+                        <option>
+                            LGU
+                        </option>
+
+                        <option>
+                            Other
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div>
+
+                    <label>
+                        Contractor
+                    </label>
+
+                    <input
+                        id="contractor"
+                        placeholder="Contractor name">
+
+                </div>
+
+
+                <div>
+
+                    <label>
+                        Contract ID
+                    </label>
+
+                    <input
+                        id="contractId"
+                        placeholder="e.g. 25PL0131">
+
+                </div>
+
+
+                <div>
+
+                    <label>
+                        Project Type
+                    </label>
+
+                    <select id="type">
+
+                        <option>
+                            New Construction
+                        </option>
+
+                        <option>
+                            Repair
+                        </option>
+
+                        <option>
+                            Last Mile School
+                        </option>
+
+                        <option>
+                            Health Facility
+                        </option>
+
+                        <option>
+                            Learning Media / Library Hub
+                        </option>
+
+                        <option>
+                            Electrification
+                        </option>
+
+                        <option>
+                            Other
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div>
+
+                    <label>
+                        Contract Amount (PHP)
+                    </label>
+
+                    <input
+                        id="amount"
+                        type="number"
+                        min="0"
+                        placeholder="0">
+
+                </div>
+
+
+                <div>
+
+                    <label>
+                        Planned Physical Accomplishment (%)
+                    </label>
+
+                    <input
+                        id="planned"
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.01"
+                        placeholder="75">
+
+                </div>
+
+
+                <div>
+
+                    <label>
+                        Actual Physical Accomplishment (%)
+                    </label>
+
+                    <input
+                        id="actual"
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.01"
+                        placeholder="68">
+
+                </div>
+
+
+                <div>
+
+                    <label>
+                        Financial Accomplishment (%)
+                    </label>
+
+                    <input
+                        id="financial"
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.01"
+                        placeholder="65">
+
+                </div>
+
+
+                <div>
+
+                    <label>
+                        Status
+                    </label>
+
+                    <select id="status">
+
+                        <option>
+                            Not Started
+                        </option>
+
+                        <option>
+                            Ongoing
+                        </option>
+
+                        <option>
+                            Completed
+                        </option>
+
+                        <option>
+                            Delayed
+                        </option>
+
+                        <option>
+                            Suspended
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div>
+
+                    <label>
+                        Target Completion Date
+                    </label>
+
+                    <input
+                        id="target"
+                        type="date">
+
+                </div>
+
+
+                <div class="full">
+
+                    <label>
+                        Remarks / Issues / Recommendations
+                    </label>
+
+                    <textarea
+                        id="remarks"
+                        placeholder="Site observations, slippage, defects, pending documents, recommendations, etc.">
+                    </textarea>
+
+                </div>
+
+
+            </div>
+
+
+            <div class="actions">
+
+                <button
+                    class="primary"
+                    type="submit">
+
+                    Save Project
+
+                </button>
+
+
+                <button
+                    class="secondary"
+                    type="button"
+                    onclick="clearForm()">
+
+                    Clear Form
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </section>
+
+
+    <!-- =========================
+         PERFORMANCE COMPARISON
+    ========================= -->
+
+    <section class="section">
+
+        <div class="section-title">
+            Performance Comparison
+        </div>
+
+
+        <div class="grid2">
+
+
+            <div class="compare">
+
+                <strong>
+                    AVERAGE PHYSICAL VARIANCE
+                </strong>
+
+                <div
+                    class="big"
+                    id="physicalVariance">
+
+                    0%
+
+                </div>
+
+                <div
+                    id="physicalRemark"
+                    class="muted">
+
+                    No project data.
+
+                </div>
+
+            </div>
+
+
+            <div class="compare">
+
+                <strong>
+                    PHYSICAL VS FINANCIAL
+                </strong>
+
+                <div
+                    class="big"
+                    id="financialVariance">
+
+                    0%
+
+                </div>
+
+                <div
+                    id="financialRemark"
+                    class="muted">
+
+                    No project data.
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         CHART
+    ========================= -->
+
+    <section class="section">
+
+        <div class="section-title">
+
+            Planned vs Actual Physical Accomplishment
+
+        </div>
+
+
+        <div
+            class="chart"
+            id="chart">
+
+            <div class="muted">
+
+                Add project records to display the chart.
+
+            </div>
+
+        </div>
+
+
+        <div class="legend">
+
+            <span>
+
+                <i
+                    class="dot"
+                    style="background:#94a3b8">
+                </i>
+
+                Planned
+
+            </span>
+
+
+            <span>
+
+                <i
+                    class="dot"
+                    style="background:#2563eb">
+                </i>
+
+                Actual
+
+            </span>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         RECENT / STALE
+    ========================= -->
+
+    <div class="grid2">
+
+
+        <section class="section">
+
+            <div class="section-title">
+
+                Recently Updated Projects
+
+            </div>
+
+
+            <div
+                id="recentList"
+                class="recent-list">
+            </div>
+
+        </section>
+
+
+        <section class="section">
+
+            <div class="section-title">
+
+                Stale Projects
+
+            </div>
+
+
+            <div
+                id="staleList"
+                class="stale-list">
+            </div>
+
+        </section>
+
+
+    </div>
+
+
+    <!-- =========================
+         PROJECT REGISTER
+    ========================= -->
+
+    <section class="section">
+
+
+        <div class="table-head">
+
+            <div
+                class="section-title"
+                style="margin:0">
+
+                Project Monitoring Register
+
+            </div>
+
+
+            <input
+                class="search"
+                id="search"
+                placeholder="Search project, school, agency..."
+                oninput="render()">
+
+        </div>
+
+
+        <div class="table-wrap">
+
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Project
+                        </th>
+
+                        <th>
+                            Location
+                        </th>
+
+                        <th>
+                            Agency
+                        </th>
+
+                        <th>
+                            Contract
+                        </th>
+
+                        <th>
+                            Planned
+                        </th>
+
+                        <th>
+                            Actual
+                        </th>
+
+                        <th>
+                            Variance
+                        </th>
+
+                        <th>
+                            Financial
+                        </th>
+
+                        <th>
+                            Status
+                        </th>
+
+                        <th>
+                            Target
+                        </th>
+
+                        <th>
+                            Last Updated
+                        </th>
+
+                        <th>
+                            Remarks
+                        </th>
+
+                        <th>
+                            Actions
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody id="tableBody">
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+
+</main>
+
+
+<script>
+
+/* =========================
+   STORAGE
+========================= */
+
+const STORAGE_KEY =
+    "infrastructureMonitoringProjects";
+
+
+let projects =
+    JSON.parse(
+        localStorage.getItem(STORAGE_KEY) || "[]"
+    );
+
+
+/* =========================
+   CURRENT DATE
+========================= */
+
+document.getElementById("today").textContent =
+    new Date().toLocaleDateString(
+        "en-PH",
+        {
+            year: "numeric",
+            month: "long",
+            day: "numeric"
+        }
+    );
+
+
+/* =========================
+   HELPER FUNCTIONS
+========================= */
+
+function val(id) {
+
+    return document
+        .getElementById(id)
+        .value;
+
+}
+
+
+function num(id) {
+
+    return Number(val(id)) || 0;
+
+}
+
+
+function escapeHTML(value) {
+
+    return String(value ?? "")
+
+        .replace(/&/g, "&amp;")
+
+        .replace(/</g, "&lt;")
+
+        .replace(/>/g, "&gt;")
+
+        .replace(/"/g, "&quot;")
+
+        .replace(/'/g, "&#039;");
+
+}
+
+
+function money(value) {
+
+    return new Intl.NumberFormat(
+        "en-PH",
+        {
+            style: "currency",
+            currency: "PHP",
+            maximumFractionDigits: 0
+        }
+    ).format(value || 0);
+
+}
+
+
+function daysSince(dateString) {
+
+    if (!dateString) {
+
+        return Infinity;
+
+    }
+
+
+    return (
+
+        Date.now() -
+        new Date(dateString).getTime()
+
+    ) / 86400000;
+
+}
+
+
+function statusClass(status) {
+
+    return {
+
+        "Ongoing":
+            "s-ongoing",
+
+        "Completed":
+            "s-completed",
+
+        "Delayed":
+            "s-delayed",
+
+        "Not Started":
+            "s-notstarted",
+
+        "Suspended":
+            "s-suspended"
+
+    }[status] || "s-notstarted";
+
+}
+
+
+/* =========================
+   SAVE PROJECT
+========================= */
+
+document
+    .getElementById("projectForm")
+    .addEventListener(
+        "submit",
+        function(e) {
+
+            e.preventDefault();
+
+
+            const editIndex =
+                val("editIndex");
+
+
+            const old =
+                editIndex !== ""
+                ? projects[
+                    Number(editIndex)
+                  ]
+                : null;
+
+
+            const project = {
+
+                name:
+                    val("name"),
+
+                location:
+                    val("location"),
+
+                agency:
+                    val("agency"),
+
+                contractor:
+                    val("contractor"),
+
+                contractId:
+                    val("contractId"),
+
+                type:
+                    val("type"),
+
+                amount:
+                    num("amount"),
+
+                planned:
+                    num("planned"),
+
+                actual:
+                    num("actual"),
+
+                financial:
+                    num("financial"),
+
+                status:
+                    val("status"),
+
+                target:
+                    val("target"),
+
+                remarks:
+                    val("remarks"),
+
+                lastUpdated:
+                    new Date().toISOString()
+
+            };
+
+
+            if (
+                old &&
+                old.lastUpdated
+            ) {
+
+                project.previousUpdated =
+                    old.lastUpdated;
+
+            }
+
+
+            if (editIndex !== "") {
+
+                projects[
+                    Number(editIndex)
+                ] = project;
+
+            } else {
+
+                projects.push(project);
+
+            }
+
+
+            save();
+
+            clearForm();
+
+            render();
+
+        }
+    );
+
+
+/* =========================
+   SAVE TO BROWSER
+========================= */
+
+function save() {
+
+    localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify(projects)
+    );
+
+}
+
+
+/* =========================
+   CLEAR FORM
+========================= */
+
+function clearForm() {
+
+    document
+        .getElementById("projectForm")
+        .reset();
+
+
+    document
+        .getElementById("editIndex")
+        .value = "";
+
+}
+
+
+/* =========================
+   EDIT PROJECT
+========================= */
+
+function editProject(index) {
+
+    const p =
+        projects[index];
+
+
+    document
+        .getElementById("editIndex")
+        .value = index;
+
+
+    document
+        .getElementById("name")
+        .value = p.name || "";
+
+
+    document
+        .getElementById("location")
+        .value =
+            p.location || "";
+
+
+    document
+        .getElementById("agency")
+        .value =
+            p.agency || "DPWH";
+
+
+    document
+        .getElementById("contractor")
+        .value =
+            p.contractor || "";
+
+
+    document
+        .getElementById("contractId")
+        .value =
+            p.contractId || "";
+
+
+    document
+        .getElementById("type")
+        .value =
+            p.type ||
+            "New Construction";
+
+
+    document
+        .getElementById("amount")
+        .value =
+            p.amount || "";
+
+
+    document
+        .getElementById("planned")
+        .value =
+            p.planned || "";
+
+
+    document
+        .getElementById("actual")
+        .value =
+            p.actual || "";
+
+
+    document
+        .getElementById("financial")
+        .value =
+            p.financial || "";
+
+
+    document
+        .getElementById("status")
+        .value =
+            p.status || "Ongoing";
+
+
+    document
+        .getElementById("target")
+        .value =
+            p.target || "";
+
+
+    document
+        .getElementById("remarks")
+        .value =
+            p.remarks || "";
+
+
+    window.scrollTo({
+
+        top: 0,
+
+        behavior: "smooth"
+
+    });
+
+}
+
+
+/* =========================
+   DELETE PROJECT
+========================= */
+
+function deleteProject(index) {
+
+    if (
+        confirm(
+            "Delete this project record?"
+        )
+    ) {
+
+        projects.splice(
+            index,
+            1
+        );
+
+
+        save();
+
+        render();
+
+    }
+
+}
+
+
+/* =========================
+   DASHBOARD
+========================= */
+
+function updateDashboard() {
+
+    const total =
+        projects.length;
+
+
+    const ongoing =
+        projects.filter(
+            p =>
+                p.status ===
+                "Ongoing"
+        ).length;
+
+
+    const completed =
+        projects.filter(
+            p =>
+                p.status ===
+                "Completed"
+        ).length;
+
+
+    const delayed =
+        projects.filter(
+            p =>
+                p.status ===
+                "Delayed"
+        ).length;
+
+
+    const recent =
+        projects.filter(
+            p =>
+                daysSince(
+                    p.lastUpdated
+                ) <= 7
+        ).length;
+
+
+    const stale =
+        projects.filter(
+            p =>
+                daysSince(
+                    p.lastUpdated
+                ) > 14
+        ).length;
+
+
+    const avg =
+        total
+
+        ?
+
+        projects.reduce(
+            (
+                sum,
+                p
+            ) =>
+                sum + p.actual,
+            0
+        ) / total
+
+        :
+
+        0;
+
+
+    document
+        .getElementById("total")
+        .textContent =
+            total;
+
+
+    document
+        .getElementById("ongoing")
+        .textContent =
+            ongoing;
+
+
+    document
+        .getElementById("completed")
+        .textContent =
+            completed;
+
+
+    document
+        .getElementById("delayed")
+        .textContent =
+            delayed;
+
+
+    document
+        .getElementById("average")
+        .textContent =
+            avg.toFixed(1)
+            + "%";
+
+
+    document
+        .getElementById("recent")
+        .textContent =
+            recent;
+
+
+    document
+        .getElementById("stale")
+        .textContent =
+            stale;
+
+
+    /* =========================
+       COMPARISON
+    ========================= */
+
+    if (total) {
+
+        const planned =
+            projects.reduce(
+                (s,p) =>
+                    s + p.planned,
+                0
+            ) / total;
+
+
+        const actual =
+            projects.reduce(
+                (s,p) =>
+                    s + p.actual,
+                0
+            ) / total;
+
+
+        const financial =
+            projects.reduce(
+                (s,p) =>
+                    s + p.financial,
+                0
+            ) / total;
+
+
+        const physicalVariance =
+            actual - planned;
+
+
+        const financialVariance =
+            actual - financial;
+
+
+        const pv =
+            document
+                .getElementById(
+                    "physicalVariance"
+                );
+
+
+        pv.textContent =
+
+            (
+                physicalVariance >= 0
+                ? "+"
+                : ""
+            )
+
+            +
+
+            physicalVariance.toFixed(1)
+
+            +
+
+            "%";
+
+
+        pv.className =
+            "big "
+
+            +
+
+            (
+                physicalVariance >= 0
+                ? "green"
+                : "red"
+            );
+
+
+        document
+            .getElementById(
+                "physicalRemark"
+            )
+            .textContent =
+
+            physicalVariance >= 0
+
+            ?
+
+            "Average actual accomplishment is at or above plan."
+
+            :
+
+            "Average actual accomplishment is below plan.";
+
+
+        const fv =
+            document
+                .getElementById(
+                    "financialVariance"
+                );
+
+
+        fv.textContent =
+
+            (
+                financialVariance >= 0
+                ? "+"
+                : ""
+            )
+
+            +
+
+            financialVariance.toFixed(1)
+
+            +
+
+            "%";
+
+
+        fv.className =
+            "big "
+
+            +
+
+            (
+                financialVariance >= 0
+                ? "green"
+                : "red"
+            );
+
+
+        document
+            .getElementById(
+                "financialRemark"
+            )
+            .textContent =
+
+            financialVariance >= 0
+
+            ?
+
+            "Physical accomplishment is higher than financial accomplishment."
+
+            :
+
+            "Financial accomplishment is higher than physical accomplishment.";
+
+    }
+
+}
+
+
+/* =========================
+   BAR CHART
+========================= */
+
+function renderChart() {
+
+    const chart =
+        document
+            .getElementById(
+                "chart"
+            );
+
+
+    chart.innerHTML = "";
+
+
+    if (!projects.length) {
+
+        chart.innerHTML =
+            '<div class="muted">' +
+            'Add project records to display the chart.' +
+            '</div>';
+
+        return;
+
+    }
+
+
+    projects.forEach(
+        p => {
+
+            const group =
+                document
+                    .createElement(
+                        "div"
+                    );
+
+
+            group.className =
+                "bar-group";
+
+
+            const planned =
+                document
+                    .createElement(
+                        "div"
+                    );
+
+
+            planned.className =
+                "bar planned";
+
+
+            planned.style.height =
+
+                Math.max(
+                    3,
+                    Math.min(
+                        100,
+                        p.planned
+                    )
+                )
+
+                +
+
+                "%";
+
+
+            planned.title =
+                "Planned: "
+                +
+                p.planned
+                +
+                "%";
+
+
+            const actual =
+                document
+                    .createElement(
+                        "div"
+                    );
+
+
+            actual.className =
+                "bar actual";
+
+
+            actual.style.height =
+
+                Math.max(
+                    3,
+                    Math.min(
+                        100,
+                        p.actual
+                    )
+                )
+
+                +
+
+                "%";
+
+
+            actual.title =
+                "Actual: "
+                +
+                p.actual
+                +
+                "%";
+
+
+            const label =
+                document
+                    .createElement(
+                        "div"
+                    );
+
+
+            label.className =
+                "bar-label";
+
+
+            label.textContent =
+                p.name;
+
+
+            group.append(
+                planned,
+                actual,
+                label
+            );
+
+
+            chart.appendChild(
+                group
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================
+   FORMAT UPDATE DATE
+========================= */
+
+function formatUpdated(
+    dateString
+) {
+
+    if (!dateString) {
+
+        return `
+            <span
+                style="
+                    color:#dc2626;
+                    font-weight:700
+                ">
+
+                No update
+
+            </span>
+        `;
+
+    }
+
+
+    const days =
+        daysSince(
+            dateString
+        );
+
+
+    const date =
+        new Date(
+            dateString
+        )
+        .toLocaleDateString(
+            "en-PH",
+            {
+                year:
+                    "numeric",
+
+                month:
+                    "short",
+
+                day:
+                    "numeric"
+            }
+        );
+
+
+    if (days <= 7) {
+
+        return `
+
+            <strong
+                style="
+                    color:#16a34a
+                ">
+
+                ${date}
+
+            </strong>
+
+            <br>
+
+            <small
+                style="
+                    color:#16a34a
+                ">
+
+                Recent
+
+            </small>
+
+        `;
+
+    }
+
+
+    if (days <= 14) {
+
+        return `
+
+            <strong
+                style="
+                    color:#ca8a04
+                ">
+
+                ${date}
+
+            </strong>
+
+            <br>
+
+            <small
+                style="
+                    color:#ca8a04
+                ">
+
+                Needs update
+
+            </small>
+
+        `;
+
+    }
+
+
+    return `
+
+        <strong
+            style="
+                color:#dc2626
+            ">
+
+            ${date}
+
+        </strong>
+
+        <br>
+
+        <small
+            style="
+                color:#dc2626
+            ">
+
+            STALE
+
+        </small>
+
+    `;
+
+}
+
+
+/* =========================
+   RECENT / STALE LISTS
+========================= */
+
+function renderActivityLists() {
+
+    const recentList =
+        document
+            .getElementById(
+                "recentList"
+            );
+
+
+    const staleList =
+        document
+            .getElementById(
+                "staleList"
+            );
+
+
+    const recent =
+
+        [...projects]
+
+        .filter(
+            p =>
+                daysSince(
+                    p.lastUpdated
+                ) <= 7
+        )
+
+        .sort(
+            (
+                a,
+                b
+            ) =>
+
+                new Date(
+                    b.lastUpdated
+                )
+
+                -
+
+                new Date(
+                    a.lastUpdated
+                )
+        );
+
+
+    const stale =
+
+        [...projects]
+
+        .filter(
+            p =>
+                daysSince(
+                    p.lastUpdated
+                ) > 14
+        )
+
+        .sort(
+            (
+                a,
+                b
+            ) =>
+
+                daysSince(
+                    b.lastUpdated
+                )
+
+                -
+
+                daysSince(
+                    a.lastUpdated
+                )
+        );
+
+
+    recentList.innerHTML =
+
+        recent.length
+
+        ?
+
+        recent.map(
+            p => `
+
+                <div
+                    class="activity recent">
+
+                    <div>
+
+                        <strong>
+                            ${escapeHTML(
+                                p.name
+                            )}
+                        </strong>
+
+                        <br>
+
+                        <small>
+                            ${escapeHTML(
+                                p.location
+                            )}
+                        </small>
+
+                    </div>
+
+                    <small>
+
+                        ${
+                            Math.floor(
+                                daysSince(
+                                    p.lastUpdated
+                                )
+                            ) === 0
+
+                            ?
+
+                            "Today"
+
+                            :
+
+                            Math.floor(
+                                daysSince(
+                                    p.lastUpdated
+                                )
+                            )
+                            +
+                            " day(s) ago"
+                        }
+
+                    </small>
+
+                </div>
+
+            `
+        ).join("")
+
+        :
+
+        '<div class="muted">No recently updated projects.</div>';
+
+
+    staleList.innerHTML =
+
+        stale.length
+
+        ?
+
+        stale.map(
+            p => `
+
+                <div
+                    class="activity stale">
+
+                    <div>
+
+                        <strong>
+                            ${escapeHTML(
+                                p.name
+                            )}
+                        </strong>
+
+                        <br>
+
+                        <small>
+                            ${escapeHTML(
+                                p.location
+                            )}
+                        </small>
+
+                    </div>
+
+                    <small
+                        style="
+                            color:#dc2626;
+                            font-weight:700
+                        ">
+
+                        ${
+                            Math.floor(
+                                daysSince(
+                                    p.lastUpdated
+                                )
+                            )
+                        }
+
+                        day(s) ago
+
+                    </small>
+
+                </div>
+
+            `
+        ).join("")
+
+        :
+
+        '<div class="muted">No stale projects.</div>';
+
+}
+
+
+/* =========================
+   PROJECT TABLE
+========================= */
+
+function renderTable() {
+
+    const body =
+        document
+            .getElementById(
+                "tableBody"
+            );
+
+
+    const search =
+        val("search")
+            .toLowerCase();
+
+
+    body.innerHTML = "";
+
+
+    projects.forEach(
+        (
+            p,
+            i
+        ) => {
+
+            const text =
+
+                `${p.name}
+                 ${p.location}
+                 ${p.agency}
+                 ${p.contractId}
+                 ${p.status}`
+
+                .toLowerCase();
+
+
+            if (
+                !text.includes(
+                    search
+                )
+            ) {
+
+                return;
+
+            }
+
+
+            const variance =
+                p.actual -
+                p.planned;
+
+
+            const varianceColor =
+
+                variance >= 0
+
+                ?
+
+                "#16a34a"
+
+                :
+
+                "#dc2626";
+
+
+            body.innerHTML += `
+
+                <tr>
+
+                    <td>
+
+                        <strong>
+                            ${escapeHTML(
+                                p.name
+                            )}
+                        </strong>
+
+                        <br>
+
+                        <small>
+                            ${escapeHTML(
+                                p.contractId ||
+                                ""
+                            )}
+                        </small>
+
+                    </td>
+
+
+                    <td>
+                        ${escapeHTML(
+                            p.location
+                        )}
+                    </td>
+
+
+                    <td>
+                        ${escapeHTML(
+                            p.agency
+                        )}
+                    </td>
+
+
+                    <td>
+                        ${money(
+                            p.amount
+                        )}
+                    </td>
+
+
+                    <td>
+                        ${p.planned.toFixed(
+                            1
+                        )}%
+                    </td>
+
+
+                    <td>
+
+                        ${p.actual.toFixed(
+                            1
+                        )}%
+
+                        <div
+                            class="progress">
+
+                            <div
+                                style="
+                                    width:
+                                    ${Math.min(
+                                        100,
+                                        Math.max(
+                                            0,
+                                            p.actual
+                                        )
+                                    )}%
+                                ">
+                            </div>
+
+                        </div>
+
+                    </td>
+
+
+                    <td
+                        style="
+                            color:
+                            ${varianceColor};
+                            font-weight:700
+                        ">
+
+                        ${
+                            variance >= 0
+                            ? "+"
+                            : ""
+                        }
+
+                        ${variance.toFixed(
+                            1
+                        )}%
+
+                    </td>
+
+
+                    <td>
+                        ${p.financial.toFixed(
+                            1
+                        )}%
+                    </td>
+
+
+                    <td>
+
+                        <span
+                            class="
+                                status
+                                ${statusClass(
+                                    p.status
+                                )}
+                            ">
+
+                            ${escapeHTML(
+                                p.status
+                            )}
+
+                        </span>
+
+                    </td>
+
+
+                    <td>
+                        ${escapeHTML(
+                            p.target ||
+                            "-"
+                        )}
+                    </td>
+
+
+                    <td>
+                        ${formatUpdated(
+                            p.lastUpdated
+                        )}
+                    </td>
+
+
+                    <td
+                        style="
+                            max-width:240px
+                        ">
+
+                        ${escapeHTML(
+                            p.remarks ||
+                            "-"
+                        )}
+
+                    </td>
+
+
+                    <td>
+
+                        <button
+                            class="secondary"
+                            onclick="
+                                editProject(
+                                    ${i}
+                                )
+                            ">
+
+                            Edit
+
+                        </button>
+
+
+                        <button
+                            class="danger"
+                            onclick="
+                                deleteProject(
+                                    ${i}
+                                )
+                            ">
+
+                            Delete
+
+                        </button>
+
+                    </td>
+
+                </tr>
+
+            `;
+
+        }
+    );
+
+}
+
+
+/* =========================
+   RENDER EVERYTHING
+========================= */
+
+function render() {
+
+    updateDashboard();
+
+    renderChart();
+
+    renderActivityLists();
+
+    renderTable();
+
+}
+
+
+/* =========================
+   START APPLICATION
+========================= */
+
+render();
+
+</script>
+
+</body>
+</html>
