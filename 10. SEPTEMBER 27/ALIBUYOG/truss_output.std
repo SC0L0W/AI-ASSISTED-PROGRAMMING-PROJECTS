@@ -1,0 +1,126 @@
+STAAD TRUSS DXF IMPORT OF DRAWING1
+START JOB INFORMATION
+ENGINEER DATE 27-Sep-26
+END JOB INFORMATION
+SET Y UP
+INPUT WIDTH 79
+UNIT METER KN
+JOINT COORDINATES
+1 0 0 0; 2 2 0 0; 3 4 0 0;
+4 6 0 0; 5 8 0 0; 6 10 0 0;
+7 12 0 0; 8 14 0 0; 9 16 0 0;
+10 2 0.5 0; 11 4 1 0; 12 6 1.5 0;
+13 8 2 0; 14 10 1.5 0; 15 12 1 0;
+16 14 0.5 0;
+MEMBER INCIDENCES
+100 1 10; 101 10 11; 102 11 12; 103 12 13; 104 13 14; 105 14 15; 106 15 16; 107 16 9;
+200 1 2; 201 2 3; 202 3 4; 203 4 5; 204 5 6; 205 6 7; 206 7 8; 207 8 9;
+300 2 10; 301 3 11; 302 4 12; 303 5 13; 304 6 14; 305 7 15; 306 8 16; 400 3 10;
+401 4 11; 402 5 12; 403 5 14; 404 6 15; 405 7 16;
+START GROUP DEFINITION
+GEOMETRY
+MEMBER
+_TOPCHORD 100 TO 107
+_BOTTOMCHORD 200 TO 207
+_VERTICALWEB 300 TO 306
+_DIAGONALWEB 400 TO 405
+_TOPCHORDLEFT 100 TO 103
+_TOPCHORDRIGHT 104 TO 107
+END GROUP DEFINITION
+SUPPORTS
+1 9 PINNED
+*==========================================================
+* MATERIAL
+*==========================================================
+DEFINE MATERIAL START
+ISOTROPIC MATERIAL1
+E 2e+08
+POISSON 0.3
+DENSITY 76.8195
+ALPHA 1.2e-05
+G 7.69231e+07
+ISOTROPIC STEEL
+E 1.99947e+08
+POISSON 0.3
+DENSITY 76.8191
+ALPHA 6.5e-06
+DAMP 0.03
+G 7.7221e+07
+TYPE STEEL
+STRENGTH FY 248000 FU 400000 RY 1.5 RT 1.2
+END DEFINE MATERIAL
+MEMBER PROPERTY 'US (AISC 2023).DB3'
+_TOPCHORD TABLE 'ANGLE' LD 'L2-1/2X2-1/2X3/16'
+_BOTTOMCHORD TABLE 'ANGLE' LD 'L2-1/2X2-1/2X3/16'
+_VERTICALWEB TABLE 'ANGLE' LD 'L2-1/2X2-1/2X3/16'
+_DIAGONALWEB TABLE 'ANGLE' LD 'L2X2X1/8'
+CONSTANTS
+MATERIAL STEEL ALL
+*==========================================================
+* TRUSS MEMBERS - AXIAL ONLY
+*==========================================================
+MEMBER TRUSS
+100 101 102 103 104 105 106 107 200 201 202 203 204 205 206 207 300 301 302 303 304 305 306 400 401 402 403 404 405
+*==========================================================
+* LOAD 1 - DEAD LOAD
+*==========================================================
+LOAD 1 LOADTYPE Dead  TITLE DEAD LOAD
+SELFWEIGHT Y -1
+MEMBER LOAD
+_TOPCHORD UNI PY -1
+_BOTTOMCHORD UNI PY -1
+*==========================================================
+* LOAD 2 - ROOF LIVE LOAD
+*==========================================================
+LOAD 2 LOADTYPE Live  TITLE ROOF LIVE LOAD
+MEMBER LOAD
+_TOPCHORD UNI PY -1
+*==========================================================
+* LOAD 3 - TRANSVERSE WIND
+*==========================================================
+LOAD 3 LOADTYPE Wind  TITLE WIND 1
+MEMBER LOAD
+_TOPCHORDLEFT UNI Y 6
+_TOPCHORDRIGHT UNI Y 9
+*==========================================================
+* LOAD 4 - LONGITUDINAL WIND
+*==========================================================
+LOAD 4 LOADTYPE Wind  TITLE WIND 2
+MEMBER LOAD
+_TOPCHORD UNI Y 8
+*==========================================================
+* LOAD COMBINATIONS
+*==========================================================
+LOAD COMB 5 1.0D
+1 1
+LOAD COMB 6 1.0D + 1.0L
+1 1 2 1
+LOAD COMB 7 1.0D + 0.75L + 0.45W1
+1 1 2 0.75 3 0.45
+LOAD COMB 8 1.0D + 0.75L + 0.45W2
+1 1 2 0.75 4 0.45
+LOAD COMB 9 1.0D + 0.60W1
+1 1 3 0.6
+LOAD COMB 10 1.0D + 0.60W2
+1 1 4 0.6
+LOAD COMB 11 0.60D + 0.60W1
+1 0.6 3 0.6
+LOAD COMB 12 0.60D + 0.60W2
+1 0.6 4 0.6
+*==========================================================
+* ANALYSIS
+*==========================================================
+PERFORM ANALYSIS
+PRINT SUPPORT REACTION
+PRINT MEMBER FORCES
+PRINT JOINT DISPLACEMENTS
+*==========================================================
+* STEEL DESIGN
+*==========================================================
+PARAMETER 1
+CODE AISC UNIFIED 2010
+FYLD 248000 ALL
+FU 400000 ALL
+TRACK 0 ALL
+CHECK CODE ALL
+FINISH
